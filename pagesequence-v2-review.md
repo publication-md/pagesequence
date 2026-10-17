@@ -30,19 +30,31 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 2. Normalisation guarantees
 
-- [ ] **2.1 Make equality and normal form agree.** `equals` ignores case but the normal form
-  keeps it, so `Omslag, 2` and `omslag, 2` are equal with different normal forms. Choose one:
-  - [ ] 2.1a The claim becomes "equal exactly when normal forms are equal, ignoring case".
-  - [ ] 2.1b `equals` becomes case-sensitive; only label lookup ignores case.
-- [ ] **2.2 Specify what happens when a fold doesn't round-trip.** In `V, W, X` each pair
-  continues as letters, but `V-X` reads back as roman (V–X, 6 labels). Specify a deterministic
-  rule: greedy left to right, take the longest fold that round-trips, list what's left. Drop
-  "shortest" from the claims, or qualify it.
-- [ ] **2.3 Merge the two continuation rules.** Step 2's "same shape" rule (line 208) and the
-  "Effect on normalisation" round-trip rule (line 141) become one definition.
-- [ ] **2.5 Clarify or remove "spelling of their first occurrence"** (step 3, line 216).
-- [ ] **2.6 State that normal forms can change between versions** (a new numbering system can
-  fold what used to be listed), so publication-md compares with `equals`, never by string.
+- [x] **2.1 Make equality and normal form agree.** Applied as 2.1b: `equals` compares labels
+  exactly, case included; only label lookup (`getIndexList(pages)`, `getLabelList(pages)`)
+  ignores case. Changed in the Syntax rules, algorithm step 1 and the API.
+- [x] **2.2 Specify what happens when a fold doesn't round-trip.** Applied: step 2 scans left to
+  right and at each page takes the longest stretch that folds (the longest, not the one before the
+  first failure, since `V-Y` folds where `V-X` doesn't). "Shortest" is now "short": never longer
+  than the plain list, and the shortest in the usual case. New examples: `V, W, X` → `V-W, X`,
+  `V, W, X, Y` → `V-Y`, `I, J, …, X` → `I-W, X`.
+- [x] **2.3 Merge the two continuation rules.** Applied: step 2 has one rule. A stretch (same
+  ignored flag, same number of labels) folds when writing it as one item and expanding it gives
+  the same pages back; that covers stepping, label kinds, prefixes, case and the hierarchy. "Effect
+  on normalisation" now points to step 2, and "Why it is unique" is rewritten to match.
+- [x] **2.5 "Spelling of their first occurrence".** Applied: removed from `normalize`, which
+  never respells a label. Respelling to the case of the first label of a stretch is now one of
+  the `clean` repairs (`I, ii, III` → `I-III`).
+- [x] **2.6 Normal forms can change between versions.** Applied in "Effect on normalisation"
+  (a new Cyrillic system would fold `"Табл. А", "Табл. Б", "Табл. В"`), in the introduction to
+  Normalisation ("written by the same version"), in the strict paragraph (`normalize(x) === x`
+  checks against the running version) and in the API (publication-md compares with `equals`,
+  never as strings).
+- [x] **2.7 Two normalisation modes.** Applied as 2.7a: strict `normalize(text) → string` and
+  `clean(text) → { normalized, repairs }` for user input. New paragraph "Strict and cleaning"
+  under Normalisation with the repair list; the en dash and all other variant spellings are
+  accepted only by `clean`. Also added to the API list and to `cases.json` (`cleaned`,
+  `repairs`), and open question 4 (en dash) is closed.
 
 ## 3. Gaps that two implementations would fill differently
 
@@ -72,7 +84,7 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 4. Numbering hierarchy
 
-- [ ] **4.1 Fix the exception examples** (line 133). `A-D` and `C-E` could never be roman. Use
+- [ ] **4.1 Fix the exception examples** (line 134). `A-D` and `C-E` could never be roman. Use
   `C-D`, `L-M`, `C-M`.
 - [ ] **4.2 Apply the single-letter exception only when both ends are single letters.**
   Otherwise `L-LX` becomes a letter range of 325 labels instead of roman 50–60.
@@ -86,7 +98,7 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
   - [ ] 4.5a No wrap: `Z` is the last letter, `Y-AB` is an error.
   - [ ] 4.5b Keep the bijective wrap (`Z` → `AA`), and say explicitly that Å Ä Ö are not letters
     in this system.
-- [ ] **4.6 Versioning rule for new systems** (line 150). A new system must use characters no
+- [ ] **4.6 Versioning rule for new systems** (line 148). A new system must use characters no
   existing system uses. Then it only gives meaning to strings that were invalid, and that is a
   minor version. Anything that changes how a valid string reads is a major version.
 
@@ -98,32 +110,34 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 6. Errors in the document
 
-- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 180);
-  2007-1 is 27 groups, not 26 (line 160).
-- [ ] **6.2 1986-1** (line 172). Use the test data (`PageSequence.test.ts:163`): v1
+- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 182);
+  2007-1 is 27 groups, not 26 (line 162).
+- [ ] **6.2 1986-1** (line 174). Use the test data (`PageSequence.test.ts:163`): v1
   `1-20 | 29,21-28, !29,30-48`, v2 `1-19, 20+29, 21-28, !29, 30-48`.
-- [ ] **6.3 1978-2** (line 174). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
+- [ ] **6.3 1978-2** (line 176). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
   Use the tests' `1-11, inflikat.0-inflikat.11, 12-24` (or tell me the proposal's version is the
   real one).
-- [ ] **6.4 En dash.** Close open question 4 (line 352): it is already decided in normalisation
-  step 3 (line 216).
 - [ ] **6.5 Display.** With `+` the display is the notation, except that quotes are dropped
   (`"Omslag, insida"+2` is shown `Omslag, insida+2`). Say so instead of "no extra rule is
-  needed" (line 67).
+  needed" (line 68).
 - [ ] **6.7 Add Grottan examples** 1973-1 (`1-9, 10+11, 10a, 10b+10c, 10d, !11, 12-20`) and
   1990-1 (`I-VIII, 3-22, IX-XVI`, the same in v1 and v2).
 
 ## 7. Distribution
 
-- [ ] **7.1 v1 is on JSR, not "Deno".** Fix the wording, and consider publishing v2 to JSR too
-  (`@publication-md/pagesequence`), next to npm.
-- [ ] **7.2 npm first publish.** Note that, as far as I know, npm trusted publishing can only be
-  set up for an existing package, so the first publish needs a token (PyPI has pending
-  publishers). To verify before release.
+- [x] **7.1 v1 is on JSR, not "Deno".** Applied, and checked: `@tvartom/pagesequence` 1.3.3 is
+  on jsr.io. v2's TypeScript package is now published to JSR as well as npm (repository layout,
+  Publishing, Deno users import from `jsr:`).
+- [x] **7.2 npm first publish.** Applied. npm's docs say trusted publishing is set up in the
+  package's settings and needs npm CLI 11.5.1 or later; they don't say outright that the package
+  must exist first, so the proposal says "seems to" and keeps "verify before release". Also
+  dropped `--provenance`: with trusted publishing, npm generates provenance automatically. PyPI's
+  pending publishers are now mentioned.
 - [ ] **7.3 Split distribution out of the spec.** Move "Distribution and implementations" to a
   separate document, since `spec/` is this document under CC0.
-- [ ] **7.4 Add a property test** in both languages: random page model → `normalize` → parse →
-  same model.
+- [x] **7.4 Add property tests.** Applied: a new "Property tests" section after "Shared test
+  data", with the generator, five properties (round trip, idempotent, unique, not longer, `clean`
+  agrees) and the rule that shrunk failures are added to `cases.json`.
 
 ## Resolved or no longer relevant after 1.3
 
@@ -141,6 +155,7 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 - **5.4 Quick syntax check:** removed; the version is never guessed.
 - **5.5 Grammar for `pages` references:** a `pages` reference is parsed as a sequence, as in v1,
   and the notation is the same in both.
+- **6.4 En dash:** settled by 2.7. Only `clean` accepts it, and open question 4 is removed.
 - **6.6 The "s. 20,29" argument:** removed from problem 1.
 - Also fixed while rewriting: the quoted-label example said `"Omslag, insida"; 2..31` "gives two
   PDF pages"; it is 31.

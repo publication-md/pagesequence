@@ -47,8 +47,9 @@ quoted    = '"' { char | '\\"' | '\\\\' } '"'   any text; \" is a quote, \\ a ba
   ranges and runs like any other label (see "Numbering").
 - Spaces inside a label are allowed without quotes (`Appendix A - Appendix C`); the normal form
   quotes such labels (`"Appendix A"-"Appendix C"`), so the label boundaries are explicit.
-- A label keeps its case as written (`iv`, `Omslag`, `inflikat.8`). Matching is case-insensitive,
-  as in v1.
+- A label keeps its case as written (`iv`, `Omslag`, `inflikat.8`). Looking up a label
+  (`getIndexList(pages)`, `getLabelList(pages)`) is case-insensitive, as in v1; comparing two
+  sequences is not (see `equals`).
 - **Ranges (`-`)** expand from the first label to the last, one PDF page per label, as in v1:
   - `1-16` is 16 PDF pages: 1, 2, …, 16.
   - `i-iv` and `A-D` work as roman numeral and letter ranges.
@@ -136,19 +137,20 @@ alphabetical, not roman 100–500, while `I-III` and `V-X` stay roman. More syst
 ### Effect on normalisation
 
 `normalize` must not write a range or run that reads back differently, for example `C, D, E`
-written as `C-E` must not turn into something roman. So:
+written as `C-E` must not turn into something roman. So a fold is checked by **round trip**
+(normalisation step 2): a stretch of pages is written as one range or run only if expanding that
+range or run gives exactly the same pages. This keeps the form correct whatever systems are
+registered.
 
-- Folding is checked by **round trip**. A stretch of pages is written as `a-b` (or `P..Q`) only if
-  expanding it with the hierarchy gives exactly those pages. Otherwise it stays listed. This keeps
-  the form unique and correct whatever systems are registered.
-- Breaks are still where neighbours don't continue each other. A neighbour continues when the
-  two-page range (or run) from it to the next page expands to exactly those two pages. The
-  partition stays deterministic.
 - Quoting follows rule 4. The diff works on the unquoted text, so
   `"Plansch A"-"Plansch D"` and the quoted list give the same normal form.
 - Changing the hierarchy, for example adding a system, can change how an existing string reads.
   So the hierarchy is part of the format version, and a new system means a minor version of
   PageSequence plus a check that all stored sequences still expand the same.
+- It can also change the normal form of an unchanged model: a new system can fold what an
+  earlier version listed. With a Cyrillic system, `"Табл. А", "Табл. Б", "Табл. В"` would become
+  `"Табл. А"-"Табл. В"`. So a normal form is tied to the version that wrote it, and stored
+  sequences are compared with `equals`, never as strings.
 
 ## Grottan examples
 
@@ -195,39 +197,45 @@ The 24-group line from the brief, `1,2|3,4|5,6|…|47,48`, becomes `1, 2+3..46+4
 ## Normalisation and comparison
 
 The same sequence can be written in several ways: `1,2,3` and `1-3`, `1-3, 4-6` and `1-6`,
-`1 , 2+3 .. 4+5` and `1, 2+3..4+5`. `normalize()` always writes the same, shortest string for a
-sequence, so two sequences are equal exactly when their normal forms are equal.
+`1 , 2+3 .. 4+5` and `1, 2+3..4+5`. `normalize()` always writes the same short string for a
+sequence, so two sequences are equal exactly when their normal forms, written by the same
+version, are equal.
 
 **Algorithm.**
 
 1. **Expand** to the canonical model: a list of PDF pages, each `{ignored, labels[]}`, every range
    and run written out. This model *is* the meaning. `equals(a, b)` compares models (labels
-   case-insensitive) and needs no string at all.
-2. **Fold ranges and runs.** Scan the pages left to right. Two neighbouring pages continue each
-   other when:
-   - they have the same *shape*: the same ignored flag, the same number of labels, the same
-     label kinds and the same prefixes;
-   - every label steps by the number of labels on the page (`2+3` → `4+5`, `1` → `2`).
+   exactly, case included) and needs no string at all.
+2. **Fold ranges and runs.** A *stretch* is a series of neighbouring pages with the same ignored
+   flag and the same number of labels. A stretch *folds* when writing it as one item
+   (`first-last` for one label per page, `first..last` for several, with `!` if the pages are
+   ignored) and expanding that item gives exactly the same pages back, labels compared exactly.
+   This one round-trip rule covers stepping (`2+3` → `4+5`, `1` → `2`), label kinds, prefixes,
+   case and the hierarchy.
 
-   Each maximal stretch of pages with one label each, 2 or more pages long, becomes `first-last`
-   (`1-2` beats `1, 2`). Each maximal stretch of pages with several labels each, 3 or more pages
-   long, becomes `first..last`. Two such pages stay as `P, Q`, which is as short as `P..Q`.
-3. **Join** the items with `, ` (one space after `,`), with no other whitespace. Labels keep the
-   spelling of their first occurrence, and an en dash `–` in a range in the input becomes `-`.
+   Scan the pages left to right. At each page, take the longest stretch starting there that
+   folds; the longest, not the one before the first failure, because a longer stretch can fold
+   when a shorter one doesn't (`V-Y` folds, `V-X` reads as roman). Write it as one item if it is
+   long enough: 2 or more pages with one label each (`1-2` beats `1, 2`), 3 or more pages with
+   several labels each (`2+3, 4+5` is as short as `2+3..4+5`). Otherwise write the page on its
+   own. Then go on after what was written.
+3. **Join** the items with `, ` (one space after `,`), with no other whitespace. Labels are
+   written exactly as in the input; `normalize` never respells a label.
 4. **Quote when needed or when the label contains a space.** A label is written in quotes
    exactly when it would otherwise not read back as the same single label (it contains a
    separator, `!`, `"` or edge spaces) or when it contains a space, with `"` and `\` escaped. So
    `"Omslag"` normalises to `Omslag`, `Appendix A` always to `"Appendix A"`, and `My "label" - 1`
    always to `"My \"label\" - 1"`.
 
-**Why it is unique.** Step 1 removes every difference in notation. Step 2 is deterministic:
-breaks fall exactly where two neighbouring pages do *not* continue each other, so the maximal
-stretches are a fixed partition of the sequence, whatever the input looked like.
+**Why it is unique.** Step 1 removes every difference in notation, and steps 2–4 depend only on
+the model, so the same model always gives the same string, whatever the input looked like.
 
-**Why it is shortest.** Apart from the quotes that step 4 adds to labels with spaces: within that
-partition, `a-b` is always one character shorter than `a, b`,
-and `P..Q` is as long as `P, Q` and shorter from 3 pages on. A stretch can't be merged with its
-neighbour (by definition the neighbour breaks it).
+**Why it is short.** Apart from the quotes that step 4 adds to labels with spaces, the normal
+form is never longer than the plain list: a fold is only used where it is shorter (`a-b` is one
+character shorter than `a, b`; `P..Q` is shorter than the list from 3 pages on). It is also the
+shortest form in the usual case, where a stretch folds whenever each pair of neighbours in it
+does. The exception is a stretch that the hierarchy reads differently as a whole, like
+`V, W, X`: the result is still deterministic, but not always the shortest possible.
 
 **Examples.**
 
@@ -239,16 +247,50 @@ neighbour (by definition the neighbour breaks it).
 - `1, 2` → `1-2`, but `2+3, 4+5` stays: a run of two spreads is not shorter
 - `"Omslag", 2-31` → `Omslag, 2-31` (the quotes were not needed)
 - `Appendix A - Appendix C` → `"Appendix A"-"Appendix C"` (the labels contain a space)
+- `I, ii, III` stays as it is: the labels differ in case, so they don't continue each other
+- `V, W, X` → `V-W, X`: `V-X` would read as roman (V, VI, …, X)
+- `V, W, X, Y` → `V-Y`: `V-Y` folds as letters, because `Y` is not a roman numeral
+- the 16 letters `I, J, …, W, X` → `I-W, X`: `I-X` would read as roman
+- `1–52` (en dash) is an error; `clean` repairs it
+
+**Strict and cleaning.** `normalize` is strict: it accepts exactly the grammar above and nothing
+else, and it is what stored data, publication-md and validate use. To check that a stored value is
+already in normal form, compare `normalize(x)` with `x`; this checks against the version that is
+running.
+
+`clean` is for input typed or pasted by a person, in a form for example. It repairs notation that
+has exactly one reading and then normalises strictly. It never guesses meaning: input with two
+readings is still an error. The repairs:
+
+- `–` `—` `−` between labels → `-`
+- `;` between items → `,`
+- `|` between two single labels → `+` (a habit from v1); next to a range it stays an error
+- `…` → `..`
+- `..` between single labels → `-`
+- curly quotes `“ ” „` → `"`
+- non-breaking and other Unicode spaces → space
+- empty items and a trailing `,` are dropped
+- **different spelling:** labels that would continue a range or run except for their case are
+  respelled to the case of the first label in the stretch: `I, ii, III` → `I-III`, `i-IV` →
+  `i-iv`
+
+`clean` returns the normal form together with the list of repairs, each with its kind, position,
+the text before and the text after, so a form can show "did you mean `1, 2+3..46+47, 48`?". Input
+that is still invalid after the repairs throws, as in `normalize`. Because `clean` can respell,
+it can give a different result from `normalize` even for input that is already valid
+(`I, ii, III`).
 
 **API.**
 
 - `normalize(text) → string`: the canonical form; throws on invalid input.
-- `equals(a, b) → boolean`: the same page model.
+- `clean(text) → { normalized, repairs }`: repairs user input, then normalises; throws if the
+  input is still invalid.
+- `equals(a, b) → boolean`: the same page model, labels compared exactly.
 - `diff(a, b)`: the first PDF index where the two differ, with both pages' labels. Useful in
   validate ("pageSequence in publication.md differs from the sheet at PDF page 22: 21 vs 22").
 - publication-md can store the normal form, and its tools (`toc-sync`, validate) compare with
-  `equals`, so formatting differences between the sheet and the repo are never reported as
-  changes.
+  `equals`, never as strings, so formatting differences between the sheet and the repo, and normal
+  forms written by different versions, are never reported as changes.
 
 ## Conversion from v1
 
@@ -281,8 +323,9 @@ v1 is used in one project, so it is converted once, not supported.
 ## Distribution and implementations
 
 PageSequence is part of **publication-md** and lives at
-<https://github.com/publication-md/pagesequence>. v1 was published on Deno; v2 is published on
-**npm** and **PyPI**, with one implementation per language. The licences are publication-md's:
+<https://github.com/publication-md/pagesequence>. v1 was published on JSR
+(`@tvartom/pagesequence`); v2 is published on **npm** and **JSR** (TypeScript) and **PyPI**
+(Python), with one implementation per language. The licences are publication-md's:
 **MIT** for the code and **CC0** for the format description (`spec/`).
 
 ### Repository layout
@@ -291,11 +334,11 @@ PageSequence is part of **publication-md** and lives at
 pagesequence/
   spec/                  the format (this document, once settled)   CC0
   testdata/cases.json    shared test cases, used by every implementation
-  js/                    TypeScript → npm  @publication-md/pagesequence   MIT
-    package.json  src/  test/
+  js/                    TypeScript → npm and JSR  @publication-md/pagesequence   MIT
+    package.json  jsr.json  src/  test/
   py/                    Python → PyPI  pagesequence (see below)        MIT
     pyproject.toml  src/pagesequence/  tests/
-  .github/workflows/     test both on every push; publish both on a tag
+  .github/workflows/     test both on every push; publish everywhere on a tag
   LICENSE (MIT)  LICENSE-SPEC (CC0)  AUTHORS
 ```
 
@@ -307,28 +350,58 @@ file, and CI runs both, so a change in behaviour fails in both languages at once
 - `input` (`"1, 2+3..46+47, 48"`);
 - `pages`: the expected expansion, one entry per PDF page, `{ignored, labels}`;
 - `normalized`: the expected `normalize()` output;
+- `cleaned` and `repairs`: the expected `clean()` output and the kinds of its repairs;
 - `format`: the expected display per PDF page (`"2+3"`, `"20+29"`);
 - `equals` / `diff` cases: a pair and the expected result;
 - `error`: for invalid input, the error *kind* only (`"mixed-systems"`, `"descending"` …), not
   the message, so each language can word it its own way.
 
 Cases are grouped by feature: syntax, ranges, runs, quoting, numbering (each system plus the
-hierarchy) and normalisation. Each Grottan example in this document becomes a case.
+hierarchy), normalisation and cleaning. Each Grottan example in this document becomes a case.
+
+### Property tests
+
+`cases.json` holds examples someone thought of. Each implementation also has property tests
+(fast-check in TS, Hypothesis in Python): a generator builds random page models from runs of
+integers, roman numerals, letters and prefixed labels, single pages, spreads and fold-outs,
+ignored pages, and odd labels (spaces, quotes, `,`, `-`, `+`, `..`), and checks for each one:
+
+- **Round trip:** write the model as a plain list, `normalize` it and parse the result: the model
+  comes back unchanged.
+- **Idempotent:** `normalize(normalize(x))` equals `normalize(x)`.
+- **Unique:** different spellings of the same model (listed, partly folded, extra spaces) give
+  the same normal form.
+- **Not longer:** the normal form is never longer than the plain list, apart from the quotes
+  added to labels with spaces.
+- **`clean` agrees:** for valid input with no labels that differ only in case,
+  `clean(x).normalized` equals `normalize(x)` and there are no repairs.
+
+A failing input is shrunk to the smallest case that still fails (`V, W, X`, say) and added to
+`cases.json`, so the other language is tested on it too.
 
 ### Publishing
 
-- **One version number for both packages.** It is the PageSequence version (2.x), so
-  "pagesequence 2.1" behaves the same in both languages. Adding a numbering system is a minor
-  version, because it can change how a string reads (see "Effect on normalisation").
-- **One tag publishes both.** A tag `v2.1.0` triggers a GitHub Actions release. It runs both test
-  suites, then publishes:
-  - **npm:** `npm publish --access public --provenance` from `js/`. The `@publication-md` npm
-    organisation must be created once on npmjs.com. Use npm trusted publishing (OIDC from GitHub
-    Actions), so no token is stored.
+- **One version number everywhere.** It is the PageSequence version (2.x), so
+  "pagesequence 2.1" behaves the same in both languages and on every registry. Adding a numbering
+  system is a minor version, because it can change how a string reads (see "Effect on
+  normalisation").
+- **One tag publishes everything.** A tag `v2.1.0` triggers a GitHub Actions release. It runs
+  both test suites, then publishes:
+  - **npm:** `npm publish --access public` from `js/`. The `@publication-md` npm organisation
+    must be created once on npmjs.com. Use npm trusted publishing (OIDC from GitHub Actions, npm
+    CLI 11.5.1 or later), so no token is stored; provenance is then generated automatically.
+    Trusted publishing is set up in the package's settings on npmjs.com, so the package seems to
+    have to exist first: the first release may need a token or a manual publish. Verify before
+    release.
+  - **JSR:** `npx jsr publish` from `js/`, with the `@publication-md` scope created once on
+    jsr.io and the package linked to the GitHub repository there, so the workflow publishes with
+    OIDC and no token.
   - **PyPI:** `uv build` then `uv publish` from `py/`, with PyPI **Trusted Publishing** (OIDC)
-    configured once on pypi.org for this repo and workflow. Try the first release on TestPyPI.
-- **Deno:** Deno users import the npm package directly (`npm:@publication-md/pagesequence`). The
-  v1 Deno module stays as it is and is marked as superseded.
+    configured once on pypi.org for this repo and workflow. PyPI allows this before the project
+    exists (a "pending publisher"), so the first release needs no token either. Try it first on
+    TestPyPI.
+- **Deno:** Deno users import from JSR (`jsr:@publication-md/pagesequence`). The v1 package
+  `@tvartom/pagesequence` stays on JSR as it is; its description points to the new package.
 - **Python package name:** `pagesequence` if it is free on PyPI, otherwise
   `publication-md-pagesequence` (import name `pagesequence` either way). Check before the first
   release.
@@ -349,5 +422,3 @@ hierarchy) and normalisation. Each Grottan example in this document becomes a ca
    page with three labels and needs nothing new.
 3. **Quoting inside prefixed ranges:** should `"Bilaga A-"1-12` (a quoted prefix with a stepping
    number) be allowed? Not needed for Grottan, so it is left out for now.
-4. **Unicode dash:** `1–52` (en dash) could be accepted as input, normalised to `-` on output.
-   That would be useful when copying from the printed contents page.
