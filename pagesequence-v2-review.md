@@ -131,11 +131,17 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
   Applied: when both middles are single letters and one of them is not `I`, `V` or `X`, they
   are read as letters. `C-D` and `L-M` are letters, while `V-X`, `I-III` and `L-LX` are roman
   (`L-LX` is 50–60).
-- [ ] **4.4 Greek and Hebrew.** All alphabets are single letters now, so the wrap problem is gone
-  for these two as well. What's left is whether to keep them:
-  - [ ] 4.4a Drop them until a real case appears (as open questions 1 and 3 do).
-  - [ ] 4.4b Keep them.
-- [ ] **4.6 Versioning rule for new systems** (line 192). A new system must use characters no
+- [x] **4.4 Greek and Hebrew.** Applied as 4.4b: they stay, and the alphabet paragraph now says
+  why. Latin, Greek and Hebrew share one table-driven implementation. Greek breaks code-point
+  arithmetic (a gap at U+03A2, `ς` inside `α–ω`) and has case and an alias; Hebrew has no case and
+  several aliases. Case comes from the tables, never from `toUpperCase()`, and letters not in
+  the table (`ά`) are not read.
+- [x] **4.7 Custom alphabets loaded at runtime.** Skipped, as 4.7a. The proposal has one
+  sentence: alphabets are not loaded at runtime; a new script is added to the spec as a
+  built-in system. The clean-only design for Swedish (`Å Ä Ö` after `Z`, which can't be built in
+  because Danish and Norwegian continue `Æ Ø Å`) is kept here in case a real case appears: data
+  only, must not change an existing reading, per call, `clean` only.
+- [ ] **4.6 Versioning rule for new systems** (line 201). A new system must use characters no
   existing system uses. Then it only gives meaning to strings that were invalid, and that is a
   minor version. Anything that changes how a valid string reads is a major version.
 
@@ -147,11 +153,11 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 6. Errors in the document
 
-- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 226);
-  2007-1 is 27 groups, not 26 (line 206).
-- [ ] **6.2 1986-1** (line 218). Use the test data (`PageSequence.test.ts:163`): v1
+- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 235);
+  2007-1 is 27 groups, not 26 (line 215).
+- [ ] **6.2 1986-1** (line 227). Use the test data (`PageSequence.test.ts:163`): v1
   `1-20 | 29,21-28, !29,30-48`, v2 `1-19, 20+29, 21-28, !29, 30-48`.
-- [ ] **6.3 1978-2** (line 220). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
+- [ ] **6.3 1978-2** (line 229). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
   Use the tests' `1-11, inflikat.0-inflikat.11, 12-24` (or tell me the proposal's version is the
   real one).
 - [ ] **6.5 Display.** With `+` the display is the notation, except that quotes are dropped

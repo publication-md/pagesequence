@@ -163,13 +163,22 @@ system in order, and the first system that reads both wins:
    then have the same number of digits (`08-9` and `08-100` are errors). A number without a
    leading zero has no fixed width (`9-10` is valid).
 
-Systems 2–4 are one implementation, **alphabet**, given its letters (and an upper/lower pair
-when the script has case) and its aliases (final forms). A letter token is always a single
-letter. There is nothing after the last letter (`Z`, `ω`, `ת`), so `Y-AB` is an error. The
-alphabet systems have no `tokenChars` and never widen, so `Ia-Ic` is the prefix `I` and the
-letters a→c. A new script is one line: its letters and aliases. The scripts never share
-characters, so their order in the list doesn't matter between them. Hebrew numerals (gematria,
-`יא` = 11) are a different counting and would be a separate system.
+Systems 2–4 are one implementation, **alphabet**, driven by a table: its letters in order (an
+upper and a lower list when the script has case, one list when it has none) and its aliases
+(final forms). Greek and Hebrew are included partly to keep this implementation generic. Greek
+can't be counted with code-point arithmetic (its capitals have a gap at U+03A2, and the final `ς`
+lies inside `α–ω`), and it has case and an alias; Hebrew has no case and several aliases. A
+token's value is its position in the table, and its case is the list it was found in. Case never
+comes from `toUpperCase()` or `toLowerCase()`, so both languages agree. A letter that is not in
+the table, such as `ά` with an accent, is not read.
+
+A letter token is always a single letter. There is nothing after the last letter (`Z`, `ω`, `ת`),
+so `Y-AB` is an error. The alphabet systems have no `tokenChars` and never widen, so `Ia-Ic` is
+the prefix `I` and the letters a→c. A new script is one line, its letters and aliases, added to
+the spec as a built-in system. Alphabets are not loaded at runtime, so every reader agrees on
+every string. The scripts never share characters, so their order in the list doesn't matter
+between them. Hebrew numerals (gematria, `יא` = 11) are a different counting and would be a
+separate system.
 
 Roman comes before letter, so `I-IV` is roman. One exception keeps common cases right: **when
 both middles are single letters and one of them is not `I`, `V` or `X`, they are read as
