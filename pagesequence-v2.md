@@ -34,13 +34,22 @@ item      = [ "!" ] ( range | run | page )   "!" = ignore (a duplicate scan), fo
 range     = label "-" label            PDF pages with one label each: first … last (as in v1)
 run       = page ".." page             PDF pages with the same number (2 or more) of labels each: first … last
 page      = label { "+" label }        one PDF page; the labels printed on it, in reading order
-label     = number | roman | letter | prefixed | word | quoted
+label     = bare | quoted
+bare      = { char }                   see "Unquoted labels" below
 quoted    = '"' { char | '\\"' | '\\\\' } '"'   any text; \" is a quote, \\ a backslash
 ```
 
 - Whitespace around `,`, `-`, `+`, `..` and `!` is allowed and ignored.
-- **Quoted labels.** A label containing a separator (`,` `-` `+` `..`), a `!`, a `"` or
-  leading/trailing spaces is written in double quotes. Inside the quotes, `\"` is a quote and
+- **Unquoted labels.** A bare label is any text without the reserved characters and without
+  `..`. The reserved characters are `,` `-` `+` `!` `"` and the characters that `clean` repairs
+  (`;` `|` `…` `–` `—` `−` `“` `”` `„`); reserving those keeps strict mode from reading `1–52` or
+  `1; 2` as a single label. A bare label can't start or end with `.`, so `1...3` is an error
+  rather than `1.` to `3` or `1` to `.3`. The spaces around it are trimmed; spaces inside are part
+  of the label. Whether a label is a number, a roman numeral, a letter or a word is decided by
+  the numbering systems, not by the grammar.
+- **Quoted labels.** A label that can't be written bare (it contains a reserved character or
+  `..`, starts or ends with `.`, or has leading/trailing spaces) is written in double quotes.
+  Inside the quotes, `\"` is a quote and
   `\\` a backslash; everything else is literal, spaces included. Example: the label
   `My "label" - 1` is written `"My \"label\" - 1"`, and `"Omslag, insida", 2-31` is a cover page
   followed by pages 2 to 31. Inside quotes a `-` or `+` is text. A quoted label takes part in
@@ -78,12 +87,18 @@ Given the first label `a` and the last label `b`:
 
 1. **Remove the common prefix**, the longest start the two share.
 2. **Remove the common suffix**, the longest end they share (not overlapping the prefix).
-3. **Widen the middle to whole numbering tokens.** Step the prefix boundary back, and the suffix
-   boundary forward, while the character next to the middle belongs to the same token. This
-   keeps a number from being cut: `10`→`19` has the common prefix `1`, but the middle is
-   `10`/`19`, not `0`/`9`.
-4. **Read both middles with the same numbering system** (below). The step is from the first value
-   to the last. The prefix and suffix are kept as they are.
+3. **Try each numbering system in hierarchy order** (below), each time starting from the middles
+   left by steps 1 and 2:
+   1. **Widen the middle to whole tokens of that system.** Step the prefix boundary back, and the
+      suffix boundary forward, while the character next to the middle is one of the system's
+      `tokenChars`. This keeps a number from being cut: `10`→`19` has the common prefix `1`, but
+      for the integer system the middle is `10`/`19`, not `0`/`9`.
+   2. **Read both middles with that system.** If it reads both, it wins: the step is from the
+      first value to the last, and the prefix and suffix are kept as they are. Otherwise try the
+      next system.
+
+   Because each system widens on its own, `xa-xc` is not cut wrongly: roman widens to `xa`/`xc`
+   and fails, then letter reads `a`/`c` with the prefix `x`.
 
 Examples:
 
@@ -116,28 +131,33 @@ A numbering system is an object with:
 The systems are kept in an **ordered list**, the hierarchy. Both middles are tried against each
 system in order, and the first system that reads both wins:
 
-1. **roman**: `I, II, …` and `i, ii, …`, case kept.
-2. **letter** (Latin): `A … Z` / `a … z`.
+1. **roman**: `I, II, …` and `i, ii, …`, case kept. A token in mixed case (`Iv`) is not roman.
+2. **letter** (Latin): `A … Z` / `a … z`, single letters.
 3. **greek**: `Α … Ω` / `α … ω` (24 letters); the final form `ς` is read as `σ`, never generated.
 4. **hebrew**: `א … ת` (22 letters, no case); the final forms `ך ם ן ף ץ` are read as
    `כ מ נ פ צ`, never generated.
-5. **integer**: `0, 1, …`, with zero padding kept (`08`).
+5. **integer**: `0, 1, …`. A number with a leading zero and two or more digits has a fixed
+   width, kept in every label (`08-12` gives `08`, `09`, `10`, `11`, `12`); the other end must
+   then have the same number of digits (`08-9` and `08-100` are errors). A number without a
+   leading zero has no fixed width (`9-10` is valid).
 
 Systems 2–4 are one implementation, **alphabet**, given its letters (and an upper/lower pair
-when the script has case) and its aliases (final forms). They count bijectively, as spreadsheet
-columns do: after the last letter come two letters (`Z` → `AA`, `ω` → `αα`, `ת` → `אא`). A new
-script is one line: its letters and aliases. The scripts never share characters, so their order
-in the list doesn't matter between them. Hebrew numerals (gematria, `יא` = 11) are a different
-counting and would be a separate system.
+when the script has case) and its aliases (final forms). A letter token is always a single
+letter. There is nothing after the last letter (`Z`, `ω`, `ת`), so `Y-AB` is an error. The
+alphabet systems have no `tokenChars` and never widen, so `Ia-Ic` is the prefix `I` and the
+letters a→c. A new script is one line: its letters and aliases. The scripts never share
+characters, so their order in the list doesn't matter between them. Hebrew numerals (gematria,
+`יא` = 11) are a different counting and would be a separate system.
 
 Roman comes before letter, so `I-IV` is roman. One exception keeps common cases right: **a
-single letter other than `I`, `V`, `X` is read as a letter**. That makes `A-D` and `C-E`
-alphabetical, not roman 100–500, while `I-III` and `V-X` stay roman. More systems (Cyrillic, …) can be added by putting them into the list at the right place.
+single letter other than `I`, `V`, `X` is read as a letter**. That makes `C-D`, `L-M` and `C-M`
+alphabetical, not roman 100–500, 50–1000 and 100–1000, while `I-III` and `V-X` stay roman. More
+systems (Cyrillic, …) can be added by putting them into the list at the right place.
 
 ### Effect on normalisation
 
-`normalize` must not write a range or run that reads back differently, for example `C, D, E`
-written as `C-E` must not turn into something roman. So a fold is checked by **round trip**
+`normalize` must not write a range or run that reads back differently, for example `V, W, X`
+must not be written `V-X`, which reads as roman V–X. So a fold is checked by **round trip**
 (normalisation step 2): a stretch of pages is written as one range or run only if expanding that
 range or run gives exactly the same pages. This keeps the form correct whatever systems are
 registered.
@@ -222,8 +242,8 @@ version, are equal.
 3. **Join** the items with `, ` (one space after `,`), with no other whitespace. Labels are
    written exactly as in the input; `normalize` never respells a label.
 4. **Quote when needed or when the label contains a space.** A label is written in quotes
-   exactly when it would otherwise not read back as the same single label (it contains a
-   separator, `!`, `"` or edge spaces) or when it contains a space, with `"` and `\` escaped. So
+   exactly when it can't be written bare (see "Unquoted labels") or when it contains a space,
+   with `"` and `\` escaped. So
    `"Omslag"` normalises to `Omslag`, `Appendix A` always to `"Appendix A"`, and `My "label" - 1`
    always to `"My \"label\" - 1"`.
 

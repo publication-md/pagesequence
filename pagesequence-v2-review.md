@@ -58,23 +58,28 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 3. Gaps that two implementations would fill differently
 
-- [ ] **3.1 Define unquoted labels lexically.** Replace `number | roman | letter | prefixed |
-  word` with a character rule: any characters except `,` `-` `+` `!` `"`, no `..`, trimmed.
-  (The quotes in the Numbering examples, `"Plansch A"` and `"Tavla α"`, now match the normal
-  form and can stay.)
-- [ ] **3.2 Handle `.` next to `..`.** An unquoted label can't start or end with `.`, so
-  `1...3` is an error.
-- [ ] **3.3 Fix the order of steps 3 and 4.** For each system in order: widen with its
-  `tokenChars`, then try to read both ends.
-- [ ] **3.4 Define integer width.** A leading zero means fixed width; `9-10` is valid,
-  `08-9` is an error.
+- [x] **3.1 Define unquoted labels lexically.** Applied: `label = bare | quoted`, and a new
+  "Unquoted labels" rule. I also reserved the characters that `clean` repairs (`;` `|` `…`
+  `–` `—` `−` `“` `”` `„`). Without that, strict mode would read `1–52` or `1; 2` as one label
+  instead of rejecting it, which contradicts 2.7. The quoting rule and normalisation step 4 now
+  point to "Unquoted labels".
+- [x] **3.2 Handle `.` next to `..`.** Applied as part of "Unquoted labels": a bare label can't
+  start or end with `.`, so `1...3` is an error.
+- [x] **3.3 Fix the order of steps 3 and 4.** Applied: step 3 tries each system in hierarchy
+  order, each time widening with that system's `tokenChars` from the original middles and then
+  reading. Example: `xa-xc` (roman widens to `xa`/`xc` and fails, letter reads `a`/`c`).
+- [x] **3.4 Define integer width.** Applied in the integer system: a leading zero and two or
+  more digits give a fixed width, and the other end must have the same number of digits
+  (`08-12` is valid, `08-9` and `08-100` are errors, `9-10` is valid).
 - [ ] **3.5 Equal ends.** `3-3` and `2+3..2+3` are errors (or: mean a single page; choose
   when marking).
-- [ ] **3.7 Case style.** Roman and letter tokens must be all upper or all lower case; mixed
-  case (`Ia`, `Omslag`) is not read by any system.
-- [ ] **3.8 Cap expansion.** Letter ranges have at most 2 letters, a sequence expands to at most
-  10 000 labels, and the page count is checked before expanding. (Today `omslag-baksida` is a
-  valid range of hundreds of millions of labels.)
+- [x] **3.7 Case style.** Applied. Since letters are single letters, only roman needs the rule: a
+  token in mixed case (`Iv`) is not roman. `Ia-Ic` now works as the prefix `I` plus the letters
+  a→c, because the alphabet systems never widen.
+- [ ] **3.8 Cap expansion.** Single-letter alphabets already solve the letter part:
+  `omslag-baksida` is an error instead of hundreds of millions of labels. What is left is
+  numbers. A sequence expands to at most 10 000 labels, and when the page count is given it is
+  checked before expanding, so `1-1000000000` fails at once.
 - [ ] **3.9 Pin down Unicode.** Input is normalised to NFC, prefixes and suffixes are computed
   by code point, and case-insensitive matching is defined precisely (JS `toLowerCase` and
   Python `lower`/`casefold` differ).
@@ -84,21 +89,17 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 4. Numbering hierarchy
 
-- [ ] **4.1 Fix the exception examples** (line 134). `A-D` and `C-E` could never be roman. Use
-  `C-D`, `L-M`, `C-M`.
-- [ ] **4.2 Apply the single-letter exception only when both ends are single letters.**
-  Otherwise `L-LX` becomes a letter range of 325 labels instead of roman 50–60.
-- [ ] **4.3 Document that two-letter labels that are valid roman numerals read as roman**
-  (`CC-CD` is 200–400).
-- [ ] **4.4 Greek and Hebrew.** Choose one:
+- [x] **4.1 Fix the exception examples.** Applied: `C-D`, `L-M` and `C-M` (not roman 100–500,
+  50–1000, 100–1000). The same mistake in "Effect on normalisation" (`C, D, E` as `C-E`) is
+  replaced by the real case, `V, W, X` as `V-X`.
+- [ ] **4.2 Apply the single-letter exception only when both ends are single letters.** With
+  single-letter alphabets, `L-LX` is now an error instead of 325 letters, but it should be roman
+  50–60.
+- [ ] **4.4 Greek and Hebrew.** All alphabets are single letters now, so the wrap problem is gone
+  for these two as well. What's left is whether to keep them:
   - [ ] 4.4a Drop them until a real case appears (as open questions 1 and 3 do).
-  - [ ] 4.4b Keep them, single letters only, no wrap after the last letter (Hebrew numbering
-    continues `יא` after `י`, not `אא`).
-- [ ] **4.5 Latin letters after Z.** Choose one:
-  - [ ] 4.5a No wrap: `Z` is the last letter, `Y-AB` is an error.
-  - [ ] 4.5b Keep the bijective wrap (`Z` → `AA`), and say explicitly that Å Ä Ö are not letters
-    in this system.
-- [ ] **4.6 Versioning rule for new systems** (line 148). A new system must use characters no
+  - [ ] 4.4b Keep them.
+- [ ] **4.6 Versioning rule for new systems** (line 168). A new system must use characters no
   existing system uses. Then it only gives meaning to strings that were invalid, and that is a
   minor version. Anything that changes how a valid string reads is a major version.
 
@@ -110,16 +111,16 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 6. Errors in the document
 
-- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 182);
-  2007-1 is 27 groups, not 26 (line 162).
-- [ ] **6.2 1986-1** (line 174). Use the test data (`PageSequence.test.ts:163`): v1
+- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 202);
+  2007-1 is 27 groups, not 26 (line 182).
+- [ ] **6.2 1986-1** (line 194). Use the test data (`PageSequence.test.ts:163`): v1
   `1-20 | 29,21-28, !29,30-48`, v2 `1-19, 20+29, 21-28, !29, 30-48`.
-- [ ] **6.3 1978-2** (line 176). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
+- [ ] **6.3 1978-2** (line 196). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
   Use the tests' `1-11, inflikat.0-inflikat.11, 12-24` (or tell me the proposal's version is the
   real one).
 - [ ] **6.5 Display.** With `+` the display is the notation, except that quotes are dropped
   (`"Omslag, insida"+2` is shown `Omslag, insida+2`). Say so instead of "no extra rule is
-  needed" (line 68).
+  needed" (line 77).
 - [ ] **6.7 Add Grottan examples** 1973-1 (`1-9, 10+11, 10a, 10b+10c, 10d, !11, 12-20`) and
   1990-1 (`I-VIII, 3-22, IX-XVI`, the same in v1 and v2).
 
@@ -155,6 +156,10 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 - **5.4 Quick syntax check:** removed; the version is never guessed.
 - **5.5 Grammar for `pages` references:** a `pages` reference is parsed as a sequence, as in v1,
   and the notation is the same in both.
+- **4.3 Two-letter roman numerals:** with single-letter alphabets, a token of two or more
+  letters can only be roman, so `CC-CD` has a single reading.
+- **4.5 Latin letters after Z:** applied as 4.5a, and extended: every alphabet is single letters
+  only (`A … Z`, no `AA`). The proposal's alphabet paragraph says so, and `Y-AB` is an error.
 - **6.4 En dash:** settled by 2.7. Only `clean` accepts it, and open question 4 is removed.
 - **6.6 The "s. 20,29" argument:** removed from problem 1.
 - Also fixed while rewriting: the quoted-label example said `"Omslag, insida"; 2..31` "gives two
