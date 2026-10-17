@@ -13,22 +13,20 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 - [x] **1.3 Keep `,` and `-` as in v1, replace `|` with `+`, add `..` for runs of spreads.**
   Applied, with `+` also used in the display of a page (`2+3`, `20+29`), so notation and display
   are the same again. Sections rewritten: Why (problem 1), Goals, Syntax, Numbering examples,
-  Grottan examples, Why these characters, Normalisation, Compatibility, API, test data, open
-  questions.
-- [ ] **1.1 Make the page-count check mandatory.** With 1.3, v1 strings are no longer misread,
-  but the check still catches miscounted sequences and the two v1 differences listed under
-  Compatibility. Add that validate always checks a sequence against the PDF's page count when it
-  is known (`indexLengthAll`, `PageSequence.ts:79`).
-- [ ] **1.5 Accept v1 `|` in v2 as well.** Instead of failing with `v1-join`, read `|` with its v1
-  meaning (including `1-3|4-6`) and normalise it to `+`. Then v2 reads every v1 string and no
-  migration is needed. Cost: the grammar keeps v1's mix of ranges and joins, and two ways to join
-  stay alive in input.
-- [ ] **1.6 `..` between single labels.** Choose one:
-  - [ ] 1.6a Keep `1..16` as a synonym for `1-16` (normalised to `-`), as the proposal now says.
-  - [ ] 1.6b Make it an error: `..` only between pages with 2 or more labels, so each thing has
-    one way to be written.
-- [ ] **1.7 Spaces in the normal form.** Today `Appendix A - Appendix C` normalises to
-  `Appendix A-Appendix C`. Write ` - ` and ` .. ` with spaces when either label contains a space.
+  Grottan examples, Why these characters, Normalisation, Conversion from v1, API, test data, open
+  questions. Since v1 is used in one project, Compatibility became a one-off conversion: no v1
+  parser, no `toV2` and no `v1-join` error in the v2 packages.
+- [x] **1.1 Recommend the page-count check.** Applied as a recommendation, not a requirement:
+  the API section says to pass the PDF's page count to `create(text, length)` whenever it is
+  known (`indexLengthAll` in v1, `PageSequence.ts:79`), and that publication-md's validate should
+  do so when the PDF is available.
+- [x] **1.6 `..` between single labels.** Applied as 1.6b: `..` is only used between pages with
+  2 or more labels, and `1..16` is an error (write `1-16`). Changed in the grammar, the Runs
+  rules and the normalisation examples.
+- [x] **1.7 Labels with spaces in the normal form.** Applied as 1.7b: the normal form quotes
+  every label that contains a space (`"Appendix A"-"Appendix C"`); input without quotes is still
+  accepted. Changed in the Syntax rules, normalisation step 4, "Why it is shortest" (quotes
+  excepted) and the examples.
 
 ## 2. Normalisation guarantees
 
@@ -40,9 +38,9 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
   continues as letters, but `V-X` reads back as roman (V–X, 6 labels). Specify a deterministic
   rule: greedy left to right, take the longest fold that round-trips, list what's left. Drop
   "shortest" from the claims, or qualify it.
-- [ ] **2.3 Merge the two continuation rules.** Step 2's "same shape" rule (line 206) and the
-  "Effect on normalisation" round-trip rule (line 138) become one definition.
-- [ ] **2.5 Clarify or remove "spelling of their first occurrence"** (step 3, line 214).
+- [ ] **2.3 Merge the two continuation rules.** Step 2's "same shape" rule (line 208) and the
+  "Effect on normalisation" round-trip rule (line 141) become one definition.
+- [ ] **2.5 Clarify or remove "spelling of their first occurrence"** (step 3, line 216).
 - [ ] **2.6 State that normal forms can change between versions** (a new numbering system can
   fold what used to be listed), so publication-md compares with `equals`, never by string.
 
@@ -50,7 +48,8 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 - [ ] **3.1 Define unquoted labels lexically.** Replace `number | roman | letter | prefixed |
   word` with a character rule: any characters except `,` `-` `+` `!` `"`, no `..`, trimmed.
-  Remove quotes from the examples that don't need them (`"Plansch A"`, `"Tavla α"`).
+  (The quotes in the Numbering examples, `"Plansch A"` and `"Tavla α"`, now match the normal
+  form and can stay.)
 - [ ] **3.2 Handle `.` next to `..`.** An unquoted label can't start or end with `.`, so
   `1...3` is an error.
 - [ ] **3.3 Fix the order of steps 3 and 4.** For each system in order: widen with its
@@ -73,7 +72,7 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 4. Numbering hierarchy
 
-- [ ] **4.1 Fix the exception examples** (line 130). `A-D` and `C-E` could never be roman. Use
+- [ ] **4.1 Fix the exception examples** (line 133). `A-D` and `C-E` could never be roman. Use
   `C-D`, `L-M`, `C-M`.
 - [ ] **4.2 Apply the single-letter exception only when both ends are single letters.**
   Otherwise `L-LX` becomes a letter range of 325 labels instead of roman 50–60.
@@ -87,7 +86,7 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
   - [ ] 4.5a No wrap: `Z` is the last letter, `Y-AB` is an error.
   - [ ] 4.5b Keep the bijective wrap (`Z` → `AA`), and say explicitly that Å Ä Ö are not letters
     in this system.
-- [ ] **4.6 Versioning rule for new systems** (line 147). A new system must use characters no
+- [ ] **4.6 Versioning rule for new systems** (line 150). A new system must use characters no
   existing system uses. Then it only gives meaning to strings that were invalid, and that is a
   minor version. Anything that changes how a valid string reads is a major version.
 
@@ -99,18 +98,18 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 6. Errors in the document
 
-- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 177);
-  2007-1 is 27 groups, not 26 (line 157).
-- [ ] **6.2 1986-1** (line 169). Use the test data (`PageSequence.test.ts:163`): v1
+- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 180);
+  2007-1 is 27 groups, not 26 (line 160).
+- [ ] **6.2 1986-1** (line 172). Use the test data (`PageSequence.test.ts:163`): v1
   `1-20 | 29,21-28, !29,30-48`, v2 `1-19, 20+29, 21-28, !29, 30-48`.
-- [ ] **6.3 1978-2** (line 171). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
+- [ ] **6.3 1978-2** (line 174). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
   Use the tests' `1-11, inflikat.0-inflikat.11, 12-24` (or tell me the proposal's version is the
   real one).
 - [ ] **6.4 En dash.** Close open question 4 (line 352): it is already decided in normalisation
-  step 3 (line 214).
+  step 3 (line 216).
 - [ ] **6.5 Display.** With `+` the display is the notation, except that quotes are dropped
   (`"Omslag, insida"+2` is shown `Omslag, insida+2`). Say so instead of "no extra rule is
-  needed" (line 64).
+  needed" (line 67).
 - [ ] **6.7 Add Grottan examples** 1973-1 (`1-9, 10+11, 10a, 10b+10c, 10d, !11, 12-20`) and
   1990-1 (`I-VIII, 3-22, IX-XVI`, the same in v1 and v2).
 
@@ -131,6 +130,7 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 - **1.2 Flag implausible pages:** many labels on one page now needs an explicit `+` each, so it
   can't happen by accident.
 - **1.4 Keep the old design with a warning section:** replaced by 1.3.
+- **1.5 Accept v1 `|` in v2:** v1 is converted once, so v2 doesn't need to read it.
 - **2.4 The 2-page reason:** rewritten. A range of two single pages folds (`1-2` beats `1, 2`);
   two spreads stay listed (`2+3, 4+5` is as short as `2+3..4+5`).
 - **3.6 `!` on runs:** the grammar now puts `!` on the whole item, as v1 does.

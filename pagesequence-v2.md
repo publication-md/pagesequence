@@ -16,7 +16,7 @@ A PageSequence maps PDF pages to the labels printed on them. Version 1 has three
 ## Goals
 
 - **Keep what works in v1:** `,` lists PDF pages and `-` is a range, as in running text, so `1-52`
-  means what everyone expects. Every v1 string without `|` keeps its meaning.
+  means what everyone expects.
 - **A join that reads as "together":** `+` for the labels on one PDF page (`2+3`, `20+29`),
   replacing `|`.
 - **The same notation for one PDF page as its display:** a page is shown as it is written, `2+3`
@@ -32,7 +32,7 @@ A PageSequence maps PDF pages to the labels printed on them. Version 1 has three
 sequence  = item { "," item }
 item      = [ "!" ] ( range | run | page )   "!" = ignore (a duplicate scan), for every PDF page of the item
 range     = label "-" label            PDF pages with one label each: first … last (as in v1)
-run       = page ".." page             PDF pages with the same number of labels each: first … last
+run       = page ".." page             PDF pages with the same number (2 or more) of labels each: first … last
 page      = label { "+" label }        one PDF page; the labels printed on it, in reading order
 label     = number | roman | letter | prefixed | word | quoted
 quoted    = '"' { char | '\\"' | '\\\\' } '"'   any text; \" is a quote, \\ a backslash
@@ -45,6 +45,8 @@ quoted    = '"' { char | '\\"' | '\\\\' } '"'   any text; \" is a quote, \\ a ba
   `My "label" - 1` is written `"My \"label\" - 1"`, and `"Omslag, insida", 2-31` is a cover page
   followed by pages 2 to 31. Inside quotes a `-` or `+` is text. A quoted label takes part in
   ranges and runs like any other label (see "Numbering").
+- Spaces inside a label are allowed without quotes (`Appendix A - Appendix C`); the normal form
+  quotes such labels (`"Appendix A"-"Appendix C"`), so the label boundaries are explicit.
 - A label keeps its case as written (`iv`, `Omslag`, `inflikat.8`). Matching is case-insensitive,
   as in v1.
 - **Ranges (`-`)** expand from the first label to the last, one PDF page per label, as in v1:
@@ -54,7 +56,8 @@ quoted    = '"' { char | '\\"' | '\\\\' } '"'   any text; \" is a quote, \\ a ba
 - **Runs (`..`)** expand from the first page to the last; each label steps by the number of labels
   on the page:
   - `2+3..46+47` is spreads 2+3, 4+5, …, 46+47 (2 labels per page, so 23 PDF pages).
-  - `1..16` is the same as `1-16`.
+  - `..` is only used between pages with 2 or more labels: `1..16` is an error, write `1-16`.
+    So each sequence has one way to be written.
   - The first and last page must have the same shape: the same number of labels, and the same
     prefix if there is one. The distance between them must be a whole number of steps. Otherwise
     the sequence is invalid.
@@ -141,7 +144,7 @@ written as `C-E` must not turn into something roman. So:
 - Breaks are still where neighbours don't continue each other. A neighbour continues when the
   two-page range (or run) from it to the next page expands to exactly those two pages. The
   partition stays deterministic.
-- Quoting is written only where needed (rule 4). The diff works on the unquoted text, so
+- Quoting follows rule 4. The diff works on the unquoted text, so
   `"Plansch A"-"Plansch D"` and the quoted list give the same normal form.
 - Changing the hierarchy, for example adding a system, can change how an existing string reads.
   So the hierarchy is part of the format version, and a new system means a minor version of
@@ -191,10 +194,9 @@ The 24-group line from the brief, `1,2|3,4|5,6|…|47,48`, becomes `1, 2+3..46+4
 
 ## Normalisation and comparison
 
-The same sequence can be written in several ways: `1,2,3` and `1-3`, `1..3` and `1-3`,
-`1-3, 4-6` and `1-6`, `1 , 2+3 .. 4+5` and `1, 2+3..4+5`. `normalize()` always writes the same,
-shortest string for a sequence, so two sequences are equal exactly when their normal forms are
-equal.
+The same sequence can be written in several ways: `1,2,3` and `1-3`, `1-3, 4-6` and `1-6`,
+`1 , 2+3 .. 4+5` and `1, 2+3..4+5`. `normalize()` always writes the same, shortest string for a
+sequence, so two sequences are equal exactly when their normal forms are equal.
 
 **Algorithm.**
 
@@ -212,28 +214,31 @@ equal.
    long, becomes `first..last`. Two such pages stay as `P, Q`, which is as short as `P..Q`.
 3. **Join** the items with `, ` (one space after `,`), with no other whitespace. Labels keep the
    spelling of their first occurrence, and an en dash `–` in a range in the input becomes `-`.
-4. **Quote only when needed.** A label is written in quotes exactly when it would otherwise not
-   read back as the same single label (it contains a separator, `!`, `"` or edge spaces), with
-   `"` and `\` escaped. So `"Omslag"` normalises to `Omslag`, and `My "label" - 1` always to
-   `"My \"label\" - 1"`.
+4. **Quote when needed or when the label contains a space.** A label is written in quotes
+   exactly when it would otherwise not read back as the same single label (it contains a
+   separator, `!`, `"` or edge spaces) or when it contains a space, with `"` and `\` escaped. So
+   `"Omslag"` normalises to `Omslag`, `Appendix A` always to `"Appendix A"`, and `My "label" - 1`
+   always to `"My \"label\" - 1"`.
 
 **Why it is unique.** Step 1 removes every difference in notation. Step 2 is deterministic:
 breaks fall exactly where two neighbouring pages do *not* continue each other, so the maximal
 stretches are a fixed partition of the sequence, whatever the input looked like.
 
-**Why it is shortest.** Within that partition, `a-b` is always one character shorter than `a, b`,
+**Why it is shortest.** Apart from the quotes that step 4 adds to labels with spaces: within that
+partition, `a-b` is always one character shorter than `a, b`,
 and `P..Q` is as long as `P, Q` and shorter from 3 pages on. A stretch can't be merged with its
 neighbour (by definition the neighbour breaks it).
 
 **Examples.**
 
-- `1,2,3` and `1..3` → `1-3`
+- `1,2,3` → `1-3`
 - `1, 2+3, 4+5, 6+7, 8` and `1, 2+3..6+7, 8` → `1, 2+3..6+7, 8`
 - `1-20, 21-52` → `1-52`, but `1-20, 22-52` stays as it is, because 21 is missing
 - `i,ii,iii,iv, 1-48` → `i-iv, 1-48`
 - `1, 2+3, !3, 4` stays as it is: the ignored page breaks the run
 - `1, 2` → `1-2`, but `2+3, 4+5` stays: a run of two spreads is not shorter
 - `"Omslag", 2-31` → `Omslag, 2-31` (the quotes were not needed)
+- `Appendix A - Appendix C` → `"Appendix A"-"Appendix C"` (the labels contain a space)
 
 **API.**
 
@@ -245,27 +250,19 @@ neighbour (by definition the neighbour breaks it).
   `equals`, so formatting differences between the sheet and the repo are never reported as
   changes.
 
-## Compatibility and migration
+## Conversion from v1
 
-- `,`, `-` and `!` keep their v1 meaning. The one v1 operator that goes is `|`, replaced by `+`.
-  New are `+`, `..`, quoted labels and the new numbering (several numbers in a label, letters
-  after `Z`, greek, hebrew, zero padding).
-- So a v1 string without `|` reads the same in v2, with two exceptions:
-  - Ranges between single letters that v1 read as roman numerals: v1 reads `C-D` as roman
-    100–500 (401 pages), v2 as the letters C, D; v2 rejects `X-L` (descending letters). Such
-    strings were almost certainly mistakes.
-  - v1 labels containing `..`: in v1 `1..5` is one label.
+v1 is used in one project, so it is converted once, not supported.
 
-  Before the release, every stored sequence is expanded with both v1 and v2 and compared.
-- A v1 string with `|` fails in v2 with the error kind `v1-join`, so it is never misread.
-  `PageSequence.toV2(v1)` converts any v1 string to the v2 normal form: `1,2|3,4|5` →
-  `1, 2+3, 4+5`, `1-3|4-6` → `1-2, 3+4, 5-6`.
-- A v2 string with `+`, `..` or quotes fails in v1 (v1 labels allow only `[a-z0-9._ ]`), so an
-  old reader never misreads one either.
-- **No version flag.** A string either means the same in v1 and v2 or fails in one of them, so the
-  version never has to be guessed or recorded. `PageSequence.create(text, length?)` keeps its v1
-  signature. publication-md switches by updating the package and running
-  `npm run content -- upgrade`, with a migration that runs `toV2` on every `pageSequence`.
+- A one-off script expands every stored v1 sequence with the v1 module
+  (`@tvartom/pagesequence` 1.3.3), builds the v2 page model from it and writes `normalize()`'s
+  output: `1,2|3,4|5` → `1, 2+3, 4+5`, `1-3|4-6` → `1-2, 3+4, 5-6`. It checks that each new
+  string expands to the same pages as the old one.
+- Most strings come out unchanged, since `,`, `-` and `!` mean the same in both. Going through the
+  page model keeps the meaning exactly, even for the rare v1 string that reads differently in v2
+  (v1 reads `C-D` as roman 100–500).
+- The v2 packages contain no v1 parser and no conversion function. `|` is an invalid character.
+- **No version flag.** After the conversion every stored string is v2.
 
 ## API (unchanged in meaning)
 
@@ -275,7 +272,11 @@ neighbour (by definition the neighbour breaks it).
 - New: `labelsAt(index)` returns the labels of one PDF page, and `formatAt(index)` returns them as
   displayed (`"2+3"`, `"20+29"`). This replaces the label joining that tools such as
   publication-md's `joinLabels` do today.
-- New: `toString()` writes the canonical (shortest) form, and `PageSequence.toV2(v1)`.
+- `PageSequence.create(text, length?)` keeps its v1 signature. Passing the PDF's page count as
+  `length` is recommended whenever it is known: the sequence is then checked against it, which
+  catches miscounted sequences (a missing spread, a page counted twice). publication-md's validate
+  should do so when the PDF is available.
+- New: `toString()` writes the canonical (shortest) form.
 
 ## Distribution and implementations
 
@@ -308,12 +309,11 @@ file, and CI runs both, so a change in behaviour fails in both languages at once
 - `normalized`: the expected `normalize()` output;
 - `format`: the expected display per PDF page (`"2+3"`, `"20+29"`);
 - `equals` / `diff` cases: a pair and the expected result;
-- `error`: for invalid input, the error *kind* only (`"mixed-systems"`, `"descending"`,
-  `"v1-join"` …), not the message, so each language can word it its own way;
-- `v1`: for conversion cases, the v1 string and the expected `toV2` result.
+- `error`: for invalid input, the error *kind* only (`"mixed-systems"`, `"descending"` …), not
+  the message, so each language can word it its own way.
 
 Cases are grouped by feature: syntax, ranges, runs, quoting, numbering (each system plus the
-hierarchy), normalisation and conversion. Each Grottan example in this document becomes a case.
+hierarchy) and normalisation. Each Grottan example in this document becomes a case.
 
 ### Publishing
 
@@ -336,8 +336,8 @@ hierarchy), normalisation and conversion. Each Grottan example in this document 
 ### Consumers
 
 - **publication-md** vendors v1 today (`vendor/pagesequence`). It switches to
-  `@publication-md/pagesequence` from npm with the `upgrade` migration (see "Compatibility and
-  migration").
+  `@publication-md/pagesequence` from npm, and its stored sequences are converted once (see
+  "Conversion from v1").
 - **Python skills** (`roots.py` and friends) can then use the Python package instead of copying
   logic. The navigation-line stripping is one such copy today.
 
