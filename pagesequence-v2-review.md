@@ -97,8 +97,14 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
     label from `Appendix A` with a space.
   - `cases.json` should include `Σ`/`ς`, `İ` and `ß`, to catch the two languages disagreeing
     on lowercasing.
-- [ ] **3.10 Empty input and empty items.** `("", n)` means `1-n` as in v1; `1,,2` and a
-  trailing `,` are errors (or ignored; choose when marking).
+- [x] **3.10 Empty input, empty items and an open end.** Applied as you decided:
+  - Strict mode: an empty sequence (`empty`), empty items and a trailing `,` (`empty-item`) and
+    an open end (`open-end`) are all errors, with or without a page count. New rule "Nothing
+    empty or open" in Syntax. Unlike v1, `create("", 52)` is an error (noted in the API).
+  - `clean(text, { length })` closes one open `-` at the very end at the page count
+    (`i-iv, 1-` with 52 → `i-iv, 1-48`; `1-` with 1 → `1`, for plain numbering). `""` is the same
+    as `1-`. Without a page count, or with no pages left, it is an error. With a page count,
+    `clean` also checks the result against it.
 - [ ] **3.11 List all error kinds in the spec**, since `cases.json` tests them.
 
 ## 4. Numbering hierarchy
@@ -113,7 +119,7 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
   for these two as well. What's left is whether to keep them:
   - [ ] 4.4a Drop them until a real case appears (as open questions 1 and 3 do).
   - [ ] 4.4b Keep them.
-- [ ] **4.6 Versioning rule for new systems** (line 182). A new system must use characters no
+- [ ] **4.6 Versioning rule for new systems** (line 186). A new system must use characters no
   existing system uses. Then it only gives meaning to strings that were invalid, and that is a
   minor version. Anything that changes how a valid string reads is a major version.
 
@@ -125,16 +131,16 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 6. Errors in the document
 
-- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 216);
-  2007-1 is 27 groups, not 26 (line 196).
-- [ ] **6.2 1986-1** (line 208). Use the test data (`PageSequence.test.ts:163`): v1
+- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 220);
+  2007-1 is 27 groups, not 26 (line 200).
+- [ ] **6.2 1986-1** (line 212). Use the test data (`PageSequence.test.ts:163`): v1
   `1-20 | 29,21-28, !29,30-48`, v2 `1-19, 20+29, 21-28, !29, 30-48`.
-- [ ] **6.3 1978-2** (line 210). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
+- [ ] **6.3 1978-2** (line 214). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
   Use the tests' `1-11, inflikat.0-inflikat.11, 12-24` (or tell me the proposal's version is the
   real one).
 - [ ] **6.5 Display.** With `+` the display is the notation, except that quotes are dropped
   (`"Omslag, insida"+2` is shown `Omslag, insida+2`). Say so instead of "no extra rule is
-  needed" (line 91).
+  needed" (line 95).
 - [ ] **6.7 Add Grottan examples** 1973-1 (`1-9, 10+11, 10a, 10b+10c, 10d, !11, 12-20`) and
   1990-1 (`I-VIII, 3-22, IX-XVI`, the same in v1 and v2).
 

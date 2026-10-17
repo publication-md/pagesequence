@@ -87,6 +87,10 @@ quoted    = '"' { char | '\\"' | '\\\\' } '"'   any text; \" is a quote, \\ a ba
   The size of each range and run is computed from its end values before it is expanded, and so
   is the comparison with the page count when one is given, so `1-1000000000` fails at once
   without building a list.
+- **Nothing empty or open.** An empty sequence (`empty`), an empty item such as `1,,2` or a
+  trailing `,` (`empty-item`) and an open end such as `1-` (`open-end`) are errors, with or
+  without a page count. Unlike v1, `create("", 52)` is an error; `clean` turns both `""` and
+  `1-` into plain numbering when it is given the page count.
 - **Display** of a PDF page's labels is the `page` notation itself: `2+3` → "2+3", `20+29` →
   "20+29". Notation and presentation are the same thing, so no extra rule is needed.
 
@@ -305,21 +309,26 @@ readings is still an error. The repairs:
 - non-breaking and other Unicode spaces → space
 - empty items and a trailing `,` are dropped
 - a range or run with equal ends → one page: `3-3` → `3`, `2+3..2+3` → `2+3`
+- **open end:** when the page count is given, one open range at the very end (`-` only, not
+  `..`) is closed at it: `i-iv, 1-` with 52 pages → `i-iv, 1-48`, and `1-` with 1 page → `1`. An
+  empty string is the same as `1-`, so `clean("", { length: 52 })` gives `1-52`, plain numbering.
+  Without a page count, or with no pages left for the open range, both are errors
 - **different spelling:** labels that would continue a range or run except for their case are
   respelled to the case of the first label in the stretch: `I, ii, III` → `I-III`, `i-IV` →
   `i-iv`
 
 `clean` returns the normal form together with the list of repairs, each with its kind, position,
 the text before and the text after, so a form can show "did you mean `1, 2+3..46+47, 48`?". Input
-that is still invalid after the repairs throws, as in `normalize`. Because `clean` can respell,
+that is still invalid after the repairs throws, as in `normalize`. When the page count is given,
+the result is also checked against it, as in `create(text, length)`. Because `clean` can respell,
 it can give a different result from `normalize` even for input that is already valid
 (`I, ii, III`).
 
 **API.**
 
 - `normalize(text) → string`: the canonical form; throws on invalid input.
-- `clean(text) → { normalized, repairs }`: repairs user input, then normalises; throws if the
-  input is still invalid.
+- `clean(text, { length? }) → { normalized, repairs }`: repairs user input, closes an open end
+  at `length`, then normalises; throws if the input is still invalid.
 - `equals(a, b) → boolean`: the same page model, labels compared exactly.
 - `diff(a, b)`: the first PDF index where the two differ, with both pages' labels. Useful in
   validate ("pageSequence in publication.md differs from the sheet at PDF page 22: 21 vs 22").
@@ -355,7 +364,8 @@ v1 is used in one project, so it is converted once, not supported.
 - `PageSequence.create(text, length?)` keeps its v1 signature. Passing the PDF's page count as
   `length` is recommended whenever it is known: the sequence is then checked against it, which
   catches miscounted sequences (a missing spread, a page counted twice). publication-md's validate
-  should do so when the PDF is available.
+  should do so when the PDF is available. Unlike v1, an empty `text` is an error; an issue with
+  plain numbering stores `1-52`, which `clean("", { length: 52 })` produces.
 - New: `toString()` writes the canonical (shortest) form.
 
 ## Distribution and implementations
@@ -392,7 +402,7 @@ file, and CI runs both, so a change in behaviour fails in both languages at once
 - `format`: the expected display per PDF page (`"2+3"`, `"20+29"`);
 - `equals` / `diff` cases: a pair and the expected result;
 - `error`: for invalid input, the error *kind* only (`"mixed-systems"`, `"descending"`,
-  `"equal-ends"`, `"too-long"` …), not
+  `"equal-ends"`, `"open-end"`, `"too-long"` …), not
   the message, so each language can word it its own way.
 
 Cases are grouped by feature: syntax, ranges, runs, quoting, numbering (each system plus the
