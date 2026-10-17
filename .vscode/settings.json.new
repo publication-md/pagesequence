@@ -1,0 +1,23 @@
+{
+	// Placeholder. A neutral slate bar means "this project has not been set up yet".
+	// Ask Claude to run /vscode-color invent and it picks a color that belongs to the
+	// project — its brand, its domain, or its stack — so you can tell running VS Code
+	// windows apart at a glance. Applies on Reload Window; no rebuild.
+	//
+	// Written for VS Code's Modern UI, which is on by default: modernActivityBar.*
+	// paints the bar, and activityBar.inactiveForeground is the one classic key it
+	// still reads. The other activityBar.* keys have no effect there, so none are set.
+	"workbench.colorCustomizations": {
+		"modernActivityBar.background": "#5A687C",
+		"modernActivityBarItem.activeBackground": "#465160",
+		"modernActivityBarItem.activeForeground": "#FFFFFF",
+		"modernActivityBarItem.hoverBackground": "#505C6E",
+		"modernActivityBarItem.hoverForeground": "#FFFFFF",
+		"activityBar.inactiveForeground": "#BDC2CA"
+	},
+
+	// Keeps the worktree picker working when .claude/worktrees exists.
+	"git.detectWorktrees": true
+
+	// Project editor settings go here (formatter, tsdk, test runner).
+}

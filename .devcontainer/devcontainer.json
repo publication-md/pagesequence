@@ -1,0 +1,72 @@
+// claude-shared kit v3 — copied into this repository, not referenced.
+//
+// No registry login, no devcontainer features, no lockfile: this builds from the
+// Dockerfile next to it. The only thing it expects from the host is ~/claude-shared,
+// a link to the claude-shared/ folder of the kit checkout (for the skills mount below).
+//
+// Run `~/claude-shared/skills/devcontainer-kit/bin/doctor.sh` on the host if the container starts but Claude Code has
+// no skills or asks you to log in.
+{
+	"name": "pagesequence",
+	"build": { "dockerfile": "Dockerfile", "context": "." },
+
+	"runArgs": [
+		// Lets code in the container reach services on the host by name.
+		"--add-host=host.docker.internal:host-gateway",
+		// Host env for every container. The file must
+		// exist or docker will not start this container; it documents itself.
+		// Create it with: ~/claude-shared/skills/devcontainer-kit/bin/doctor.sh
+		"--env-file",
+		"${localEnv:HOME}/.config/claude-shared/env"
+		// To also drop raw sockets (blocks ping; NET_ADMIN is already absent since
+		// nothing here adds capabilities): "--cap-drop=NET_RAW"
+	],
+
+	"mounts": [
+		// Shared skills, read-only. Every directory under it auto-loads as a
+		// <name>@skills-dir plugin at session start — no marketplace, no install,
+		// no clone, no credentials. Update them with `git pull` in the kit checkout.
+		"source=${localEnv:HOME}/claude-shared/skills,target=/home/node/.claude/skills,type=bind,readonly",
+		// Per-project Claude config and history. Deliberately not the host's
+		// ~/.claude: one project's container should not be able to read every
+		// project's history.
+		"source=claude-config-${devcontainerId},target=/home/node/.claude,type=volume",
+		"source=claude-history-${devcontainerId},target=/commandhistory,type=volume"
+	],
+
+	"containerEnv": {
+		"CLAUDE_CONFIG_DIR": "/home/node/.claude",
+		"POWERLEVEL9K_DISABLE_GITSTATUS": "true",
+		"LAUNCH_EDITOR": "code"
+		// Project env vars go here.
+	},
+
+	// Dev-server ports. appPort publishes them on the host at fixed numbers;
+	// forwardPorts is discovered per-session and moves around, which breaks
+	// anything that hardcodes a URL (OAuth callbacks especially).
+	"appPort": [],
+
+	// Installs dependencies once, after the container is created.
+	// Uncommented automatically by new-project.sh when a lockfile is present.
+	// "postCreateCommand": "pnpm install",
+
+	// Claude Code user-scope defaults — remote control at startup, input-needed
+	// notifications, bgIsolation none, the kit status line. Merged into
+	// ~/.claude/settings.json on every start; values already there win, so /config
+	// changes stick. Edit them in devcontainer-kit/claude/ in the kit checkout.
+	"postStartCommand": "/home/node/.claude/skills/devcontainer-kit/bin/seed-claude-settings.sh",
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"eamodio.gitlens",
+				"mhutchie.git-graph"
+				// Project extensions go here, e.g. "biomejs.biome".
+			]
+		}
+	},
+
+	"remoteUser": "node",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+	"workspaceFolder": "/workspace"
+}
