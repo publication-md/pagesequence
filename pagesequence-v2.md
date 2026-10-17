@@ -42,11 +42,19 @@ quoted    = '"' { char | '\\"' | '\\\\' } '"'   any text; \" is a quote, \\ a ba
 - Whitespace around `,`, `-`, `+`, `..` and `!` is allowed and ignored.
 - **Unquoted labels.** A bare label is any text without the reserved characters and without
   `..`. The reserved characters are `,` `-` `+` `!` `"` and the characters that `clean` repairs
-  (`;` `|` `…` `–` `—` `−` `“` `”` `„`); reserving those keeps strict mode from reading `1–52` or
-  `1; 2` as a single label. A bare label can't start or end with `.`, so `1...3` is an error
-  rather than `1.` to `3` or `1` to `.3`. The spaces around it are trimmed; spaces inside are part
-  of the label. Whether a label is a number, a roman numeral, a letter or a word is decided by
-  the numbering systems, not by the grammar.
+  (`;` `|` `…` `–` `—` `−` `“` `”` `„`, and every whitespace character other than the plain space
+  U+0020); reserving those keeps strict mode from reading `1–52` or `1; 2` as a single label. A
+  bare label can't start or end with `.`, so `1...3` is an error rather than `1.` to `3` or `1` to
+  `.3`. The spaces around it are trimmed; spaces inside are part of the label. Whether a label is
+  a number, a roman numeral, a letter or a word is decided by the numbering systems, not by the
+  grammar.
+- **Unicode.** Every function first converts its input to NFC, so a precomposed `å` and `a` plus
+  a combining ring are the same label; the normal form is NFC. Lengths, positions (in errors and
+  repairs) and the common prefix and suffix in "Finding what steps" count code points, not UTF-16
+  units, and a prefix or suffix boundary is never placed just before a combining mark (Unicode
+  category M). Case-insensitive lookup compares labels after Unicode's full lowercase mapping
+  (JS `toLowerCase()`, Python `str.lower()`, which give the same result), not after case
+  folding, so `ß` and `ss` stay different labels.
 - **Quoted labels.** A label that can't be written bare (it contains a reserved character or
   `..`, starts or ends with `.`, or has leading/trailing spaces) is written in double quotes.
   Inside the quotes, `\"` is a quote and
