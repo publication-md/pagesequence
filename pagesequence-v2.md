@@ -197,9 +197,13 @@ registered.
 
 - Quoting follows rule 4. The diff works on the unquoted text, so
   `"Plansch A"-"Plansch D"` and the quoted list give the same normal form.
-- Changing the hierarchy, for example adding a system, can change how an existing string reads.
-  So the hierarchy is part of the format version, and a new system means a minor version of
-  PageSequence plus a check that all stored sequences still expand the same.
+- **Versioning.** The hierarchy is part of the format version. A new system must use characters
+  that no existing system uses and that are not reserved. Then it can only give a meaning to
+  strings that were invalid before; no valid string changes how it reads, so a new system is a
+  minor version. Before the release, a check that all stored sequences still expand the same
+  confirms it. Anything that changes how a valid string reads is a major version. What `clean`
+  repairs, and how, can change in a minor version: it only affects what people type, never how
+  stored data reads.
 - It can also change the normal form of an unchanged model: a new system can fold what an
   earlier version listed. With a Cyrillic system, `"Табл. А", "Табл. Б", "Табл. В"` would become
   `"Табл. А"-"Табл. В"`. So a normal form is tied to the version that wrote it, and stored
@@ -476,7 +480,8 @@ A failing input is shrunk to the smallest case that still fails (`V, W, X`, say)
 
 - **One version number everywhere.** It is the PageSequence version (2.x), so
   "pagesequence 2.1" behaves the same in both languages and on every registry. Adding a numbering
-  system is a minor version, because it can change how a string reads (see "Effect on
+  system is a minor version, because it never changes how a valid string reads, and so is a
+  change to `clean`; a change to how a valid string reads is a major version (see "Effect on
   normalisation").
 - **One tag publishes everything.** A tag `v2.1.0` triggers a GitHub Actions release. It runs
   both test suites, then publishes:

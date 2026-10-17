@@ -141,9 +141,16 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
   built-in system. The clean-only design for Swedish (`Å Ä Ö` after `Z`, which can't be built in
   because Danish and Norwegian continue `Æ Ø Å`) is kept here in case a real case appears: data
   only, must not change an existing reading, per call, `clean` only.
-- [ ] **4.6 Versioning rule for new systems** (line 201). A new system must use characters no
-  existing system uses. Then it only gives meaning to strings that were invalid, and that is a
-  minor version. Anything that changes how a valid string reads is a major version.
+- [x] **4.6 Versioning rule for new systems.** Applied as a "Versioning" bullet in "Effect on
+  normalisation":
+  - A new system must use characters that no existing system uses and that are not reserved, so
+    it only gives meaning to invalid strings. That makes it a minor version, confirmed by the
+    stored-sequence check before release.
+  - Anything that changes how a valid string reads is a major version.
+  - As you added: what `clean` repairs, and how, can change in a minor version, since it only
+    affects what people type.
+
+  The Publishing section, which said a new system "can change how a string reads", now matches.
 
 ## 5. API
 
@@ -153,11 +160,11 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 6. Errors in the document
 
-- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 235);
-  2007-1 is 27 groups, not 26 (line 215).
-- [ ] **6.2 1986-1** (line 227). Use the test data (`PageSequence.test.ts:163`): v1
+- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 239);
+  2007-1 is 27 groups, not 26 (line 219).
+- [ ] **6.2 1986-1** (line 231). Use the test data (`PageSequence.test.ts:163`): v1
   `1-20 | 29,21-28, !29,30-48`, v2 `1-19, 20+29, 21-28, !29, 30-48`.
-- [ ] **6.3 1978-2** (line 229). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
+- [ ] **6.3 1978-2** (line 233). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
   Use the tests' `1-11, inflikat.0-inflikat.11, 12-24` (or tell me the proposal's version is the
   real one).
 - [ ] **6.5 Display.** With `+` the display is the notation, except that quotes are dropped
