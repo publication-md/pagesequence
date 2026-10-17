@@ -154,24 +154,33 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 5. API
 
-- [ ] **5.2 List the whole API.** Add `getIndexLength`, `getIndexLengthAll`, `getLabelLength`.
-- [ ] **5.6 Define index bases.** `labelsAt(index)` takes a 0-based PDF index that counts
-  ignored pages; `diff` messages show 1-based PDF page numbers.
+- [x] **5.2 List the whole API.** Applied: the API section (now just "API") lists the
+  constructor and `create` (throws, or returns `undefined`, as in v1), `getIndexLengthAll`,
+  `getIndexLength`, `getLabelLength`, and `getIndexList` / `getLabelList` with and without
+  `pages`. It points to "Normalisation and comparison" for `normalize`, `clean`, `equals` and
+  `diff`.
+- [x] **5.6 Define index bases.** Applied as a new "Indexes" paragraph in the API: 0-based,
+  counting ignored pages, as in v1 (in `1, !1, 2` the page labelled 2 has index 2). Messages to
+  people show 1-based page numbers; `diff` says so too ("PDF page 22" is index 21). I also had to
+  decide what `labelsAt`/`formatAt` return for an ignored page: its labels as written after `!`,
+  which a viewer can show on the duplicate scan. Outside the PDF they return `undefined`. Say if
+  you want `undefined` for ignored pages instead.
 
 ## 6. Errors in the document
 
-- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 239);
-  2007-1 is 27 groups, not 26 (line 219).
-- [ ] **6.2 1986-1** (line 231). Use the test data (`PageSequence.test.ts:163`): v1
-  `1-20 | 29,21-28, !29,30-48`, v2 `1-19, 20+29, 21-28, !29, 30-48`.
-- [ ] **6.3 1978-2** (line 233). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
-  Use the tests' `1-11, inflikat.0-inflikat.11, 12-24` (or tell me the proposal's version is the
-  real one).
-- [ ] **6.5 Display.** With `+` the display is the notation, except that quotes are dropped
-  (`"Omslag, insida"+2` is shown `Omslag, insida+2`). Say so instead of "no extra rule is
-  needed" (line 99).
-- [ ] **6.7 Add Grottan examples** 1973-1 (`1-9, 10+11, 10a, 10b+10c, 10d, !11, 12-20`) and
-  1990-1 (`I-VIII, 3-22, IX-XVI`, the same in v1 and v2).
+- [x] **6.1 Page counts.** Applied: 25 PDF pages in problem 2, 27 groups for 2007-1, and "25
+  groups" for the line from the brief.
+- [x] **6.2 1986-1.** Applied from the test data (`PageSequence.test.ts:163`): v1
+  `1-20 | 29,21-28, !29,30-48`, v2 `1-19, 20+29, 21-28, !29, 30-48`. The heading now also says it
+  has a duplicate scan.
+- [x] **6.3 1978-2.** Applied from the tests (`PageSequence.test.ts:251`):
+  `1-11, inflikat.0-inflikat.11, 12-24`.
+- [x] **6.5 Display.** Applied: notation and display are the same "except that quotes are
+  dropped", with `"Omslag, insida"+2` and `"Appendix A"` as examples.
+- [x] **6.7 Add Grottan examples.** Applied: 1973-1 (`1-9, 10+11, 10a, 10b+10c, 10d, !11, 12-20`)
+  and 1990-1 (`I-VIII, 3-22, IX-XVI`, the same in v1 and v2). While counting, I found that "Six of
+  the nine are written the same" was wrong: it was five of nine. With the two new examples it is
+  six of eleven, and the proposal now says so.
 
 ## 7. Distribution
 

@@ -9,7 +9,7 @@ A PageSequence maps PDF pages to the labels printed on them. Version 1 has three
    `2|3,4|5` as the groups "2", "3,4" and "5". In the Grottan corpus, markup agents counted the
    born-digital sequences wrongly in 40 issues and left out a correct `pageSequence`.
 2. **Long patterns can't be written short.** A born-digital issue (cover, spreads, back cover) is
-   `1,2|3,4|5,6|…|47,48`, 24 PDF pages written out one by one.
+   `1,2|3,4|5,6|…|47,48`, 25 PDF pages written out one by one.
 3. **The notation for one PDF page differs from how its labels are shown.** v1 writes `2|3` and
    shows it as "2–3", writes `20|29` and shows it as "20,29".
 
@@ -96,7 +96,8 @@ quoted    = '"' { char | '\\"' | '\\\\' } '"'   any text; \" is a quote, \\ a ba
   `Omslag, 2-31, omslag` are errors (`duplicate-label`). A duplicate scan is marked with `!`:
   `1-5, !3`.
 - **Display** of a PDF page's labels is the `page` notation itself: `2+3` → "2+3", `20+29` →
-  "20+29". Notation and presentation are the same thing, so no extra rule is needed.
+  "20+29". Notation and presentation are the same thing, except that quotes are dropped:
+  `"Omslag, insida"+2` is shown "Omslag, insida+2", and `"Appendix A"` is shown "Appendix A".
 
 ## Numbering
 
@@ -211,12 +212,12 @@ registered.
 
 ## Grottan examples
 
-Six of the nine are written the same in v1 and v2.
+Six of the eleven are written the same in v1 and v2.
 
 - **Scanned, one label per PDF page (1987-2)**
   - v1 and v2: `1-52`
 - **Born-digital: cover, spreads, back (2007-1)**
-  - v1: `1,2|3,4|5,6|…|51,52` (26 groups)
+  - v1: `1,2|3,4|5,6|…|51,52` (27 groups)
   - v2: `1, 2+3..50+51, 52`
 - **Born-digital, 48 pages (2016-4)**
   - v1: `1,2|3,4|…|47,48`
@@ -226,17 +227,22 @@ Six of the nine are written the same in v1 and v2.
 - **Ignored duplicate scan**
   - v1: `1,2|3,!3,4`
   - v2: `1, 2+3, !3, 4`
-- **Centrefold with unrelated labels (1986-1)**
-  - v1: `…,19,20|29,30,…`
-  - v2: `…, 19, 20+29, 30, …`
+- **Centrefold with unrelated labels, and its duplicate scan (1986-1)**
+  - v1: `1-20 | 29,21-28, !29,30-48`
+  - v2: `1-19, 20+29, 21-28, !29, 30-48`
 - **Insert with its own numbering (1978-2)**
-  - v1 and v2: `1-8, inflikat.1-inflikat.12, 9-40`
+  - v1 and v2: `1-11, inflikat.0-inflikat.11, 12-24`
+- **Pages with letter suffixes, joined pages and a duplicate scan (1973-1)**
+  - v1: `1-10|11,10a,10b|10c,10d,!11,12-20`
+  - v2: `1-9, 10+11, 10a, 10b+10c, 10d, !11, 12-20`
+- **Roman front and back matter (1990-1)**
+  - v1 and v2: `I-VIII, 3-22, IX-XVI`
 - **Roman front matter**
   - v1 and v2: `i-iv, 1-48`
 - **Named cover and back**
   - v1 and v2: `Omslag, 2-31, Baksida`
 
-The 24-group line from the brief, `1,2|3,4|5,6|…|47,48`, becomes `1, 2+3..46+47, 48`.
+The line from the brief, `1,2|3,4|5,6|…|47,48` (25 groups), becomes `1, 2+3..46+47, 48`.
 
 ## Why these characters
 
@@ -349,8 +355,10 @@ it can give a different result from `normalize` even for input that is already v
 - `clean(text, { length? }) → { normalized, repairs }`: repairs user input, closes an open end
   at `length`, then normalises; throws if the input is still invalid.
 - `equals(a, b) → boolean`: the same page model, labels compared exactly.
-- `diff(a, b)`: the first PDF index where the two differ, with both pages' labels. Useful in
+- `diff(a, b)`: the first index where the two differ, with both pages' labels. Useful in
   validate ("pageSequence in publication.md differs from the sheet at PDF page 22: 21 vs 22").
+  The index is 0-based (see "Indexes"); a message to a person shows the 1-based PDF page number,
+  so "PDF page 22" is index 21.
 - publication-md can store the normal form, and its tools (`toc-sync`, validate) compare with
   `equals`, never as strings, so formatting differences between the sheet and the repo, and normal
   forms written by different versions, are never reported as changes.
@@ -398,8 +406,24 @@ v1 is used in one project, so it is converted once, not supported.
 - The v2 packages contain no v1 parser and no conversion function. `|` is an invalid character.
 - **No version flag.** After the conversion every stored string is v2.
 
-## API (unchanged in meaning)
+## API
 
+The class keeps the v1 API and meaning, with a few additions. The functions `normalize`, `clean`,
+`equals` and `diff` are described under "Normalisation and comparison".
+
+**Indexes.** An index is a 0-based PDF page index that counts ignored pages, as in v1: in
+`1, !1, 2` the page labelled 2 has index 2. Messages to people show 1-based PDF page numbers.
+
+- `new PageSequence(text, length?)` parses strictly and throws an error with a kind (see "Error
+  kinds"). `PageSequence.create(text, length?)` does the same but returns `undefined` instead of
+  throwing, as in v1.
+- `getIndexLengthAll()`: the number of PDF pages, ignored ones included. This is what `length`
+  is checked against.
+- `getIndexLength()`: the number of PDF pages that are not ignored.
+- `getLabelLength()`: the number of labels on the pages that are not ignored. It is larger than
+  `getIndexLength()` when pages have several labels.
+- `getIndexList()` and `getLabelList()` without `pages`: the indexes of all pages that are not
+  ignored, and all their labels in order.
 - `getIndexList(pages?)` and `getLabelList(pages?)` keep their meaning. `pages` (a reference such
   as `"20-21"` in a part block) is parsed as a sequence and only its labels are used, as in v1.
   `,` and `-` mean the same in a sequence and in text, so there is one notation for both. A
@@ -408,7 +432,8 @@ v1 is used in one project, so it is converted once, not supported.
   page, works too.
 - New: `labelsAt(index)` returns the labels of one PDF page, and `formatAt(index)` returns them as
   displayed (`"2+3"`, `"20+29"`). This replaces the label joining that tools such as
-  publication-md's `joinLabels` do today.
+  publication-md's `joinLabels` do today. For an ignored page they return its labels as written
+  after `!`; for an index outside the PDF they return `undefined`.
 - `PageSequence.create(text, length?)` keeps its v1 signature. Passing the PDF's page count as
   `length` is recommended whenever it is known: the sequence is then checked against it, which
   catches miscounted sequences (a missing spread, a page counted twice). publication-md's validate
