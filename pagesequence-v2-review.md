@@ -71,15 +71,19 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 - [x] **3.4 Define integer width.** Applied in the integer system: a leading zero and two or
   more digits give a fixed width, and the other end must have the same number of digits
   (`08-12` is valid, `08-9` and `08-100` are errors, `9-10` is valid).
-- [ ] **3.5 Equal ends.** `3-3` and `2+3..2+3` are errors (or: mean a single page; choose
-  when marking).
+- [x] **3.5 Equal ends** (`3-3`, `2+3..2+3`). Applied per function:
+  - 3.5a Strict: an error, `equal-ends`, in the Ranges and Runs rules and the error kinds of
+    `cases.json`.
+  - 3.5b `clean`: a new repair, equal ends → one page.
+  - 3.5c Lookups: in the API, `pages` references are parsed with the `clean` rules and the
+    repairs are ignored, so `5-5` and `20–21` work.
 - [x] **3.7 Case style.** Applied. Since letters are single letters, only roman needs the rule: a
   token in mixed case (`Iv`) is not roman. `Ia-Ic` now works as the prefix `I` plus the letters
   a→c, because the alphabet systems never widen.
-- [ ] **3.8 Cap expansion.** Single-letter alphabets already solve the letter part:
-  `omslag-baksida` is an error instead of hundreds of millions of labels. What is left is
-  numbers. A sequence expands to at most 10 000 labels, and when the page count is given it is
-  checked before expanding, so `1-1000000000` fails at once.
+- [x] **3.8 Cap expansion.** Applied with a cap of 1000 labels: a new "Limit" rule in Syntax,
+  with the error kind `too-long`. The size of each range and run, and the comparison with the
+  page count, are computed from the end values before anything is expanded, so `1-1000000000`
+  fails at once. The letter part was already solved by single-letter alphabets.
 - [ ] **3.9 Pin down Unicode.** Input is normalised to NFC, prefixes and suffixes are computed
   by code point, and case-insensitive matching is defined precisely (JS `toLowerCase` and
   Python `lower`/`casefold` differ).
@@ -99,7 +103,7 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
   for these two as well. What's left is whether to keep them:
   - [ ] 4.4a Drop them until a real case appears (as open questions 1 and 3 do).
   - [ ] 4.4b Keep them.
-- [ ] **4.6 Versioning rule for new systems** (line 168). A new system must use characters no
+- [ ] **4.6 Versioning rule for new systems** (line 174). A new system must use characters no
   existing system uses. Then it only gives meaning to strings that were invalid, and that is a
   minor version. Anything that changes how a valid string reads is a major version.
 
@@ -111,16 +115,16 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 6. Errors in the document
 
-- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 202);
-  2007-1 is 27 groups, not 26 (line 182).
-- [ ] **6.2 1986-1** (line 194). Use the test data (`PageSequence.test.ts:163`): v1
+- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 208);
+  2007-1 is 27 groups, not 26 (line 188).
+- [ ] **6.2 1986-1** (line 200). Use the test data (`PageSequence.test.ts:163`): v1
   `1-20 | 29,21-28, !29,30-48`, v2 `1-19, 20+29, 21-28, !29, 30-48`.
-- [ ] **6.3 1978-2** (line 196). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
+- [ ] **6.3 1978-2** (line 202). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
   Use the tests' `1-11, inflikat.0-inflikat.11, 12-24` (or tell me the proposal's version is the
   real one).
 - [ ] **6.5 Display.** With `+` the display is the notation, except that quotes are dropped
   (`"Omslag, insida"+2` is shown `Omslag, insida+2`). Say so instead of "no extra rule is
-  needed" (line 77).
+  needed" (line 83).
 - [ ] **6.7 Add Grottan examples** 1973-1 (`1-9, 10+11, 10a, 10b+10c, 10d, !11, 12-20`) and
   1990-1 (`I-VIII, 3-22, IX-XVI`, the same in v1 and v2).
 

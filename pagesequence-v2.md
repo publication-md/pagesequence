@@ -63,6 +63,7 @@ quoted    = '"' { char | '\\"' | '\\\\' } '"'   any text; \" is a quote, \\ a ba
   - `1-16` is 16 PDF pages: 1, 2, …, 16.
   - `i-iv` and `A-D` work as roman numeral and letter ranges.
   - `inflikat.1-inflikat.12` is a range with a prefix: the prefix is kept, the number steps.
+  - The two ends must differ: `3-3` is an error (`equal-ends`); write `3`.
 - **Runs (`..`)** expand from the first page to the last; each label steps by the number of labels
   on the page:
   - `2+3..46+47` is spreads 2+3, 4+5, …, 46+47 (2 labels per page, so 23 PDF pages).
@@ -71,8 +72,13 @@ quoted    = '"' { char | '\\"' | '\\\\' } '"'   any text; \" is a quote, \\ a ba
   - The first and last page must have the same shape: the same number of labels, and the same
     prefix if there is one. The distance between them must be a whole number of steps. Otherwise
     the sequence is invalid.
+  - The two ends must differ: `2+3..2+3` is an error (`equal-ends`); write `2+3`.
 - **`+` joins labels, not ranges.** `1-3+4-6` (v1 `1-3|4-6`) is invalid; write `1-2, 3+4, 5-6`.
   A fold-out is one page with more labels: `12+13+14`.
+- **Limit.** A sequence expands to at most 1000 labels; a longer one is an error (`too-long`).
+  The size of each range and run is computed from its end values before it is expanded, and so
+  is the comparison with the page count when one is given, so `1-1000000000` fails at once
+  without building a list.
 - **Display** of a PDF page's labels is the `page` notation itself: `2+3` → "2+3", `20+29` →
   "20+29". Notation and presentation are the same thing, so no extra rule is needed.
 
@@ -290,6 +296,7 @@ readings is still an error. The repairs:
 - curly quotes `“ ” „` → `"`
 - non-breaking and other Unicode spaces → space
 - empty items and a trailing `,` are dropped
+- a range or run with equal ends → one page: `3-3` → `3`, `2+3..2+3` → `2+3`
 - **different spelling:** labels that would continue a range or run except for their case are
   respelled to the case of the first label in the stretch: `I, ii, III` → `I-III`, `i-IV` →
   `i-iv`
@@ -330,7 +337,10 @@ v1 is used in one project, so it is converted once, not supported.
 
 - `getIndexList(pages?)` and `getLabelList(pages?)` keep their meaning. `pages` (a reference such
   as `"20-21"` in a part block) is parsed as a sequence and only its labels are used, as in v1.
-  `,` and `-` mean the same in a sequence and in text, so there is one notation for both.
+  `,` and `-` mean the same in a sequence and in text, so there is one notation for both. A
+  reference is text written by a person, so it is parsed with the `clean` rules and the repairs
+  are ignored: `5-5` finds label 5, and `20–21` with an en dash, copied from a printed contents
+  page, works too.
 - New: `labelsAt(index)` returns the labels of one PDF page, and `formatAt(index)` returns them as
   displayed (`"2+3"`, `"20+29"`). This replaces the label joining that tools such as
   publication-md's `joinLabels` do today.
@@ -373,7 +383,8 @@ file, and CI runs both, so a change in behaviour fails in both languages at once
 - `cleaned` and `repairs`: the expected `clean()` output and the kinds of its repairs;
 - `format`: the expected display per PDF page (`"2+3"`, `"20+29"`);
 - `equals` / `diff` cases: a pair and the expected result;
-- `error`: for invalid input, the error *kind* only (`"mixed-systems"`, `"descending"` …), not
+- `error`: for invalid input, the error *kind* only (`"mixed-systems"`, `"descending"`,
+  `"equal-ends"`, `"too-long"` …), not
   the message, so each language can word it its own way.
 
 Cases are grouped by feature: syntax, ranges, runs, quoting, numbering (each system plus the
