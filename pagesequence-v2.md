@@ -91,6 +91,10 @@ quoted    = '"' { char | '\\"' | '\\\\' } '"'   any text; \" is a quote, \\ a ba
   trailing `,` (`empty-item`) and an open end such as `1-` (`open-end`) are errors, with or
   without a page count. Unlike v1, `create("", 52)` is an error; `clean` turns both `""` and
   `1-` into plain numbering when it is given the page count.
+- **Each label once.** A label may appear only once on the pages that are not ignored, compared
+  without case as in lookup, so that a lookup always finds one page: `1-5, 3` and
+  `Omslag, 2-31, omslag` are errors (`duplicate-label`). A duplicate scan is marked with `!`:
+  `1-5, !3`.
 - **Display** of a PDF page's labels is the `page` notation itself: `2+3` → "2+3", `20+29` →
   "20+29". Notation and presentation are the same thing, so no extra rule is needed.
 
@@ -167,10 +171,12 @@ letters a→c. A new script is one line: its letters and aliases. The scripts ne
 characters, so their order in the list doesn't matter between them. Hebrew numerals (gematria,
 `יא` = 11) are a different counting and would be a separate system.
 
-Roman comes before letter, so `I-IV` is roman. One exception keeps common cases right: **a
-single letter other than `I`, `V`, `X` is read as a letter**. That makes `C-D`, `L-M` and `C-M`
-alphabetical, not roman 100–500, 50–1000 and 100–1000, while `I-III` and `V-X` stay roman. More
-systems (Cyrillic, …) can be added by putting them into the list at the right place.
+Roman comes before letter, so `I-IV` is roman. One exception keeps common cases right: **when
+both middles are single letters and one of them is not `I`, `V` or `X`, they are read as
+letters**. That makes `C-D`, `L-M` and `C-M` alphabetical, not roman 100–500, 50–1000 and
+100–1000. `V-X` stays roman (both are `I`, `V` or `X`), and so do `I-III` and `L-LX` (one end is
+not a single letter), so `L-LX` is roman 50–60. More systems (Cyrillic, …) can be added by
+putting them into the list at the right place.
 
 ### Effect on normalisation
 
@@ -360,6 +366,7 @@ throw: an invalid reference gives `undefined`, as in v1.
 | `descending` | The last value is lower than the first | `5-3`, `D-A` |
 | `run-shape` | The ends of a run have a different number of labels or different prefixes | `2+3..46+47+48` |
 | `uneven-run` | The ends of a run are not a whole number of steps apart, or its labels don't all step the same number of times | `2+3..5+6`, `2+3..46+49` |
+| `duplicate-label` | A label appears on two pages that are not ignored (compared without case) | `1-5, 3`, `Omslag, 2-31, omslag` |
 | `too-long` | The sequence expands to more than 1000 labels | `1-5000` |
 | `bad-length` | The page count is not a positive whole number | `create("1-3", -1)` |
 | `length-mismatch` | A page count is given, and the sequence has a different number of PDF pages | `create("1-3", 4)` |
@@ -440,7 +447,8 @@ hierarchy), normalisation and cleaning. Each Grottan example in this document be
 `cases.json` holds examples someone thought of. Each implementation also has property tests
 (fast-check in TS, Hypothesis in Python): a generator builds random page models from runs of
 integers, roman numerals, letters and prefixed labels, single pages, spreads and fold-outs,
-ignored pages, and odd labels (spaces, quotes, `,`, `-`, `+`, `..`), and checks for each one:
+ignored pages, and odd labels (spaces, quotes, `,`, `-`, `+`, `..`), with no label twice on pages
+that are not ignored, and checks for each one:
 
 - **Round trip:** write the model as a plain list, `normalize` it and parse the result: the model
   comes back unchanged.

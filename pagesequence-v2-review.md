@@ -106,7 +106,7 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
     as `1-`. Without a page count, or with no pages left, it is an error. With a page count,
     `clean` also checks the result against it.
 - [x] **3.11 List all error kinds in the spec.** Applied: a new section "Error kinds" after
-  Normalisation, with a table of 18 kinds (when, example). Each error has a kind and a
+  Normalisation, with a table of the error kinds (when, example). Each error has a kind and a
   position in code points; the message is up to each implementation. `clean` throws the same
   kinds, and lookups return `undefined` as in v1. `cases.json` now refers to the table and needs
   at least one case per kind.
@@ -115,26 +115,27 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
   - I renamed the example kind `mixed-systems` to `no-system`. It also covers ends that no
     system reads at all (`omslag-baksida`, `Y-AB`).
   - I added `bad-length` and `length-mismatch` for the page count, as v1 has.
-- [ ] **3.12 The same label twice.** Collecting the errors showed a gap: the spec doesn't say
-  whether a label may appear on two pages that are not ignored (`1-5, 3`). A lookup for `3` is
-  then ambiguous; v1 silently takes the last one. Choose one:
-  - [ ] 3.12a An error (`duplicate-label`) in strict mode. A real duplicate scan is marked with
-    `!`.
-  - [ ] 3.12b Allowed; lookups use the first occurrence, and validate warns.
+- [x] **3.12 The same label twice.** Applied as 3.12a: a new rule "Each label once" in Syntax.
+  A label may appear only once on pages that are not ignored, compared without case as in
+  lookup, so `1-5, 3` and `Omslag, 2-31, omslag` are errors (`duplicate-label`, added to the
+  table; now 19 kinds). A duplicate scan is marked with `!`. `clean` doesn't repair it, since it
+  can't know which page is the duplicate. The Grottan sequences with duplicates (1986-1,
+  1973-1) already use `!`, and the property-test generator avoids duplicates.
 
 ## 4. Numbering hierarchy
 
 - [x] **4.1 Fix the exception examples.** Applied: `C-D`, `L-M` and `C-M` (not roman 100–500,
   50–1000, 100–1000). The same mistake in "Effect on normalisation" (`C, D, E` as `C-E`) is
   replaced by the real case, `V, W, X` as `V-X`.
-- [ ] **4.2 Apply the single-letter exception only when both ends are single letters.** With
-  single-letter alphabets, `L-LX` is now an error instead of 325 letters, but it should be roman
-  50–60.
+- [x] **4.2 Apply the single-letter exception only when both ends are single letters.**
+  Applied: when both middles are single letters and one of them is not `I`, `V` or `X`, they
+  are read as letters. `C-D` and `L-M` are letters, while `V-X`, `I-III` and `L-LX` are roman
+  (`L-LX` is 50–60).
 - [ ] **4.4 Greek and Hebrew.** All alphabets are single letters now, so the wrap problem is gone
   for these two as well. What's left is whether to keep them:
   - [ ] 4.4a Drop them until a real case appears (as open questions 1 and 3 do).
   - [ ] 4.4b Keep them.
-- [ ] **4.6 Versioning rule for new systems** (line 186). A new system must use characters no
+- [ ] **4.6 Versioning rule for new systems** (line 192). A new system must use characters no
   existing system uses. Then it only gives meaning to strings that were invalid, and that is a
   minor version. Anything that changes how a valid string reads is a major version.
 
@@ -146,16 +147,16 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
 
 ## 6. Errors in the document
 
-- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 220);
-  2007-1 is 27 groups, not 26 (line 200).
-- [ ] **6.2 1986-1** (line 212). Use the test data (`PageSequence.test.ts:163`): v1
+- [ ] **6.1 Page counts.** A 48-page born-digital issue is 25 PDF pages, not 24 (lines 12, 226);
+  2007-1 is 27 groups, not 26 (line 206).
+- [ ] **6.2 1986-1** (line 218). Use the test data (`PageSequence.test.ts:163`): v1
   `1-20 | 29,21-28, !29,30-48`, v2 `1-19, 20+29, 21-28, !29, 30-48`.
-- [ ] **6.3 1978-2** (line 214). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
+- [ ] **6.3 1978-2** (line 220). The proposal and the tests (`PageSequence.test.ts:251`) disagree.
   Use the tests' `1-11, inflikat.0-inflikat.11, 12-24` (or tell me the proposal's version is the
   real one).
 - [ ] **6.5 Display.** With `+` the display is the notation, except that quotes are dropped
   (`"Omslag, insida"+2` is shown `Omslag, insida+2`). Say so instead of "no extra rule is
-  needed" (line 95).
+  needed" (line 99).
 - [ ] **6.7 Add Grottan examples** 1973-1 (`1-9, 10+11, 10a, 10b+10c, 10d, !11, 12-20`) and
   1990-1 (`I-VIII, 3-22, IX-XVI`, the same in v1 and v2).
 
