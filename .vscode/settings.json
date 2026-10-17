@@ -1,3 +1,21 @@
 {
-  "deno.enable": true
+  "deno.enable": true,
+
+  // Logo orange: the arrow in logo/pagesequence.svg (#D9480F), darkened a little so
+  // white icons stay legible. Applies on Reload Window; no rebuild.
+  //
+  // Written for VS Code's Modern UI, which is on by default: modernActivityBar.*
+  // paints the bar, modernActivityBarItem.* the selected and hovered items.
+  "workbench.colorCustomizations": {
+    "modernActivityBar.background": "#C3410E",
+    "modernActivityBarItem.activeBackground": "#98330B",
+    "modernActivityBarItem.activeForeground": "#FFFFFF",
+    "modernActivityBarItem.hoverBackground": "#AD3A0C",
+    "modernActivityBarItem.hoverForeground": "#FFFFFF",
+    // Modern UI still reads this one classic key, for the unselected icons.
+    "activityBar.inactiveForeground": "#E7B39F"
+  },
+
+  // Keeps the worktree picker working when .claude/worktrees exists.
+  "git.detectWorktrees": true
 }

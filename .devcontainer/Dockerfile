@@ -144,3 +144,22 @@ RUN curl -fsSL https://claude.ai/install.sh | bash -s -- "${CLAUDE_CODE_VERSION}
 #         postgresql-client \
 #       && apt-get clean && rm -rf /var/lib/apt/lists/*
 #   USER node
+
+# Deno — this repo is a Deno/JSR package (deno.json, deno.lock), so the toolchain
+# is a system tool here, not an npm one. Official release zip at a pinned version,
+# like git-delta above; bump DENO_VERSION and rebuild to upgrade (`deno upgrade`
+# cannot write to /usr/local/bin). uname -m gives x86_64/aarch64, matching the
+# release names.
+USER root
+ARG DENO_VERSION=2.9.7
+RUN wget -qO /tmp/deno.zip \
+      "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-$(uname -m)-unknown-linux-gnu.zip" \
+  && unzip -q /tmp/deno.zip -d /usr/local/bin \
+  && rm /tmp/deno.zip \
+  && deno --version
+USER node
+
+# Zsh completion. Deno's script ends in `_deno "$@"` rather than compdef, so it
+# cannot be eval'd like pnpm's; dropped on oh-my-zsh's fpath, compinit finds it.
+RUN mkdir -p /home/node/.oh-my-zsh/cache/completions \
+  && deno completions zsh > /home/node/.oh-my-zsh/cache/completions/_deno

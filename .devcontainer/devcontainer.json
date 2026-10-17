@@ -60,7 +60,8 @@
 		"vscode": {
 			"extensions": [
 				"eamodio.gitlens",
-				"mhutchie.git-graph"
+				"mhutchie.git-graph",
+				"denoland.vscode-deno"
 				// Project extensions go here, e.g. "biomejs.biome".
 			]
 		}
