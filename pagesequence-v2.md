@@ -336,6 +336,34 @@ it can give a different result from `normalize` even for input that is already v
   `equals`, never as strings, so formatting differences between the sheet and the repo, and normal
   forms written by different versions, are never reported as changes.
 
+## Error kinds
+
+An error has a **kind** from this list and a **position**, counted in code points from the start
+of the input after NFC. The message is up to each implementation. `clean` throws the same kinds
+for input it can't repair. The lookups `getIndexList(pages)` and `getLabelList(pages)` don't
+throw: an invalid reference gives `undefined`, as in v1.
+
+| Kind | When | Example |
+|---|---|---|
+| `syntax` | An operator is out of place: the text doesn't follow the grammar | `1-2-3`, `1-3+4-6`, `2+3-46+47`, `1+2..3+4..5+6` |
+| `reserved-char` | A bare label contains a reserved character | `1–52`, `1; 2`, `2\|3`, `Hej!` |
+| `unclosed-quote` | A quoted label has no closing `"` | `"Omslag, 2-31` |
+| `dot-at-edge` | A bare label starts or ends with `.` | `1...3`, `s.` |
+| `empty` | The sequence is empty (in `clean`: and no page count is given) | `""` |
+| `empty-item` | An item is empty | `1,,2`, `1-52,` |
+| `open-end` | A range has no last label (in `clean`: no page count is given, or no pages are left for it) | `1-` |
+| `single-label-run` | `..` between pages with one label each | `1..16` |
+| `equal-ends` | A range or run has the same first and last end | `3-3`, `2+3..2+3` |
+| `no-system` | No numbering system reads both ends | `1a-2c`, `omslag-baksida`, `Y-AB` |
+| `different-case` | The ends are read with different case | `i-IV`, `a-C` |
+| `different-width` | The ends have different fixed widths (zero padding) | `08-9`, `08-100` |
+| `descending` | The last value is lower than the first | `5-3`, `D-A` |
+| `run-shape` | The ends of a run have a different number of labels or different prefixes | `2+3..46+47+48` |
+| `uneven-run` | The ends of a run are not a whole number of steps apart, or its labels don't all step the same number of times | `2+3..5+6`, `2+3..46+49` |
+| `too-long` | The sequence expands to more than 1000 labels | `1-5000` |
+| `bad-length` | The page count is not a positive whole number | `create("1-3", -1)` |
+| `length-mismatch` | A page count is given, and the sequence has a different number of PDF pages | `create("1-3", 4)` |
+
 ## Conversion from v1
 
 v1 is used in one project, so it is converted once, not supported.
@@ -401,9 +429,8 @@ file, and CI runs both, so a change in behaviour fails in both languages at once
 - `cleaned` and `repairs`: the expected `clean()` output and the kinds of its repairs;
 - `format`: the expected display per PDF page (`"2+3"`, `"20+29"`);
 - `equals` / `diff` cases: a pair and the expected result;
-- `error`: for invalid input, the error *kind* only (`"mixed-systems"`, `"descending"`,
-  `"equal-ends"`, `"open-end"`, `"too-long"` …), not
-  the message, so each language can word it its own way.
+- `error`: for invalid input, the error *kind* (see "Error kinds") and its position, not the
+  message, so each language can word it its own way. Every kind has at least one case.
 
 Cases are grouped by feature: syntax, ranges, runs, quoting, numbering (each system plus the
 hierarchy), normalisation and cleaning. Each Grottan example in this document becomes a case.

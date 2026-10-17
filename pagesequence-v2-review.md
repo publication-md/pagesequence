@@ -105,7 +105,22 @@ same result with it, and it fixes the two v1 TODOs (`a_i-b_i`, `i_a-i_b`,
     (`i-iv, 1-` with 52 → `i-iv, 1-48`; `1-` with 1 → `1`, for plain numbering). `""` is the same
     as `1-`. Without a page count, or with no pages left, it is an error. With a page count,
     `clean` also checks the result against it.
-- [ ] **3.11 List all error kinds in the spec**, since `cases.json` tests them.
+- [x] **3.11 List all error kinds in the spec.** Applied: a new section "Error kinds" after
+  Normalisation, with a table of 18 kinds (when, example). Each error has a kind and a
+  position in code points; the message is up to each implementation. `clean` throws the same
+  kinds, and lookups return `undefined` as in v1. `cases.json` now refers to the table and needs
+  at least one case per kind.
+
+  Two changes beyond the list:
+  - I renamed the example kind `mixed-systems` to `no-system`. It also covers ends that no
+    system reads at all (`omslag-baksida`, `Y-AB`).
+  - I added `bad-length` and `length-mismatch` for the page count, as v1 has.
+- [ ] **3.12 The same label twice.** Collecting the errors showed a gap: the spec doesn't say
+  whether a label may appear on two pages that are not ignored (`1-5, 3`). A lookup for `3` is
+  then ambiguous; v1 silently takes the last one. Choose one:
+  - [ ] 3.12a An error (`duplicate-label`) in strict mode. A real duplicate scan is marked with
+    `!`.
+  - [ ] 3.12b Allowed; lookups use the first occurrence, and validate warns.
 
 ## 4. Numbering hierarchy
 
