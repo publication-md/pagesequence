@@ -1,7 +1,8 @@
 # PageSequence v2: design and migration
 
 This note explains PageSequence v2 and how to get there from v1. The format itself is in
-[`spec/pagesequence.md`](spec/pagesequence.md); where the two differ, the spec wins.
+[`spec/pagesequence.md`](spec/pagesequence.md); where the two differ, the spec wins. The
+implementation plan is in [`ROADMAP.md`](ROADMAP.md).
 
 ## What it is for
 
@@ -164,6 +165,12 @@ v1 is used in one project, so it is converted once rather than supported.
 - **Errors have a kind and a position** (`PageSequenceError`).
 - **New limits:** at most 1000 labels, labels of at most 100 code points, and integers of at most 9
   digits.
+- **`fromRoman` is strict.** It reads what the roman system reads, and gives `undefined` for
+  anything else. v1 gave 4 for `IIII`, 1 for `IC` and 0 for text that isn't roman, and it read
+  mixed case (`Iv`) and `MMMM`.
+- **`toRoman` throws outside 1–3999.** v1 gave `""` for 0 and `MMMM` for 4000.
+- **`romanPattern` is gone.** It matched `MMMM` and mixed case, which v2 doesn't read as roman.
+  `fromRoman` tells whether a token is roman.
 - **New functions:** `labelsAt`, `formatAt`, `pages()`, `toString()`, `normalize`, `clean` and
   `equals`.
 
@@ -187,7 +194,7 @@ implementation per language:
 pagesequence/
   spec/pagesequence.md   the format                                        CC0
   testdata/cases.json    shared test cases, used by every implementation
-  js/                    TypeScript → npm and JSR  @publication-md/pagesequence  MIT
+  ts/                    TypeScript → npm and JSR  @publication-md/pagesequence  MIT
     package.json  jsr.json  tsconfig.json  src/  test/    (dist/ is built, not committed)
   py/                    Python → PyPI  pagesequence                       MIT
     pyproject.toml  src/pagesequence/  tests/
@@ -263,6 +270,8 @@ A failing input is cut down by hand to a small case and added to `cases.json`.
 
 ### Publishing
 
+- **The spec leaves draft at the first release,** as version 1.0. Until then it may change wherever
+  a small change makes the code smaller.
 - **One version number everywhere.** It is the PageSequence version (2.x), so "pagesequence 2.1"
   behaves the same in both languages and on every registry. The spec's "Versioning" section says
   what is a minor and what is a major version.
@@ -270,13 +279,13 @@ A failing input is cut down by hand to a small case and added to `cases.json`.
   checks that `package.json`, `jsr.json` and `pyproject.toml` carry the tag's version, runs both
   test suites, and then publishes:
   - **npm:** `tsc` builds `dist/` (ESM `.js` and `.d.ts`, with `exports` and `types` in
-    `package.json`). Then `npm publish --access public` runs from `js/`.
+    `package.json`). Then `npm publish --access public` runs from `ts/`.
     - The `@publication-md` npm organisation is created once on npmjs.com.
     - Use npm trusted publishing: OIDC from GitHub Actions, with npm CLI 11.5.1 or later and Node
       22.14 or later. Then no token is stored, and provenance is generated automatically.
     - Trusted publishing is set up in the package's settings, so the package must exist first.
       Publish the first version by hand, with 2FA, then configure trusted publishing.
-  - **JSR:** `deno publish` from `js/`. The `@publication-md` scope is created once on jsr.io, and
+  - **JSR:** `deno publish` from `ts/`. The `@publication-md` scope is created once on jsr.io, and
     the package is linked to the GitHub repository there, so the workflow publishes with OIDC and
     no token.
   - **PyPI:** `uv build` then `uv publish` from `py/`, with PyPI **Trusted Publishing** (OIDC)
@@ -295,8 +304,9 @@ A failing input is cut down by hand to a small case and added to `cases.json`.
   `pyproject.toml`.
 - **Deno** users import from JSR (`jsr:@publication-md/pagesequence`). The v1 package
   `@tvartom/pagesequence` stays on JSR as it is, and its description points to the new package.
-- **Before restructuring this repository,** tag the v1 state (1.3.3), so a fix to v1 is still
-  possible.
+- **v1 is tagged** `v1.3.3`, on commit `286b6f1`. That commit holds the code that was published on
+  JSR as 1.3.3 on 2025-03-05; versions 1.0.0–1.3.2 were published in February and March 2024. A fix
+  to v1 starts from the branch `v1`: that tag plus the one-line test fix in `97b80c6`.
 
 ### Consumers
 

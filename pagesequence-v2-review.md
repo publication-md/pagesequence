@@ -45,7 +45,8 @@ Still to do outside the documents:
 - 18.2, 18.4 and 18.8: CI and the manifests, once they exist.
 - 18.5: the first npm publish, by hand.
 - 18.6: registering the PyPI name.
-- 18.7: tagging v1 1.3.3.
+- 18.7 is done: the tag `v1.3.3` is on `286b6f1` (published as 1.3.3 on 2025-03-05), but not pushed
+  yet.
 
 ## Verdict
 
@@ -562,7 +563,7 @@ to `I-III`, so the property fails on valid generated input.
   versions. *Recommended: test runners without dependencies: `deno test` or `node --test` for JS, and `unittest` for Python.*
 - [x] **18.5** Plan the first npm publish as a manual publish with 2FA, then configure trusted publishing. *Skip: only needed for npmjs.com (see 18.1).*
 - [x] **18.6** Register the PyPI name early.
-- [x] **18.7** Tag or branch v1 1.3.3 before restructuring, so a v1 fix is still possible.
+- [x] **18.7** Tag or branch v1 1.3.3 before restructuring, so a v1 fix is still possible. *Done: the annotated tag `v1.3.3` is on `286b6f1`, which JSR published as 1.3.3 on 2025-03-05. It is not pushed yet: `git push origin v1.3.3`.*
 - [x] **18.8** Add SPDX `license` fields to all three manifests. *Recommended: `jsr.json` and `pyproject.toml`; `package.json` only if npm stays.*
 
 ### 19. Separate the format spec from the project plan

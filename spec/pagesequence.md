@@ -1,7 +1,12 @@
 # PageSequence format, version 2
 
-Status: draft. Licence: CC0. The reasons behind the design, the move from v1 and the plans for
-the implementations are in [`pagesequence-v2.md`](../pagesequence-v2.md).
+Status: draft. Licence: CC0.
+
+- The spec may still change during development, wherever a small change makes the implementations
+  smaller.
+- It leaves draft as version 1.0 when v2 is released.
+- The reasons behind the design, the move from v1 and the plans for the implementations are in
+  [`pagesequence-v2.md`](../pagesequence-v2.md).
 
 A page sequence maps the pages of a PDF to the labels printed on them. That is its purpose:
 references to pages, such as the entries of a table of contents, are written with the labels
@@ -351,6 +356,12 @@ The class keeps the v1 API and meaning, except for the changes listed in
 - `clean(text, { length? }) → { normalized, repairs }` (see "Cleaning").
 - `equals(a, b) → boolean` reads two sequence strings and compares their page models. It throws on
   invalid input.
+- `toRoman(num, lowerCase?) → string` writes an integer from 1 to 3999 as a canonical roman
+  numeral, in upper case unless `lowerCase` is true. Any other number throws a `RangeError`.
+- `fromRoman(roman) → number | undefined` gives the value of a roman numeral, read as the roman
+  system reads it (see "Numbering systems"): canonical, 1–3999, all upper or all lower case.
+  Anything else gives `undefined`. So `fromRoman(toRoman(n)) === n` for every value, and
+  `fromRoman` accepts exactly the tokens the roman system reads.
 
 **Python** uses the same names in snake case:
 
@@ -359,6 +370,8 @@ The class keeps the v1 API and meaning, except for the changes listed in
   `get_label_list(pages=None)`;
 - `labels_at(index)`, `format_at(index)`, `pages()` and `str()`;
 - the functions `normalize(text)`, `clean(text, length=None)` and `equals(a, b)`;
+- `to_roman(num, lower_case=False)`, which raises `ValueError` outside 1–3999, and
+  `from_roman(roman)`, which returns `None` for anything that isn't roman;
 - the exception `PageSequenceError`, with `.kind` and `.position`.
 
 ## Versioning
