@@ -48,6 +48,12 @@ The full format is in [`spec/pagesequence.md`](spec/pagesequence.md).
 - [`pagesequence-v2.md`](pagesequence-v2.md): the design of v2, its reasons, and the move from v1.
 - [`ROADMAP.md`](ROADMAP.md): the work for building v2, phase by phase.
 
+## Development
+
+There are two implementations, TypeScript in `ts/` and Python in `py/`, and both are tested against
+the shared cases in `testdata/cases.json`. `./check.sh` runs both test suites and a generated
+cross-language check. It needs Deno, Node and Python 3.11 or later, and installs nothing.
+
 ## Licence
 
 The code is under the [MIT licence](LICENSE). The format description in `spec/` is under

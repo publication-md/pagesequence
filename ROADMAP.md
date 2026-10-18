@@ -125,15 +125,15 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 
 ## Phase 5: Cross-language check, locally
 
-- [ ] **P5.1** Write a seeded generator, `testdata/generate.py`, using the standard library only.
+- **P5.1** Write a seeded generator, `testdata/generate.py`, using the standard library only.
   It writes a few thousand inputs to a file, including runs in the plugin systems. Each input is
   checked with no plugins and with all of them.
-- [ ] **P5.2** Have each implementation write its results as JSON, and a compare script report the
+- **P5.2** Have each implementation write its results as JSON, and a compare script report the
   first difference.
-- [ ] **P5.3** Check the properties from `pagesequence-v2.md`: round trip, idempotent, unique, not
+- **P5.3** Check the properties from `pagesequence-v2.md`: round trip, idempotent, unique, not
   longer, and `clean` agrees.
-- [ ] **P5.4** Cut any failure down to a small case and add it to `cases.json`.
-- [ ] **P5.5** Write one local command, `./check.sh`, that runs both test suites and the
+- **P5.4** Cut any failure down to a small case and add it to `cases.json`.
+- **P5.5** Write one local command, `./check.sh`, that runs both test suites and the
   cross-language check.
 
 **Exit:**

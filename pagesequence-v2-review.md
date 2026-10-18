@@ -27,11 +27,12 @@ yet, and an unticked box is an option that is still open, with the reason it wai
 point without a box is implemented or settled, or is an alternative that was not chosen.
 
 **Status (2026-10-18).** Every point without a box is in `spec/pagesequence.md` (the format) or
-`pagesequence-v2.md` (the design and migration note). The ticked points left need files that don't
-exist yet, and `ROADMAP.md` has a task for each:
+`pagesequence-v2.md` (the design and migration note), or is implemented: the cases of 8.3, 9.2,
+10.3, 11.2, 16.3, 16.4 and 19.3 are in `testdata/cases.json`. The ticked points left need files that
+don't exist yet, and `ROADMAP.md` has a task for each:
 
-- 8.3, 9.2, 10.3, 11.2, 16.3, 16.4 and 19.3: cases in `testdata/cases.json` (phase 2);
-- 16.2: the cross-language test (phase 5, then CI);
+- 16.2: the cross-language test, which runs locally with `./check.sh` (phase 5) and is not yet in
+  CI (phase 7);
 - 18.8: licence fields in the manifests (phase 6);
 - 6.3: the reference check in publication-md (phase 6);
 - 18.2: the version check in CI (phase 7);
@@ -318,7 +319,7 @@ spreads, fold-outs, quoted words and ignored pages. Results:
   step 3 replaced by 20.8.*
 - **8.2** Cap label length, e.g. at 100 code points (error `too-long`). This bounds an expansion to
   the label limit × 100 code points.
-- [x] **8.3** Add a timing case at the limits to both test suites. *Recommended: as a plain case at the limits, without a timer; the test runner's timeout catches a slow fold.*
+- **8.3** Add a timing case at the limits to both test suites. *Recommended: as a plain case at the limits, without a timer; the test runner's timeout catches a slow fold.*
 
 ### 9. Replace the I/V/X exception with "the lowest end wins"
 `:184-188`
@@ -361,7 +362,7 @@ are valid, and none of them tie.
   > values go by hierarchy order. If no reading is valid, report the error of the first system
   > that read both ends.
 
-- [x] **9.2** Add `CC-CD`, `V-X`, `I-M`, `iv-ix`, `xi-xl` and `x-l` as cases.
+- **9.2** Add `CC-CD`, `V-X`, `I-M`, `iv-ix`, `xi-xl` and `x-l` as cases.
 
 ### 10. Pin the roman system
 `:116-118`, `:157`
@@ -378,7 +379,7 @@ are valid, and none of them tie.
 - **10.1** Widen only over `tokenChars` of the same case as the middle. *Decided by the author: widening never crosses case. A mixed-case token is never roman, so no reading is lost, and `Civ-Cix` reads as roman instead of letters. Changing this after 2.0 would have been a major version.*
 - **10.2** Read only canonical numerals, 1–3999, so `format(match(t)) == t` for every token. State
   that invariant for every system.
-- [x] **10.3** Add these as cases. *Recommended: for 10.2.*
+- **10.3** Add these as cases. *Recommended: for 10.2.*
 - **10.4** Keep v1's `toRoman` and `fromRoman` as public API, and make them agree with the
   parser: `fromRoman` reads what the roman system reads and gives `undefined` for anything else,
   and `toRoman` throws outside 1–3999. *The author decided they stay public. The strictness is
@@ -405,7 +406,7 @@ Several open ends have more than one reading:
     hierarchy order. *Not chosen.*
   - **11.1c** Allow an open end only after an integer (`1-`, `i-iv, 1-`). Everything else stays
     `open-end`, so no system has to be guessed.
-- [x] **11.2** Add cases for `i-`, `A-`, `08-` and `inflikat.1-`. *Recommended: with 11.1c, `i-`, `A-`, `08-` and `inflikat.1-` become error cases.*
+- **11.2** Add cases for `i-`, `A-`, `08-` and `inflikat.1-`. *Recommended: with 11.1c, `i-`, `A-`, `08-` and `inflikat.1-` become error cases.*
 
 ### 12. Pin what a lookup returns
 `:427-432`
@@ -498,8 +499,8 @@ to `I-III`, so the property fails on valid generated input.
   (1.2) to the schema, and write a JSON Schema for the file. *Recommended: skip the JSON Schema part, since checking it needs a validator dependency.*
 - [x] **16.2** Add a cross-language test in CI: a seeded generator writes N inputs, both implementations
   write their results as JSON, and CI compares the two. *This can replace fast-check and Hypothesis (`:486`), so neither test suite needs a dependency.*
-- [x] **16.3** Carry over the v1 test cases that still apply.
-- [x] **16.4** Add every distinct string in `v2/list_of_grottan_in_v1.txt` (42) as a conversion case:
+- **16.3** Carry over the v1 test cases that still apply.
+- **16.4** Add every distinct string in `v2/list_of_grottan_in_v1.txt` (42) as a conversion case:
   the v1 string, the expected v2 normal form and the pages. All 42 convert and read back in the
   prototype.
 
@@ -572,7 +573,7 @@ implementer can't tell which parts are requirements.
 - **19.1** Split out `spec/pagesequence.md`: syntax, numbering, normal form, errors, repairs and API
   semantics, written with MUST/SHOULD.
 - **19.2** Turn the rest into a non-normative design and migration note.
-- [x] **19.3** Move the Grottan examples into `cases.json`, and keep a few generic examples in the spec. *The spec part is done; the cases come with `cases.json`.*
+- **19.3** Move the Grottan examples into `cases.json`, and keep a few generic examples in the spec. *Done: the spec keeps a few generic examples, and the Grottan strings are the `conversion` cases in `testdata/cases.json`.*
 
 ### 20. Range flags: name the system after the range (`V-X/latin`)
 This is the author's design. Flags are in 2.0 (20.10) and are written with `/` (20.11). The

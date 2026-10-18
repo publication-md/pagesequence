@@ -262,9 +262,13 @@ file, and CI runs both, so a change in behaviour fails in both languages at once
 - `plugins`: the names of the plugin systems that every call in the case is given, such as
   `["roman_additive"]`. Without it, none;
 - `maxLabels`: the label limit that every call in the case is given. Without it, the default;
+- `length` and `lengths`: the page count given to the constructor, and the expected
+  `getIndexLengthAll()`, `getIndexLength()` and `getLabelLength()`;
 - `errors`: for invalid input, every error the input may give, as `{kind, position}`. An
   implementation passes when the error it reports matches one of them. Every kind has at least one
   case.
+
+The exact shape of each field is in [`testdata/README.md`](testdata/README.md).
 
 ```json
 {"input": "1-5, 3, 1–2",
