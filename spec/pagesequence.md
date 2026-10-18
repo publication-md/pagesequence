@@ -137,7 +137,9 @@ Given the first label `a` and the last label `b`:
    1. **Widen** the middles. Move the prefix boundary back, and the suffix boundary forward, while
       the character next to the middle is one of the system's token characters. This keeps a
       number from being cut: `10` → `19` has the common prefix `1`, but for integers the middles
-      are `10` and `19`.
+      are `10` and `19`. Widening never crosses case: a lower-case character doesn't join
+      upper-case middles, or the other way round. So `Civ` → `Cix` keeps the prefix `C`, and the
+      middles are `iv` and `ix`.
    2. **Read** both middles. The reading is valid when the system reads both, both have the same
       case, the last value is not lower than the first, and in a run the distance is a whole
       number of steps.
@@ -197,6 +199,8 @@ the last value of `C-D` is 4 as letters but 500 as roman.
 | `iv` | `ix` | roman; the cut `iv`/`ix` comes first, so letters `v`→`x` don't compete | `iv`, `v`, …, `ix` |
 | `xi` | `xl` | roman 11→40, for the same reason | `xi`, `xii`, …, `xl` |
 | `CC` | `CD` | roman 200→400, for the same reason | `CC`, `CCI`, …, `CD` |
+| `Civ` | `Cix` | roman 4→9, prefix `C`: widening doesn't cross case | `Civ`, `Cv`, …, `Cix` |
+| `"Kap. Ci"` | `"Kap. Civ"` | roman 1→4, prefix `Kap. C` | `Kap. Ci`, `Kap. Cii`, `Kap. Ciii`, `Kap. Civ` |
 | `08` | `12` | error `no-system`: a leading zero is not read | |
 
 ### Flags

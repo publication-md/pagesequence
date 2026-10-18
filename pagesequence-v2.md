@@ -278,6 +278,7 @@ normalisation, cleaning, lookups, limits and conversion. The groups include:
 - **numbering:**
   - each system;
   - the reading rule: `C-D`, `V-X`, `I-M`, `x-l`, `iv-ix`, `xi-xl`, `CC-CD`;
+  - widening that doesn't cross case: `Civ-Cix`, `"Kap. Ci"-"Kap. Civ"`, `Di-Div`;
   - roman numerals that are not canonical: `IIII-V` is `no-system`.
 - **flags:** `V-X/latin`, `V-X/roman` → `V-X`, the letters I…X → `I-X/latin`, and the errors
   `1-5/klingon`, `V/latin`, `1-5/` and `IV-X/roman_additive`.

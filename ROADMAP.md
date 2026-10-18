@@ -72,6 +72,7 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   inputs with several errors list all of them in `errors`.
 - [ ] **P2.3** Add the edge cases:
   - the reading rule: `C-D`, `V-X`, `I-M`, `x-l`, `iv-ix`, `xi-xl` and `CC-CD`;
+  - widening that doesn't cross case: `Civ-Cix`, `"Kap. Ci"-"Kap. Civ"` and `Di-Div`;
   - non-canonical roman numerals: `IIII-V`;
   - `toRoman` and `fromRoman`: both cases, the values 1 and 3999, and what they reject (`IIII`,
     `IC`, `Iv`, `MMMM` and `""`; 0, 4000 and 2.5);

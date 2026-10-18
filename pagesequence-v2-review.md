@@ -375,7 +375,7 @@ are valid, and none of them tie.
   maximum (`MMMM`)?
 
 **Action.**
-- [ ] **10.1** Widen only over `tokenChars` of the same case as the middle. *Skip: an edge case that no known string has. Revisit if one appears.*
+- **10.1** Widen only over `tokenChars` of the same case as the middle. *Decided by the author: widening never crosses case. A mixed-case token is never roman, so no reading is lost, and `Civ-Cix` reads as roman instead of letters. Changing this after 2.0 would have been a major version.*
 - **10.2** Read only canonical numerals, 1–3999, so `format(match(t)) == t` for every token. State
   that invariant for every system.
 - [x] **10.3** Add these as cases. *Recommended: for 10.2.*
