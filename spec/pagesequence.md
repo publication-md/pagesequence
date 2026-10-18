@@ -1,3 +1,5 @@
+<p align="center"><img src="../logo/pagesequence.svg" alt="PageSequence" width="160"></p>
+
 # PageSequence format, version 2
 
 Status: draft. Licence: CC0.
