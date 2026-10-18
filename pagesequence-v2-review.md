@@ -617,8 +617,8 @@ prototype below wrote them with `\`.
 - **20.1** Syntax:
   - **20.1a** `/name` goes right after the last label of a range or run.
   - **20.1b** There is one flag per item, and it applies to every column.
-  - [ ] **20.1c** A flag anywhere else is `syntax`. *Not taken: the spec makes it `reserved-char`,
-    like a misplaced `!` (20.17). Tick this to use `syntax` instead.*
+  - **20.1c** A flag anywhere else is `syntax`. *Not chosen: it is `reserved-char`, like a
+    misplaced `!` (20.17).*
   - **20.1d** `\` becomes a reserved character in bare labels, so `a\b` must be quoted. `/` is
     reserved too, since it starts a flag (20.11).
 - **20.2** Names are `[a-z0-9_]+`. An unknown name is a new error kind, `unknown-system`; add it
@@ -676,7 +676,8 @@ prototype below wrote them with `\`.
 - **20.16** Implement the built-in systems through the same interface, so the core exercises
   it. *Recommended, not yet confirmed.*
 - **20.17** A flag after a single page (`V/latin`) is `reserved-char`, like a misplaced `!`,
-  instead of `syntax` (20.1c). *Recommended, not yet confirmed.*
+  instead of `syntax` (20.1c). *Decided by the author: it is the better error, and it points a
+  label such as `1990/1` to quoting.*
 - **20.18** A standard name may end in a variant (`roman_additive`), not only in a language
   subtag (20.3a). *Recommended, not yet confirmed.*
 - **20.19** Ship four plugins in 2.0: `roman_additive`, `latin_sv`, `greek` and `hebrew`, with
