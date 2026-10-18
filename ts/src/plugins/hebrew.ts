@@ -3,7 +3,7 @@
  * This is the alphabet, not gematria.
  * @module
  */
-import { alphabet } from "../pagesequence.ts";
+import { alphabet, type NumberingSystem } from "../pagesequence.ts";
 
 /** The Hebrew alphabet (`א-ת/hebrew`). */
-export const hebrew = /* @__PURE__ */ alphabet("hebrew", "אבגדהוזחטיכלמנסעפצקרשת");
+export const hebrew: NumberingSystem = /* @__PURE__ */ alphabet("hebrew", "אבגדהוזחטיכלמנסעפצקרשת");

@@ -3,7 +3,8 @@
 #
 #     ./check.sh [--seed N] [--models N]
 #
-# Needs Deno, Node and Python 3.11 or later; nothing is installed.
+# Needs Deno, Node and Python 3.11 or later. The only thing installed is the TypeScript compiler,
+# in ts/node_modules, for the npm build.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -15,6 +16,9 @@ echo "== TypeScript (Deno)"
 
 echo "== TypeScript (Node)"
 (cd ts && node --test test/)
+
+echo "== TypeScript (npm build, Node)"
+(cd ts && npm ci --silent && npm run --silent build && PAGESEQUENCE_DIST=1 node --test test/)
 
 echo "== Python"
 (cd py && python3 -m unittest)

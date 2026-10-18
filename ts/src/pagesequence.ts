@@ -809,6 +809,8 @@ export class PageSequence {
    * Without `pages`, the indexes of all pages that are not ignored. With a reference such as
    * `"20-21"`, the indexes of the pages that carry its labels, each once, in first-seen order.
    */
+  getIndexList(): number[];
+  getIndexList(pages?: string): number[] | undefined;
   getIndexList(pages?: string): number[] | undefined {
     if (pages === undefined) return this.#pages.flatMap((p, i) => (p.ignored ? [] : [i]));
     const found = this.#find(pages);
@@ -816,6 +818,8 @@ export class PageSequence {
   }
 
   /** Without `pages`, all labels of the pages that are not ignored. With a reference, its labels. */
+  getLabelList(): string[];
+  getLabelList(pages?: string): string[] | undefined;
   getLabelList(pages?: string): string[] | undefined {
     if (pages === undefined) return this.#pages.flatMap((p) => (p.ignored ? [] : [...p.labels]));
     return this.#find(pages)?.map(([, label]) => label);

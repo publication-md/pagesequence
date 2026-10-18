@@ -142,10 +142,10 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 
 ## Phase 6: Build for each registry, locally
 
-- [ ] **P6.1** Set the version of the first release candidate, with an SPDX licence field in each
+- **P6.1** Set the version of the first release candidate, with an SPDX licence field in each
   file: `2.0.0-rc.1` in `ts/package.json` and `ts/deno.json`, and `2.0.0rc1` (the PEP 440 form)
   in `py/pyproject.toml`.
-- [ ] **P6.2** Build for npm:
+- **P6.2** Build for npm:
   - `tsc` builds `ts/dist/`: ESM `.js` and `.d.ts` files.
   - Set `"sideEffects": false` in `package.json`, and give each plugin a subpath in `exports`
     (`./plugins/roman_additive`).
@@ -153,13 +153,13 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   - Install it in a scratch project and run a smoke test.
   - Bundle an app that uses only the core, and check that no plugin is in the bundle.
   - Run the shared cases against `dist/` with `node --test`.
-- [ ] **P6.3** Give each plugin its own entry in the `exports` of `ts/deno.json`, and check JSR with
+- **P6.3** Give each plugin its own entry in the `exports` of `ts/deno.json`, and check JSR with
   `deno publish --dry-run`, run from `ts/`.
-- [ ] **P6.4** Build for PyPI: `uv build` makes the sdist and the wheel. Install the wheel in a
+- **P6.4** Build for PyPI: `uv build` makes the sdist and the wheel. Install the wheel in a
   fresh virtual environment and run a smoke test.
-- [ ] **P6.5** Write the package READMEs (`ts/README.md` and `py/README.md`), which the registries
+- **P6.5** Write the package READMEs (`ts/README.md` and `py/README.md`), which the registries
   show: how to install it, a short example, and a link to the spec.
-- [ ] **P6.6** Try the local npm build in publication-md.
+- **P6.6** Try the local npm build in publication-md.
   - Convert its stored sequences with the two `v2/` files.
   - Run the reference check (6.3 in the review), using v1 from JSR
     (`@tvartom/pagesequence@1.3.3`).

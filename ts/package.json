@@ -1,6 +1,46 @@
 {
   "name": "@publication-md/pagesequence",
+  "version": "2.0.0-rc.1",
   "description": "Map the pages of a document (like a PDF) to the labels printed on them.",
+  "license": "MIT",
+  "author": "Lasse Hellman <github@tvartom.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/publication-md/pagesequence.git",
+    "directory": "ts"
+  },
   "type": "module",
-  "private": true
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/mod.d.ts",
+      "default": "./dist/mod.js"
+    },
+    "./plugins/roman_additive": {
+      "types": "./dist/plugins/roman_additive.d.ts",
+      "default": "./dist/plugins/roman_additive.js"
+    },
+    "./plugins/latin_sv": {
+      "types": "./dist/plugins/latin_sv.d.ts",
+      "default": "./dist/plugins/latin_sv.js"
+    },
+    "./plugins/greek": {
+      "types": "./dist/plugins/greek.d.ts",
+      "default": "./dist/plugins/greek.js"
+    },
+    "./plugins/hebrew": {
+      "types": "./dist/plugins/hebrew.d.ts",
+      "default": "./dist/plugins/hebrew.js"
+    }
+  },
+  "files": ["dist"],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
 }

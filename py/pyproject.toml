@@ -1,10 +1,18 @@
 [project]
 name = "pagesequence"
+version = "2.0.0rc1"
 description = "Map the pages of a document (like a PDF) to the labels printed on them."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Lasse Hellman", email = "github@tvartom.com" }]
 requires-python = ">=3.11"
 dependencies = []
-version = "0.0.0"
+
+[project.urls]
+Homepage = "https://github.com/publication-md/pagesequence"
+Specification = "https://github.com/publication-md/pagesequence/blob/main/spec/pagesequence.md"
 
 [build-system]
-requires = ["uv_build"]
+requires = ["uv_build>=0.13.1,<0.14"]
 build-backend = "uv_build"

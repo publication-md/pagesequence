@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
-from typing import NamedTuple, Protocol, Sequence
+from typing import NamedTuple, Protocol, Sequence, overload
 
 from .roman import from_roman, to_roman
 
@@ -848,6 +848,11 @@ class PageSequence:
                 found.append(hit)
         return found
 
+    @overload
+    def get_index_list(self) -> list[int]: ...
+    @overload
+    def get_index_list(self, pages: str | None = None) -> list[int] | None: ...
+
     def get_index_list(self, pages: str | None = None) -> list[int] | None:
         """Without ``pages``, the indexes of all pages that are not ignored. With a reference such
         as ``"20-21"``, the indexes of the pages that carry its labels, each once, in first-seen
@@ -856,6 +861,11 @@ class PageSequence:
             return [i for i, p in enumerate(self._pages) if not p["ignored"]]
         found = self._find(pages)
         return None if found is None else list(dict.fromkeys(index for index, _ in found))
+
+    @overload
+    def get_label_list(self) -> list[str]: ...
+    @overload
+    def get_label_list(self, pages: str | None = None) -> list[str] | None: ...
 
     def get_label_list(self, pages: str | None = None) -> list[str] | None:
         """Without ``pages``, all labels of the pages that are not ignored. With a reference, its

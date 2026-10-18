@@ -33,8 +33,6 @@ don't exist yet, and `ROADMAP.md` has a task for each:
 
 - 16.2: the cross-language test, which runs locally with `./check.sh` (phase 5) and is not yet in
   CI (phase 7);
-- 18.8: licence fields in the manifests (phase 6);
-- 6.3: the reference check in publication-md (phase 6);
 - 18.2: the version check in CI (phase 7);
 - 18.6: registering the PyPI name (phase 8).
 
@@ -260,7 +258,7 @@ rules, letter readings, duplicate check.
   - **6.2b** empty stored strings (they need the PDF page count);
   - **6.2c** every sequence whose *text* reads differently in v2 than in v1. These are likely v1 data bugs
     worth a human look, not something to preserve silently.
-- [x] **6.3** Also check stored references: for each one, compare v1 `getIndexList(ref)` with v2's. *Recommended: as a one-off check in publication-md.*
+- **6.3** Also check stored references: for each one, compare v1 `getIndexList(ref)` with v2's. *Done in a copy of publication-md with the local npm build (`v2/refcheck.ts`): the 14 374 references (the `pages` and `key` of every part and figure block) give the same pages in v1 and v2. The one that doesn't resolve, `1984-3` `20-21`, doesn't resolve in v1 either.*
 
 ### 7. `clean` changes can change how stored data reads
 `:205-207` vs `:427-432`
@@ -559,7 +557,7 @@ to `I-III`, so the property fails on valid generated input.
 - **18.5** Plan the first npm publish as a manual publish with 2FA, then configure trusted publishing. *Chosen by the author, with 18.1.*
 - [x] **18.6** Register the PyPI name early.
 - **18.7** Tag or branch v1 1.3.3 before restructuring, so a v1 fix is still possible. *Done: the annotated tag `v1.3.3` is on `286b6f1`, which JSR published as 1.3.3 on 2025-03-05, and the branch `v1` holds that tag plus the test fix `97b80c6`. Neither is pushed yet: `git push origin v1.3.3 v1`.*
-- [x] **18.8** Add SPDX `license` fields to all three manifests. *All three, since npm stays (18.1). The JSR config is `deno.json` (22.6).*
+- **18.8** Add SPDX `license` fields to all three manifests. *All three, since npm stays (18.1). The JSR config is `deno.json` (22.6). Done: `"license": "MIT"` in `package.json` and `deno.json`, and `license = "MIT"` in `pyproject.toml`.*
 
 ### 19. Separate the format spec from the project plan
 `:446-464`

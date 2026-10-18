@@ -1,8 +1,7 @@
 // What cases.json can't express: the roman round trip, and the checks on `plugins` and options.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { alphabet, fromRoman, normalize, PageSequence, toRoman } from "../src/mod.ts";
-import { latinSv } from "../src/plugins/latin_sv.ts";
+import { alphabet, fromRoman, latinSv, normalize, PageSequence, toRoman } from "./lib.ts";
 
 test("roman round trip, 1–3999, both cases", () => {
   for (let n = 1; n <= 3999; n++) {

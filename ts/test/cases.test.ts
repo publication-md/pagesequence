@@ -6,16 +6,16 @@ import {
   clean,
   equals,
   fromRoman,
+  greek,
+  hebrew,
+  latinSv,
   normalize,
   type NumberingSystem,
   PageSequence,
   PageSequenceError,
+  romanAdditive,
   toRoman,
-} from "../src/mod.ts";
-import { romanAdditive } from "../src/plugins/roman_additive.ts";
-import { latinSv } from "../src/plugins/latin_sv.ts";
-import { greek } from "../src/plugins/greek.ts";
-import { hebrew } from "../src/plugins/hebrew.ts";
+} from "./lib.ts";
 
 const PLUGINS: Record<string, NumberingSystem> = { roman_additive: romanAdditive, latin_sv: latinSv, greek, hebrew };
 

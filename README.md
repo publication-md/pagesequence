@@ -52,7 +52,8 @@ The full format is in [`spec/pagesequence.md`](spec/pagesequence.md).
 
 There are two implementations, TypeScript in `ts/` and Python in `py/`, and both are tested against
 the shared cases in `testdata/cases.json`. `./check.sh` runs both test suites and a generated
-cross-language check. It needs Deno, Node and Python 3.11 or later, and installs nothing.
+cross-language check. It needs Deno, Node and Python 3.11 or later. It installs only the
+TypeScript compiler, in `ts/node_modules`, and runs the shared cases against the npm build too.
 
 ## Licence
 

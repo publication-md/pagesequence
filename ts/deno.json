@@ -1,11 +1,22 @@
 {
   "name": "@publication-md/pagesequence",
+  "version": "2.0.0-rc.1",
+  "license": "MIT",
   "exports": {
-    ".": "./src/mod.ts"
+    ".": "./src/mod.ts",
+    "./plugins/roman_additive": "./src/plugins/roman_additive.ts",
+    "./plugins/latin_sv": "./src/plugins/latin_sv.ts",
+    "./plugins/greek": "./src/plugins/greek.ts",
+    "./plugins/hebrew": "./src/plugins/hebrew.ts"
   },
+  "publish": {
+    "include": ["src/", "README.md", "LICENSE"]
+  },
+  "exclude": ["dist/", "node_modules/"],
   "nodeModulesDir": "none",
+  "lock": false,
   "tasks": {
-    "test": "deno test --allow-read test/",
+    "test": "deno test --allow-read --allow-env=PAGESEQUENCE_DIST test/",
     "lint": "deno lint",
     "fmt": "deno fmt --check"
   },
