@@ -1,4 +1,4 @@
-// claude-shared kit v3 — copied into this repository, not referenced.
+// claude-shared kit v4 — copied into this repository, not referenced.
 //
 // No registry login, no devcontainer features, no lockfile: this builds from the
 // Dockerfile next to it. The only thing it expects from the host is ~/claude-shared,
@@ -12,12 +12,7 @@
 
 	"runArgs": [
 		// Lets code in the container reach services on the host by name.
-		"--add-host=host.docker.internal:host-gateway",
-		// Host env for every container. The file must
-		// exist or docker will not start this container; it documents itself.
-		// Create it with: ~/claude-shared/skills/devcontainer-kit/bin/doctor.sh
-		"--env-file",
-		"${localEnv:HOME}/.config/claude-shared/env"
+		"--add-host=host.docker.internal:host-gateway"
 		// To also drop raw sockets (blocks ping; NET_ADMIN is already absent since
 		// nothing here adds capabilities): "--cap-drop=NET_RAW"
 	],

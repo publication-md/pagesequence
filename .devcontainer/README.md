@@ -8,20 +8,16 @@ and no `devcontainer-lock.json`.
 
 ```bash
 git clone git@github.com:tvartom/claude-devcontainer.git     # anywhere you like
-ln -s "$PWD/claude-devcontainer/claude-shared" ~/claude-shared
-~/claude-shared/skills/devcontainer-kit/bin/doctor.sh      # prints the command for anything missing
+claude-devcontainer/setup-host.sh     # links ~/claude-shared, then runs doctor.sh
 ```
 
 Then **Reopen in Container**. No personal access token, no `ssh-agent`, no
 `docker login`.
 
-`doctor.sh` will have you copy `host/env.example` to `~/.config/claude-shared/env`.
-That file must exist or docker will not start the container; its own comments explain
-the rest.
-
 Claude Code asks you to log in the first time: run `/login` once. The login is kept on
-this project's own `~/.claude` volume, so it survives rebuilds. Do not set a token in that
-file instead; its comments say why.
+this project's own `~/.claude` volume, so it survives rebuilds. Do not use a
+`claude setup-token` token instead: it is inference-only, overrides `/login`, and Remote
+Control rejects it.
 
 ## What comes from where
 

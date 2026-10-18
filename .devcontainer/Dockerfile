@@ -1,6 +1,6 @@
 # Dev container image for pagesequence.
 #
-# claude-shared kit v3 — this file was copied into this repository, not referenced.
+# claude-shared kit v4 — this file was copied into this repository, not referenced.
 # It is yours: it builds without any registry login, and nothing outside this repo
 # has to resolve for it to work.
 #
@@ -128,7 +128,7 @@ RUN echo 'eval "$(pnpm completion zsh)"' >> /home/node/.zshrc
 ARG CLAUDE_CODE_VERSION=latest
 RUN curl -fsSL https://claude.ai/install.sh | bash -s -- "${CLAUDE_CODE_VERSION}"
 
-# ─── end of claude-shared kit v3 ──────────────────────────────────────────────
+# ─── end of claude-shared kit v4 ──────────────────────────────────────────────
 # Everything below is yours. `sync-project.sh` replaces everything ABOVE this line
 # and never touches anything below it. Keeping project layers last also means the
 # shared prefix above stays identical across all your repos, so it comes from
