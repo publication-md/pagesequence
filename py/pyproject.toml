@@ -1,0 +1,10 @@
+[project]
+name = "pagesequence"
+description = "Map the pages of a PDF to the labels printed on them."
+requires-python = ">=3.11"
+dependencies = []
+version = "0.0.0"
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"

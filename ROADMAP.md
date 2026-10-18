@@ -116,10 +116,10 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 
 ## Phase 4: Python implementation
 
-- [ ] **P4.1** Write `py/src/pagesequence/` with the same structure, `roman.py` and `plugins/`
+- **P4.1** Write `py/src/pagesequence/` with the same structure, `roman.py` and `plugins/`
   included, using the Python names from the spec.
-- [ ] **P4.2** Write `py/tests/`. It reads `../testdata/cases.json` with `unittest`.
-- [ ] **P4.3** Write `pyproject.toml`: name `pagesequence`, Python 3.11 or later, no dependencies.
+- **P4.2** Write `py/tests/`. It reads `../testdata/cases.json` with `unittest`.
+- **P4.3** Write `pyproject.toml`: name `pagesequence`, Python 3.11 or later, no dependencies.
 
 **Exit:** all shared cases pass with `python -m unittest`, run from `py/`.
 
