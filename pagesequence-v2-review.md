@@ -97,9 +97,9 @@ Fixing an order costs code. Following the simplest implementation is cheaper, as
 tests don't depend on it.
 
 **Action.**
-- [x] **1.1** Say that when an input has several errors, which one is reported is up to the
+- **1.1** Say that when an input has several errors, which one is reported is up to the
   implementation.
-- [x] **1.2** Let an invalid case list every error it allows, instead of the single `error` field
+- **1.2** Let an invalid case list every error it allows, instead of the single `error` field
   (`:477-478`). An implementation passes when the error it reports matches one entry, kind and
   position. Inputs with several errors can then stay in `cases.json`. *Decided by the author.*
 
@@ -109,17 +109,17 @@ tests don't depend on it.
               {"kind": "reserved-char", "position": 8}]}
   ```
 
-- [x] **1.3** Define the position as the first non-space character of the item that holds the error,
+- **1.3** Define the position as the first non-space character of the item that holds the error,
   in code points. For an empty item, it is the position just after its comma. Use `null` for
   `bad-length` and `length-mismatch`. Every implementation knows this without tracking characters
   inside labels.
-- [x] **1.4** One lexing rule still decides the *kind* of an error. Choose one:
-  - [x] **1.4a** `!` and `"` are reserved characters and must be quoted inside a label (`"Hej!"`,
+- **1.4** One lexing rule still decides the *kind* of an error. Choose one:
+  - **1.4a** `!` and `"` are reserved characters and must be quoted inside a label (`"Hej!"`,
     `"My \"label\""`). `!` is an operator only at the start of an item, and `"` opens a quoted
     label only at the start of a label. So `Hej!` and `My"label` are `reserved-char`, as the error
     table already says. *Chosen by the author;* still to be written into the spec (`:43-47`).
   - [ ] **1.4b** ~~Or let `Hej!` be `syntax` and change the table.~~ Not chosen.
-- [x] **1.5** Add table rows for the cases not covered: `-5`, `2+`, `+3`, `1..`, `2+3..`, `!` alone, `!!3`,
+- **1.5** Add table rows for the cases not covered: `-5`, `2+`, `+3`, `1..`, `2+3..`, `!` alone, `!!3`,
   `1-!3`, `"a"b`.
 
 ### 2. Separate the strict model from language-specific behaviour
@@ -137,24 +137,24 @@ The author's rule is: strict mode uses only the plain space, and outside the str
 language does whatever is simplest. With that rule, the strict model needs no Unicode tables.
 
 **Action.**
-- [x] **2.1** **Strict mode:**
-  - [x] **2.1a** U+0020 is the only whitespace.
-  - [x] **2.1b** Control characters (U+0000–U+001F, U+007F–U+009F) are `reserved-char`. That is a simple range
+- **2.1** **Strict mode:**
+  - **2.1a** U+0020 is the only whitespace.
+  - **2.1b** Control characters (U+0000–U+001F, U+007F–U+009F) are `reserved-char`. That is a simple range
     check.
-  - [x] **2.1c** Every other character, NBSP included, is label text. Remove "every whitespace character other
+  - **2.1c** Every other character, NBSP included, is label text. Remove "every whitespace character other
     than the plain space U+0020" from the reserved list (`:45-46`).
-- [x] **2.2** **`clean`:** convert whitespace to U+0020 by the language's own definition. Results may
+- **2.2** **`clean`:** convert whitespace to U+0020 by the language's own definition. Results may
   differ between languages, so `cases.json` uses only tab, newline and U+00A0, which both treat
   the same way.
-- [x] **2.3** **Integers:** ASCII `0-9` only, checked explicitly. Don't rely on Python's `\d`, `isdigit()`
+- **2.3** **Integers:** ASCII `0-9` only, checked explicitly. Don't rely on Python's `\d`, `isdigit()`
   or `int()` alone.
-- [x] **2.4** **Lowercasing and NFC:** use the language's own `toLowerCase()`/`lower()` and
+- **2.4** **Lowercasing and NFC:** use the language's own `toLowerCase()`/`lower()` and
   `normalize()`. Lowercasing *is* inside the strict model (`duplicate-label`), so:
-  - [x] **2.4a** say that characters whose case mapping changed in recent Unicode versions may give different
+  - **2.4a** say that characters whose case mapping changed in recent Unicode versions may give different
     results;
-  - [x] **2.4b** keep those characters out of `cases.json`;
-  - [x] **2.4c** drop "which give the same result" (`:56`).
-- [x] **2.5** **Drop the combining-mark boundary rule** (`:54-55`). It only affects ranges like `x̃-z̃`
+  - **2.4b** keep those characters out of `cases.json`;
+  - **2.4c** drop "which give the same result" (`:56`).
+- **2.5** **Drop the combining-mark boundary rule** (`:54-55`). It only affects ranges like `x̃-z̃`
   (a letter plus a combining mark that has no precomposed form), and it needs Unicode property
   support in both languages. Without it, such a range reads as letters with the mark as a suffix.
 
@@ -168,10 +168,10 @@ language does whatever is simplest. With that rule, the strict model needs no Un
   prototype with an exception that isn't a sequence error.
 
 **Action.**
-- [x] **3.1** Read integer tokens of at most 9 digits. That fits in 32 bits and is far beyond any page
+- **3.1** Read integer tokens of at most 9 digits. That fits in 32 bits and is far beyond any page
   number. Longer tokens are not readable (`no-system`). One length check fixes both problems. Add a
   case.
-- [x] **3.2** Drop fixed-width integers for 2.0. A number with a leading zero is not readable in a
+- **3.2** Drop fixed-width integers for 2.0. A number with a leading zero is not readable in a
   range (`no-system`). That removes the width rule and `different-width` (`:162-165`), and `08-12`
   (`:138`) becomes an error case. No known string uses zero padding, and width can return in a
   minor version.
@@ -192,10 +192,10 @@ written exactly as in the input" (`:285`).
 `descending` covers it, so it silently becomes one page.
 
 **Action.**
-- [x] **4.1** Choose one. *Recommended: 4.1c, the simplest.*
+- **4.1** Choose one. *Recommended: 4.1c, the simplest.*
   - [ ] **4.1a** Keep both ends verbatim and generate only the labels between them.
   - [ ] **4.1b** Make an alias unreadable as a range or run end (`no-system`).
-  - [x] **4.1c** Drop aliases until a real case needs them (see 22.3 and item 20). *No known string has a non-ASCII character. An `aliases` field can come in a minor version, since it only makes invalid ends readable. This differs from the author's note that definitions should cover aliases.*
+  - **4.1c** Drop aliases until a real case needs them (see 22.3 and item 20). *No known string has a non-ASCII character. An `aliases` field can come in a minor version, since it only makes invalid ends readable. This differs from the author's note that definitions should cover aliases.*
 
 ### 5. Make the label grammar exact
 `:37-39`, `:58-64`
@@ -210,14 +210,14 @@ written exactly as in the input" (`:285`).
 - The EBNF literals `'\\"'` and `'\\\\'` read as two or four characters depending on the reader.
 
 **Action.**
-- [x] **5.1** `bare = barechar { barechar }`, with `barechar` defined by what it excludes.
-- [x] **5.2** Define the quoted label:
-  - [x] **5.2a** `qchar` = any character except `"` and `\`;
-  - [x] **5.2b** `escape` = `\` followed by `"` or `\`;
-  - [x] **5.2c** say whether a `\` before any other character is literal or an error. *Recommended: an error, so `\"` and `\\` are the only escapes.*
-- [x] **5.3** Decide on `""`: an error (`empty-item`), or the way to write an unlabelled page (22.1). *Recommended: an error (`empty-item`); unlabelled pages keep invented names (22.1).*
-- [x] **5.4** Forbid control characters (category Cc), even inside quotes.
-- [x] **5.5** State that a quoted label can't touch other label text (`"a"b` → `syntax`). This also
+- **5.1** `bare = barechar { barechar }`, with `barechar` defined by what it excludes.
+- **5.2** Define the quoted label:
+  - **5.2a** `qchar` = any character except `"` and `\`;
+  - **5.2b** `escape` = `\` followed by `"` or `\`;
+  - **5.2c** say whether a `\` before any other character is literal or an error. *Recommended: an error, so `\"` and `\\` are the only escapes.*
+- **5.3** Decide on `""`: an error (`empty-item`), or the way to write an unlabelled page (22.1). *Recommended: an error (`empty-item`); unlabelled pages keep invented names (22.1).*
+- **5.4** Forbid control characters (category Cc), even inside quotes.
+- **5.5** State that a quoted label can't touch other label text (`"a"b` → `syntax`). This also
   settles open question 3 for now.
 
 ### 6. Make the v1 conversion workable
@@ -266,7 +266,7 @@ rules, letter readings, duplicate check.
 The checks in 6.2 are still worth keeping for strings not in the list.
 
 **Action.**
-- [x] **6.1** Build the model by splitting each v1 string on `,` and parsing each section on its own.
+- **6.1** Build the model by splitting each v1 string on `,` and parsing each section on its own.
   v1 labels can't contain `,`. For each section: strip `!` and record it, split the `|` groups,
   and use the v1 module only to expand ranges. *Done for the known strings: `v2/list_of_grottan_in_v2.txt` is the checked v2 form of each line of `v2/list_of_grottan_in_v1.txt`, so converting is a lookup between the two files.*
 - [ ] **6.2** Have the script report, and stop on: *Skip: not needed, since none of these occur in the known data.*
@@ -285,10 +285,10 @@ how stored data reads", so it is a minor version. But `getIndexList(pages)` and
 changes what a stored part block points to.
 
 **Action.**
-- [x] **7.1** Choose one, then make the Versioning and Publishing text agree with it: *Recommended: 7.1b. `clean` can then change freely.*
+- **7.1** Choose one, then make the Versioning and Publishing text agree with it: *Recommended: 7.1b. `clean` can then change freely.*
   - [ ] **7.1a** The repairs used for references are a fixed, versioned list. Only adding a repair that
     turns an error into a result is a minor version.
-  - [x] **7.1b** References are parsed strictly, plus a small fixed set of repairs (dashes, `5-5`).
+  - **7.1b** References are parsed strictly, plus a small fixed set of repairs (dashes, `5-5`).
   - [ ] **7.1c** References are stored normalised.
 
 ---
@@ -329,9 +329,9 @@ spreads, fold-outs, quoted words and ignored pages. Results:
 - At 1000 labels it takes 0.04 s on the worst input above, and 0.006 s for `1-1000`.
 
 **Action.**
-- [x] **8.1** Define the normal form by these four steps instead of "the longest stretch that folds". The
+- **8.1** Define the normal form by these four steps instead of "the longest stretch that folds". The
   results are the same, the cost is linear, and the steps are the implementation.
-- [x] **8.2** Cap label length, e.g. at 100 code points (error `too-long`). This bounds an expansion to
+- **8.2** Cap label length, e.g. at 100 code points (error `too-long`). This bounds an expansion to
   1000 × 100 code points.
 - [x] **8.3** Add a timing case at the limits to both test suites. *Recommended: as a plain case at the limits, without a timer; the test runner's timeout catches a slow fold.*
 
@@ -368,7 +368,7 @@ are valid, and none of them tie.
 - still reads `CC-CD` as roman 201.
 
 **Action.**
-- [x] **9.1** Replace the exception (`:184-188`) with:
+- **9.1** Replace the exception (`:184-188`) with:
 
   > Try each system as now. Drop readings that are invalid (descending, different case or
   > width, uneven run). The first remaining reading in hierarchy order fixes where the label is
@@ -391,9 +391,16 @@ are valid, and none of them tie.
 
 **Action.**
 - [ ] **10.1** Widen only over `tokenChars` of the same case as the middle. *Skip: an edge case that no known string has. Revisit if one appears.*
-- [x] **10.2** Read only canonical numerals, 1–3999, so `format(match(t)) == t` for every token. State
+- **10.2** Read only canonical numerals, 1–3999, so `format(match(t)) == t` for every token. State
   that invariant for every system.
 - [x] **10.3** Add these as cases. *Recommended: for 10.2.*
+- **10.4** Keep v1's `toRoman` and `fromRoman` as public API, and make them agree with the
+  parser: `fromRoman` reads what the roman system reads and gives `undefined` for anything else,
+  and `toRoman` throws outside 1–3999. *The author decided they stay public. The strictness is
+  recommended, so that a public `fromRoman` never accepts what the parser rejects.*
+- **10.5** Drop `romanPattern`. It matches `MMMM` and mixed case such as `Iv`, which v2 doesn't
+  read as roman, and Python's `re` can't compile it (variable-width look-behind). *Decided by the
+  author.*
 
 ### 11. Define how `clean` closes an open end that isn't a plain number
 `:337-340`
@@ -406,12 +413,12 @@ Several open ends have more than one reading:
 - `1a-`, `inflikat.1-` and `08-` all need a rule.
 
 **Action.**
-- [x] **11.1** Choose one: *Recommended: 11.1c.*
+- **11.1** Choose one: *Recommended: 11.1c.*
   - [ ] **11.1a** Allow an open end only after a label that one system reads as a whole token
     (integer first, then the hierarchy), checked by round trip.
   - [ ] **11.1b** Or define a single-label rule, e.g. the last token that some system reads, in
     hierarchy order.
-  - [x] **11.1c** Allow an open end only after an integer (`1-`, `i-iv, 1-`). Everything else stays
+  - **11.1c** Allow an open end only after an integer (`1-`, `i-iv, 1-`). Everything else stays
     `open-end`, so no system has to be guessed.
 - [x] **11.2** Add cases for `i-`, `A-`, `08-` and `inflikat.1-`. *Recommended: with 11.1c, `i-`, `A-`, `08-` and `inflikat.1-` become error cases.*
 
@@ -428,10 +435,10 @@ Several open ends have more than one reading:
   hits `duplicate-label` and returns `undefined`.
 
 **Action.**
-- [x] **12.1** State the result order and the rule for repeats: keep v1's, or switch to unique indexes in
+- **12.1** State the result order and the rule for repeats: keep v1's, or switch to unique indexes in
   first-seen order and list that under breaking changes (item 13). *Recommended: unique indexes in first-seen order. It is one rule that is easy to state; add it to item 13.*
-- [x] **12.2** Say whether references are exempt from `duplicate-label`. *Recommended: not exempt, since references use the same parser.*
-- [x] **12.3** Document that a reference means labels, not a span. If part blocks need physical spans, add
+- **12.2** Say whether references are exempt from `duplicate-label`. *Recommended: not exempt, since references use the same parser.*
+- **12.3** Document that a reference means labels, not a span. If part blocks need physical spans, add
   `getIndexSpan(pages)`: from the page of the first label to the page of the last label (see 22.5). *Settled by the author: a reference is made of labels, never of PDF pages, which is the whole idea of the library. No span API.*
 
 ### 13. Add an explicit "Breaking changes from v1" list
@@ -450,7 +457,7 @@ additions". In fact several things change:
 - possibly the shape of lookup results (item 12).
 
 **Action.**
-- [x] **13.1** List these in one place, with what consumers must change. For example, code that relied on
+- **13.1** List these in one place, with what consumers must change. For example, code that relied on
   the empty default needs ``create(text || `1-${n}`, n)``.
 
 ### 14. Specify the `clean` repairs exactly
@@ -469,12 +476,12 @@ additions". In fact several things change:
   `ellipsis`, `single-label-run`, `curly-quote`, `space`, `empty-item`, `equal-ends`, `open-end`,
   `case`. *Skip: `clean` is outside the strict model, so test only its result and let each implementation name its own repairs.*
 - [ ] **14.2** Positions refer to the NFC input before any repair. *Skip: same reason as 14.1.*
-- [x] **14.3** No repair applies inside straight quotes. Curly quotes are the exception: they still have
+- **14.3** No repair applies inside straight quotes. Curly quotes are the exception: they still have
   to be recognised as quotes.
 - [ ] **14.4** Optional: repair `P-Q` to `P..Q` when both pages have the same number (2 or more) of
   labels. It has only one reading, and it is the most likely mistake, since `-` is the range
   operator. *Skip: optional; skip it to keep `clean` small.*
-- [x] **14.5** Drop the "different spelling" repair (`:341-343`). It needs its own case-insensitive
+- **14.5** Drop the "different spelling" repair (`:341-343`). It needs its own case-insensitive
   fold, it only fixes typos such as `i-IV`, and without it `clean` and `normalize` agree on all valid
   input (item 15).
 
@@ -501,7 +508,7 @@ to `I-III`, so the property fails on valid generated input.
   agree on *random* input.
 
 **Action.**
-- [x] **16.1** Add `length`, `lookups: [{pages, indexes, labels}]`, per-index `labelsAt` and `errors`
+- **16.1** Add `length`, `lookups: [{pages, indexes, labels}]`, per-index `labelsAt` and `errors`
   (1.2) to the schema, and write a JSON Schema for the file. *Recommended: skip the JSON Schema part, since checking it needs a validator dependency.*
 - [x] **16.2** Add a cross-language test in CI: a seeded generator writes N inputs, both implementations
   write their results as JSON, and CI compares the two. *This can replace fast-check and Hypothesis (`:486`), so neither test suite needs a dependency.*
@@ -523,11 +530,11 @@ to `I-III`, so the property fails on valid generated input.
 - No Python names are given.
 
 **Action.**
-- [x] **17.1** Define the signatures of `equals` and `diff`. *Recommended: only `equals(a, b)` on two strings, throwing on invalid input like `normalize`.*
+- **17.1** Define the signatures of `equals` and `diff`. *Recommended: only `equals(a, b)` on two strings, throwing on invalid input like `normalize`.*
 - [ ] **17.2** Define `diff`'s result: `null`, or `{index, a: {ignored, labels} | null, b: …}`. *Skip: drop `diff` from the API. With `pages()`, a caller can find the first difference in a few lines.*
-- [x] **17.3** Add `pages()` (or `toJSON()`).
-- [x] **17.4** Define `PageSequenceError {kind, position}` in both languages.
-- [x] **17.5** Give the Python names: `PageSequence(text, length=None)`, `get_index_list`, `labels_at`,
+- **17.3** Add `pages()` (or `toJSON()`).
+- **17.4** Define `PageSequenceError {kind, position}` in both languages.
+- **17.5** Give the Python names: `PageSequence(text, length=None)`, `get_index_list`, `labels_at`,
   `clean(text, length=None)`, and `create` returning `None`.
 
 ### 18. Tighten the publishing plan
@@ -555,15 +562,15 @@ to `I-III`, so the property fails on valid generated input.
   layout in place.
 
 **Action.**
-- [x] **18.1** Add the npm build: `tsc` → `dist/`, ESM, with `exports` and `types`. *Skip: simpler to publish the JS package to JSR only. JSR also serves npm clients (`npx jsr add @publication-md/pagesequence`), so there is no build step and no npm setup. Tick this if npmjs.com is a must.*
+- **18.1** Add the npm build: `tsc` → `dist/`, ESM, with `exports` and `types`. *Skip: simpler to publish the JS package to JSR only. JSR also serves npm clients (`npx jsr add @publication-md/pagesequence`), so there is no build step and no npm setup. Tick this if npmjs.com is a must.*
 - [x] **18.2** Add a CI step that fails if any manifest's version differs from the tag.
-- [x] **18.3** Make each publish step re-runnable on its own, skipping a registry that already has the
+- **18.3** Make each publish step re-runnable on its own, skipping a registry that already has the
   version. *Skip: simpler to release a new patch version after a partial failure.*
-- [x] **18.4** Name the test runner (`deno test`, `node --test` or vitest) and the minimum Node and Python
+- **18.4** Name the test runner (`deno test`, `node --test` or vitest) and the minimum Node and Python
   versions. *Recommended: test runners without dependencies: `deno test` or `node --test` for JS, and `unittest` for Python.*
-- [x] **18.5** Plan the first npm publish as a manual publish with 2FA, then configure trusted publishing. *Skip: only needed for npmjs.com (see 18.1).*
+- **18.5** Plan the first npm publish as a manual publish with 2FA, then configure trusted publishing. *Skip: only needed for npmjs.com (see 18.1).*
 - [x] **18.6** Register the PyPI name early.
-- [x] **18.7** Tag or branch v1 1.3.3 before restructuring, so a v1 fix is still possible. *Done: the annotated tag `v1.3.3` is on `286b6f1`, which JSR published as 1.3.3 on 2025-03-05. It is not pushed yet: `git push origin v1.3.3`.*
+- **18.7** Tag or branch v1 1.3.3 before restructuring, so a v1 fix is still possible. *Done: the annotated tag `v1.3.3` is on `286b6f1`, which JSR published as 1.3.3 on 2025-03-05. It is not pushed yet: `git push origin v1.3.3`.*
 - [x] **18.8** Add SPDX `license` fields to all three manifests. *Recommended: `jsr.json` and `pyproject.toml`; `package.json` only if npm stays.*
 
 ### 19. Separate the format spec from the project plan
@@ -575,9 +582,9 @@ mixes the normative format with motivation and internal material: the Grottan ma
 implementer can't tell which parts are requirements.
 
 **Action.**
-- [x] **19.1** Split out `spec/pagesequence.md`: syntax, numbering, normal form, errors, repairs and API
+- **19.1** Split out `spec/pagesequence.md`: syntax, numbering, normal form, errors, repairs and API
   semantics, written with MUST/SHOULD.
-- [x] **19.2** Turn the rest into a non-normative design and migration note.
+- **19.2** Turn the rest into a non-normative design and migration note.
 - [x] **19.3** Move the Grottan examples into `cases.json`, and keep a few generic examples in the spec.
 
 ### 20. Range flags: name the system after the range (`V-X\latin`)
@@ -622,32 +629,27 @@ This is the author's design.
 *Recommended: in 2.0, only reserve `\` (20.1d). The rest can follow in a 2.x release, because a
 flag only makes strings valid that were invalid before, and none of the 235 known strings needs one.*
 
-*Decided by the author: flags are in 2.0, written with `/` instead of `\` (`V-X/latin`), so they
-need no escaping in JSON, YAML or code. `/` becomes a reserved character. Only `roman`, `latin` and
-`integer` are built in; other systems are plugins (`roman_additive`, `latin_sv`, `greek`,
-`hebrew`), shipped in the package but left out of code that doesn't use them. Plugins are passed to
-each call in a `plugins` option; there is no global registry. See "Flags" in the spec and
-"Plugins" in `pagesequence-v2.md`. Choices still to confirm are in `ROADMAP.md`, P0.3.*
+*Superseded: the author put flags in 2.0. See the follow-up after 20.9.*
 
-- [ ] **20.1** Syntax: *Defer, except 20.1d.*
-  - [ ] **20.1a** `\name` goes right after the last label of a range or run.
-  - [ ] **20.1b** There is one flag per item, and it applies to every column.
+- **20.1** Syntax: *Defer, except 20.1d.*
+  - **20.1a** `\name` goes right after the last label of a range or run.
+  - **20.1b** There is one flag per item, and it applies to every column.
   - [ ] **20.1c** A flag anywhere else is `syntax`.
-  - [x] **20.1d** `\` becomes a reserved character in bare labels, so `a\b` must be quoted. *Do this in 2.0 even with flags deferred: reserving a character later is a breaking change.*
-- [x] **20.2** Names are `[a-z0-9_]+`. An unknown name is a new error kind, `unknown-system`; add it
+  - **20.1d** `\` becomes a reserved character in bare labels, so `a\b` must be quoted. *Do this in 2.0 even with flags deferred: reserving a character later is a breaking change.*
+- **20.2** Names are `[a-z0-9_]+`. An unknown name is a new error kind, `unknown-system`; add it
   to the error table. *Defer.*
-- [ ] **20.3** Choose the naming standard: *Defer.*
-  - [x] **20.3a** A system name, optionally followed by a BCP 47 language subtag: `roman`, `int`,
+- **20.3** Choose the naming standard: *Defer.*
+  - **20.3a** A system name, optionally followed by a BCP 47 language subtag: `roman`, `int`,
     `latin`, `latin_sv`, `latin_da`, `greek`, `hebrew`, `cyrillic_ru`. This is readable, and it
     matches `latin_sv`.
   - [ ] **20.3b** Short names such as `az`. They are shorter, but `az` is also the BCP 47 code for
     Azerbaijani, so this can't be combined with language subtags.
-- [ ] **20.4** Choose the rule for custom names: *Defer. 20.4b is the author's rule for when flags come.*
+- **20.4** Choose the rule for custom names: *Defer. 20.4b is the author's rule for when flags come.*
   - [ ] **20.4a** They start with `x_` (e.g. `x_releases`), like private-use tags. A later standard
     name can then never change what a stored string means.
-  - [x] **20.4b** Any name is allowed, but loading a definition whose name is built in throws, so a
+  - **20.4b** Any name is allowed, but loading a definition whose name is built in throws, so a
     clash fails loudly. *The author's rule ("custom can use any name"), plus that safeguard.*
-- [x] **20.5** Give each system exactly one name. Alternative names for the same system (`az` and
+- **20.5** Give each system exactly one name. Alternative names for the same system (`az` and
   `latin`) would give the normal form two spellings. *Defer.*
 - [ ] **20.6** Make definitions data that both JS and Python load (e.g. `systems/latin_sv.json`).
   A definition holds: *Defer.*
@@ -660,63 +662,93 @@ each call in a `plugins` option; there is no global registry. See "Flags" in the
   A `list` system uses its tokens' characters for widening. Roman and integer stay as code.
 - [ ] **20.7** Aliases only matter if both ends of a range are kept as written (4.1a). With 4.1b
   they are never read, so they can be dropped from the format. *Skip: covered by 4.1c.*
-- [ ] **20.8** Normal form: *Defer.*
-  - [ ] **20.8a** At each page, try the default rule, then every loaded system in a fixed order: the built-ins
+- **20.8** Normal form: *Defer.*
+  - **20.8a** At each page, try the default rule, then every loaded system in a fixed order: the built-ins
     in hierarchy order, then the others by name.
-  - [ ] **20.8b** The longest stretch wins; on a tie, the earlier candidate wins.
-  - [ ] **20.8c** Write `\name` only when the default rule doesn't read `first-last` the same way.
+  - **20.8b** The longest stretch wins; on a tie, the earlier candidate wins.
+  - **20.8c** Write `\name` only when the default rule doesn't read `first-last` the same way.
 
   This replaces step 3 of item 8.
 - [ ] **20.9** Replace `:178-179` with the loading rule. Say that a project declares the systems it
   uses (e.g. in publication-md's config), so validate and the Python skills load the same
   definitions. *Defer.*
 
+**Follow-up (2026-10-18).** Flags moved into 2.0, so the *Defer* notes above no longer apply. The
+spec and `pagesequence-v2.md` ("Plugins") now hold the result.
+
+- **20.10** Put flags in 2.0, with 20.1 and 20.8 as the syntax and the normal form. *Decided by
+  the author.*
+- **20.11** Write flags with `/` instead of `\`: `V-X/latin`. They then need no escaping in
+  JSON, YAML or code. `/` becomes a reserved character, and `\` stays reserved as the escape inside
+  quotes. *Decided by the author.*
+- **20.12** Build in only `roman`, `latin` and `integer`. Every other system is a plugin: a code
+  module that ships in the package and is left out of code that doesn't use it. This replaces the
+  data files of 20.6. *Decided by the author.*
+- **20.13** No global registry: each call that reads a sequence takes its plugins in a `plugins`
+  option. A registry would make the same code behave differently depending on what was registered.
+  This replaces the loading rule of 20.9. *Decided by the author.*
+- **20.14** The plugin interface: `name`, `tokenChars`, `read(token)` → `{ value, style }` and
+  `format(value, style)`. The reader checks the round trip itself, so `read` can be lenient.
+  *Recommended, not yet confirmed.*
+- **20.15** Make `alphabet(name, upper, lower?)` public, so a custom alphabet takes one line.
+  *Recommended, not yet confirmed.*
+- **20.16** Implement the built-in systems through the same interface, so the core exercises
+  it. *Recommended, not yet confirmed.*
+- **20.17** A flag after a single page (`V/latin`) is `reserved-char`, like a misplaced `!`,
+  instead of `syntax` (20.1c). *Recommended, not yet confirmed.*
+- **20.18** A standard name may end in a variant (`roman_additive`), not only in a language
+  subtag (20.3a). *Recommended, not yet confirmed.*
+- **20.19** Ship four plugins in 2.0: `roman_additive`, `latin_sv`, `greek` and `hebrew`, with
+  Greek and Hebrew read without their final forms until aliases come (4.1c). This answers 22.2 and
+  replaces the recommendation in 22.3. *The author named these plugins. Shipping all four in 2.0
+  is recommended, not yet confirmed.*
+
 ---
 
 ## 21. Low: wording and small clarifications
 
-- [x] **21.1** `:442`: `toString()` "writes the canonical (shortest) form", but `:300-301` says the
+- **21.1** `:442`: `toString()` "writes the canonical (shortest) form", but `:300-301` says the
   normal form isn't always the shortest. Say "the normal form".
-- [x] **21.2** `:544-545`: Open question 2 (the three-page fold-out) is already answered at `:85`.
+- **21.2** `:544-545`: Open question 2 (the three-page fold-out) is already answered at `:85`.
   Remove it.
-- [x] **21.3** `:80-82`, `:388`: `run-shape` "different prefixes" means nothing when each column is
+- **21.3** `:80-82`, `:388`: `run-shape` "different prefixes" means nothing when each column is
   numbered on its own, because a prefix mismatch already gives `no-system`. Define it or drop it.
   Also say that each column picks its own system: `V+W..X+Y` is `uneven-run` because the first
   column reads `V→X` as roman, while `T+U..X+Y` works. The rule in item 9 fixes this case. *Recommended: drop the phrase.*
-- [x] **21.4** `:78-79`: "So each sequence has one way to be written" → "so a run of single pages
+- **21.4** `:78-79`: "So each sequence has one way to be written" → "so a run of single pages
   has one notation". There are many spellings and one normal form.
-- [x] **21.5** `:42`: "Whitespace around …" → "Spaces (U+0020) around …", since all other
+- **21.5** `:42`: "Whitespace around …" → "Spaces (U+0020) around …", since all other
   whitespace is reserved (`:45-46`).
-- [x] **21.6** `:390`: `duplicate-label` says "appears on two pages", but it also covers one page
+- **21.6** `:390`: `duplicate-label` says "appears on two pages", but it also covers one page
   (`2+2`). Say "appears twice".
-- [x] **21.7** `:181-182` vs `:201-204`: a gematria system would share characters with the Hebrew
+- **21.7** `:181-182` vs `:201-204`: a gematria system would share characters with the Hebrew
   alphabet, which the versioning rule forbids in a minor version. Say it would be a major
   version, or a style of the same system. *Recommended: delete the gematria remark, which is simplest.*
-- [x] **21.8** `:199`:
-  - [x] **21.8a** "The diff works on the unquoted text" means the prefix/suffix comparison, not the `diff()`
+- **21.8** `:199`:
+  - **21.8a** "The diff works on the unquoted text" means the prefix/suffix comparison, not the `diff()`
     function. Rename it.
-  - [x] **21.8b** "Rule 4" and "normalisation step 2" point to a section that hasn't been introduced yet. Move
+  - **21.8b** "Rule 4" and "normalisation step 2" point to a section that hasn't been introduced yet. Move
     "Effect on normalisation" after "Normalisation and comparison".
-  - [x] **21.8c** Merge its versioning bullet with "Publishing → One version number" (`:506-510`).
-- [x] **21.9** `:9-10`, `:245`:
-  - [x] **21.9a** "…counted the born-digital sequences wrongly in 40 issues and left out a correct
+  - **21.8c** Merge its versioning bullet with "Publishing → One version number" (`:506-510`).
+- **21.9** `:9-10`, `:245`:
+  - **21.9a** "…counted the born-digital sequences wrongly in 40 issues and left out a correct
     `pageSequence`" is unclear: left out where?
-  - [x] **21.9b** `:245` refers to "the brief", which is never defined, and repeats the 2016-4 example. Delete
+  - **21.9b** `:245` refers to "the brief", which is never defined, and repeats the 2016-4 example. Delete
     that line.
-- [x] **21.10** `:403`: "Most strings come out unchanged" is true of the meaning, not the text. Any
+- **21.10** `:403`: "Most strings come out unchanged" is true of the meaning, not the text. Any
   v1 string not written with `, ` or not fully folded changes, e.g. `1-3,A,B,4-6` →
   `1-3, A-B, 4-6`.
 - [ ] **21.11** `:54-55`: "never placed just before a combining mark": say the boundary moves so the
   common part shrinks (the prefix boundary back, the suffix boundary forward). *Skip: moot with 2.5.*
-- [x] **21.12** `:337-340`: say whether an ignored open range (`1-10, !11-`) can be closed. *Recommended: yes; `!` changes nothing.*
-- [x] **21.13** `:537-538`: "navigation-line stripping" isn't explained and isn't in the API.
+- **21.12** `:337-340`: say whether an ignored open range (`1-10, !11-`) can be closed. *Recommended: yes; `!` changes nothing.*
+- **21.13** `:537-538`: "navigation-line stripping" isn't explained and isn't in the API.
   Explain it or drop it.
-- [x] **21.14** `:213-245`: five of the eleven Grottan examples don't occur in
+- **21.14** `:213-245`: five of the eleven Grottan examples don't occur in
   `v2/list_of_grottan_in_v1.txt`:
-  - [x] **21.14a** The ignored duplicate scan `1,2|3,!3,4`. No listed string uses `!` at all.
-  - [x] **21.14b** 1986-1 with `!29`. The list has `1-20|29,21-28,30-48`, one PDF page fewer.
-  - [x] **21.14c** 1973-1 with `!11`. The list has `1-10|11,10a,10b|10c,10d,12-20`.
-  - [x] **21.14d** `i-iv, 1-48` and `Omslag, 2-31, Baksida`.
+  - **21.14a** The ignored duplicate scan `1,2|3,!3,4`. No listed string uses `!` at all.
+  - **21.14b** 1986-1 with `!29`. The list has `1-20|29,21-28,30-48`, one PDF page fewer.
+  - **21.14c** 1973-1 with `!11`. The list has `1-10|11,10a,10b|10c,10d,12-20`.
+  - **21.14d** `i-iv, 1-48` and `Omslag, 2-31, Baksida`.
 
   Take the examples from the list, and mark invented ones as such. Show the most common
   conversion: `1-26|27-52` → `1-25, 26+27, 28-52`, which applies to 37 strings.
@@ -728,11 +760,11 @@ each call in a `plugins` option; there is no global registry. See "Flags" in the
 - [ ] **22.1 Unlabelled pages.** Blank pages, plates and inserts without a printed number currently
   need invented unique names. Is `""` allowed? Should there be a placeholder that is exempt from
   `duplicate-label`? *Skip: answered by 5.3. `""` is an error, and unlabelled pages keep invented names.*
-- [ ] **22.2 Swedish letters.** `X-Ö` and `"Bilaga Å"`-style ranges are `no-system`. Should Å, Ä, Ö
+- **22.2 Swedish letters.** `X-Ö` and `"Bilaga Å"`-style ranges are `no-system`. Should Å, Ä, Ö
   follow Z in the Latin table? Danish and Norwegian use the order Æ, Ø, Å, so one table can't serve
   all three. Adding letters after Z only makes invalid strings valid, so it is a minor version. With range
   flags (item 20) this could be a loadable alphabet instead. *Skip: defer with item 20. No known string uses Å, Ä or Ö.*
-- [x] **22.3 Greek and Hebrew now or later.** By the document's own rule, a new system is a minor
+- **22.3 Greek and Hebrew now or later.** By the document's own rule, a new system is a minor
   version. Shipping only Latin removes the alias question (item 4) from 2.0. Whether the alphabet code
   is generic can be tested in unit tests without making Greek and Hebrew part of the format.
   With item 20 they can ship as loadable alphabets. The known v1 data has no non-ASCII characters
@@ -740,6 +772,10 @@ each call in a `plugins` option; there is no global registry. See "Flags" in the
 - [ ] **22.4 The 1000-label limit.** It is plenty for Grottan, but low for a general npm/PyPI library
   (books, bound annual volumes). Raising it later is a minor version, but it depends on item 8.
   The longest known v1 string has 60 labels. *Skip: keep 1000. The known data has at most 60 labels.*
-- [x] **22.5 Span lookup.** Should a part block's `pages` mean the labels listed (as in v1) or the
+- **22.5 Span lookup.** Should a part block's `pages` mean the labels listed (as in v1) or the
   physical span between them (item 12)? *Settled by the author: labels. References are written with
   the labels printed in the publication, never with PDF pages.*
+- [ ] **22.6 One config file for JSR.** `ts/deno.json` can be both the JSR config and the place for
+  the local tasks, which makes `jsr.json` unnecessary. *Recommended: use `deno.json`, which the
+  local tasks need anyway, and drop `jsr.json` from the layout and the publishing steps. Not yet
+  confirmed.*

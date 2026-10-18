@@ -1,10 +1,14 @@
 # PageSequence v2: roadmap
 
-This file lists the phases for building v2. The format is in
-[`spec/pagesequence.md`](spec/pagesequence.md), and the plans behind it are in
-[`pagesequence-v2.md`](pagesequence-v2.md).
+This file lists the work for building v2, phase by phase. It holds no decisions:
 
-- **Phases 0–6 are local work.** They end with v2 tested, built and runnable on a developer's
+- the format is in [`spec/pagesequence.md`](spec/pagesequence.md);
+- the design and its reasons are in [`pagesequence-v2.md`](pagesequence-v2.md);
+- decisions and open questions are in [`pagesequence-v2-review.md`](pagesequence-v2-review.md).
+
+The phases:
+
+- **Phases 1–6 are local work.** They end with v2 tested, built and runnable on a developer's
   machine.
 - **Phases 7 and 8 (CI and publishing) come later,** and are not started now.
 - **Phase 9 deprecates v1** once v2 is published.
@@ -28,37 +32,11 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 - **The spec leaves draft at release,** as version 1.0 (P8.1).
 - **Every phase leaves the repository working.** Commit at the end of each step.
 
-## Phase 0: Settle what is still open
-
-- [x] **P0.1** Decide item 20 of the review: are range flags (`V-X/latin`) part of 2.0, or later?
-  The answer decides whether the parser, the tests and the API include `/name`. *Decided: flags
-  are in 2.0. Only `roman`, `latin` and `integer` are built in, and other systems are plugins
-  ("Plugins" in `pagesequence-v2.md`).*
-- [x] **P0.2** Decide whether v1's `romanPattern` stays public, next to `toRoman` and `fromRoman`.
-  It isn't how v2 finds roman numerals: it matches `MMMM` and mixed case such as `Iv`, which v2
-  doesn't read as roman. Python's `re` can't compile it as written (variable-width look-behind).
-  *Decided: skip it. It is listed under the breaking changes in `pagesequence-v2.md`.*
-- [ ] **P0.3** Confirm the choices made when flags moved into 2.0. They are in the spec now, but
-  only the first has been decided:
-  - *Decided: no global `registerSystem`. Every call that reads a sequence takes the plugin
-    systems in a `plugins` option, so the same code always behaves the same;*
-  - the plugin interface: `name`, `tokenChars`, `read(token)` → `{ value, style }` and
-    `format(value, style)`. The reader checks the round trip, so `read` can be lenient;
-  - `alphabet(name, upper, lower?)` is public, so a custom alphabet takes one line;
-  - `V/latin` is `reserved-char`, like a misplaced `!`, and not `syntax` as review item 20.1c
-    says;
-  - a standard name may end in a variant (`roman_additive`), not only a language subtag (20.3a);
-  - all four plugins ship in 2.0: `roman_additive`, `latin_sv`, `greek` and `hebrew`. Greek and
-    Hebrew are read without their final forms, since aliases come later.
-
-**Exit:** no open decision blocks phases 1–6.
-
 ## Phase 1: README and repository structure
 
-- [ ] **P1.1** Move v1 out of the root. It lives on in the tag `v1.3.3` and on JSR
-  (`@tvartom/pagesequence`).
-  - Move `Roman.ts` to `ts/src/roman.ts` with `git mv`, so its history follows. It stays public
-    API (P3.1).
+- [ ] **P1.1** Move v1 out of the root. It lives on in the tag `v1.3.3`, on the branch `v1` and on
+  JSR (`@tvartom/pagesequence`).
+  - Move `Roman.ts` to `ts/src/roman.ts` with `git mv`, so its history follows.
   - Remove `PageSequence.ts`, `index.ts` and `mod.ts`, the two v1 test files, and `deno.json` and
     `deno.lock`.
 - [ ] **P1.2** Create the layout from `pagesequence-v2.md`: `testdata/`, `ts/` and `py/`, next to
@@ -79,9 +57,7 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   - Add `uv`, below the Dockerfile's sentinel. Node 26, Deno 2.9.7 and Python 3.13 are already
     there.
   - Limit VS Code's Deno extension to `ts/` (`deno.enablePaths`).
-- [ ] **P1.7** Choose the JS config files. `ts/deno.json` can be both the JSR config and the place
-  for local tasks, which makes a separate `jsr.json` unnecessary. If you choose that, update the
-  layout in `pagesequence-v2.md`.
+- [ ] **P1.7** Create the config files in `ts/` that the layout in `pagesequence-v2.md` lists.
 
 **Exit:**
 - the new layout is in place, and the README explains the project;
@@ -102,7 +78,7 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   - open ends that can't be closed: `i-`, `A-`, `08-` and `inflikat.1-`;
   - the limits: 1000 labels and 100 code points, and one more of each;
   - flags and plugins, as listed in `pagesequence-v2.md` ("Shared test data"), plus the run
-    `I+II..VIIII+X/roman_additive`. Each plugin case names its plugins in `plugins`.
+    `I+II..VIIII+X/roman_additive`.
 - [ ] **P2.4** Add conversion cases: one per distinct line of `v2/list_of_grottan_in_v1.txt` (42).
   Each has its v2 form from `v2/list_of_grottan_in_v2.txt`, and its pages.
 - [ ] **P2.5** Add the v1 test cases that still apply, and lookups showing that references are
@@ -116,26 +92,21 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 - [ ] **P3.1** Write the parser module in `ts/src/`, and `mod.ts`, which exports it and `roman.ts`.
   The parser module covers:
   - the lexer and parser, flags included;
-  - the three numbering systems and the reading rule, reading roman with `fromRoman`;
-  - the `plugins` option, the system interface and `alphabet`. The built-in systems use the same
-    interface as plugins, so the core tests it;
-  - expansion and the linear fold, which tries each system and writes a flag where needed;
+  - the three numbering systems and the reading rule;
+  - the `plugins` option, the system interface and `alphabet`;
+  - expansion and the fold;
   - `clean`;
   - the `PageSequence` class, `normalize`, `equals` and `PageSequenceError`.
-
-  Bring `roman.ts` to the spec: `fromRoman` reads only canonical numerals in one case, 1–3999, and
-  `toRoman` throws outside that range. Remove `romanPattern`. Fix the doc comments (6 is `VI`, and
-  `IV` is 4).
-- [ ] **P3.2** Write `ts/test/`. It reads `../testdata/cases.json` and runs every case with
+- [ ] **P3.2** Bring `roman.ts` to the spec ("API"), remove `romanPattern`, and fix the doc comments
+  (6 is `VI`, and `IV` is 4).
+- [ ] **P3.3** Write the plugins in `ts/src/plugins/`, one module each, as "Plugins" in
+  `pagesequence-v2.md` describes: `roman_additive.ts`, `latin_sv.ts`, `greek.ts` and `hebrew.ts`.
+- [ ] **P3.4** Write `ts/test/`. It reads `../testdata/cases.json` and runs every case with
   `node:test`. It also checks the roman round trip for 1–3999 in both cases, as v1's
   `Roman.test.ts` did.
-- [ ] **P3.3** Add the local tasks in `ts/deno.json`: `test`, `lint` and `fmt --check`.
-- [ ] **P3.4** Keep it small: no dependencies, and a core of two source modules, the parser and
-  `roman.ts`. Record their size, so later growth is visible.
-- [ ] **P3.5** Write the plugins in `ts/src/plugins/`, one module each: `roman_additive.ts`,
-  `latin_sv.ts`, `greek.ts` and `hebrew.ts`. Follow the rules in "Plugins" in
-  `pagesequence-v2.md`: importing a plugin has no side effects, and `alphabet(…)` calls are marked
-  `/* @__PURE__ */`.
+- [ ] **P3.5** Add the local tasks in `ts/deno.json`: `test`, `lint` and `fmt --check`.
+- [ ] **P3.6** Record the size of the core (the parser and `roman.ts`) and of each plugin, so later
+  growth is visible.
 
 **Exit:** all shared cases pass with `deno task test`.
 
@@ -152,7 +123,7 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 
 - [ ] **P5.1** Write a seeded generator, `testdata/generate.py`, using the standard library only.
   It writes a few thousand inputs to a file, including runs in the plugin systems. Each input is
-  checked with no plugin systems and with all of them.
+  checked with no plugins and with all of them.
 - [ ] **P5.2** Have each implementation write its results as JSON, and a compare script report the
   first difference.
 - [ ] **P5.3** Check the properties from `pagesequence-v2.md`: round trip, idempotent, unique, not
@@ -167,18 +138,18 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 
 ## Phase 6: Build for each registry, locally
 
-- [ ] **P6.1** Set version 2.0.0 in `ts/package.json`, in `ts/deno.json` (or `jsr.json`) and in
+- [ ] **P6.1** Set version 2.0.0 in `ts/package.json`, in the JSR config and in
   `py/pyproject.toml`, each with an SPDX licence field.
 - [ ] **P6.2** Build for npm:
   - `tsc` builds `ts/dist/`: ESM `.js` and `.d.ts` files.
-  - `package.json` has `"sideEffects": false`, and `exports` has a subpath for each plugin
+  - Set `"sideEffects": false` in `package.json`, and give each plugin a subpath in `exports`
     (`./plugins/roman_additive`).
   - `npm pack` makes the tarball.
   - Install it in a scratch project and run a smoke test.
   - Bundle an app that uses only the core, and check that no plugin is in the bundle.
   - Run the shared cases against `dist/` with `node --test`.
-- [ ] **P6.3** Check JSR with `deno publish --dry-run`, run from `ts/`. Each plugin is its own
-  entry in `exports`.
+- [ ] **P6.3** Give each plugin its own entry in the JSR config's `exports`, and check JSR with
+  `deno publish --dry-run`, run from `ts/`.
 - [ ] **P6.4** Build for PyPI: `uv build` makes the sdist and the wheel. Install the wheel in a
   fresh virtual environment and run a smoke test.
 - [ ] **P6.5** Write the package READMEs (`ts/README.md` and `py/README.md`), which the registries
@@ -202,7 +173,7 @@ This is the first phase that adds files to `.github/workflows/`.
 - [ ] **P7.1** Add a test workflow on every push. It runs `./check.sh`: both test suites and the
   cross-language check.
 - [ ] **P7.2** Add a version check: the tag's version must equal the versions in `package.json`,
-  `deno.json` (or `jsr.json`) and `pyproject.toml`.
+  the JSR config and `pyproject.toml`.
 - [ ] **P7.3** Add a release workflow, started by a `v2.x.y` tag. Each publish step can be re-run,
   and it skips a registry that already has the version.
 
@@ -224,7 +195,7 @@ This is the first phase that adds files to `.github/workflows/`.
 
 Do this once v2 is published.
 
-- [ ] **P9.1** Create the branch `v1` from the tag `v1.3.3`, and add the test fix from `ea65b5a`.
+- [x] **P9.1** Create the branch `v1` from the tag `v1.3.3`, and add the test fix (`97b80c6`).
 - [ ] **P9.2** Mark v1 as deprecated, with a reference to v2:
   - a notice at the top of the README;
   - `@deprecated` on the exported class and functions, so editors show it;
