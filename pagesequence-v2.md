@@ -209,7 +209,7 @@ pagesequence/
   spec/pagesequence.md   the format                                        CC0
   testdata/cases.json    shared test cases, used by every implementation
   ts/                    TypeScript → npm and JSR  @publication-md/pagesequence  MIT
-    package.json  jsr.json  tsconfig.json  src/  test/    (dist/ is built, not committed)
+    package.json  deno.json  tsconfig.json  src/  test/   (dist/ is built, not committed)
   py/                    Python → PyPI  pagesequence                       MIT
     pyproject.toml  src/pagesequence/  tests/
   v2/                    the known v1 strings and their v2 forms (conversion)
@@ -285,7 +285,9 @@ normalisation, cleaning, lookups, limits and conversion. The groups include:
   `undefined`.
 - **plugins:** each plugin system, with its normal forms with and without the plugin:
   A…Ö is `A-Ö/latin_sv` or `A-Z, Å, Ä, Ö`.
-- **cleaning:** open ends that can't be closed: `i-`, `A-`, `08-`, `inflikat.1-`.
+- **cleaning:**
+  - open ends that can't be closed: `i-`, `A-`, `08-`, `inflikat.1-`;
+  - `-` between spreads: `2+3-46+47` → `2+3..46+47`, while `1-3+4-6` stays an error.
 - **limits:**
   - exactly 10 000 labels and a label of exactly 100 code points, and one more of each;
   - a lower and a higher `maxLabels`;
@@ -330,7 +332,7 @@ A failing input is cut down by hand to a small case and added to `cases.json`.
   behaves the same in both languages and on every registry. The spec's "Versioning" section says
   what is a minor and what is a major version.
 - **One tag publishes everything.** A tag such as `v2.1.0` triggers a GitHub Actions release. It
-  checks that `package.json`, `jsr.json` and `pyproject.toml` carry the tag's version, runs both
+  checks that `package.json`, `deno.json` and `pyproject.toml` carry the tag's version, runs both
   test suites, and then publishes:
   - **npm:** `tsc` builds `dist/` (ESM `.js` and `.d.ts`, with `exports` and `types` in
     `package.json`). Then `npm publish --access public` runs from `ts/`.
@@ -354,7 +356,7 @@ A failing input is cut down by hand to a small case and added to `cases.json`.
 - **Tests without dependencies:** `deno test` (or `node --test`) for JS, and Python's `unittest`.
   The JS package targets current runtimes (Deno 2, Node 22 or later). The Python package needs
   Python 3.11 or later.
-- **Licence fields:** `"license": "MIT"` in `package.json` and `jsr.json`, and `license = "MIT"` in
+- **Licence fields:** `"license": "MIT"` in `package.json` and `deno.json`, and `license = "MIT"` in
   `pyproject.toml`.
 - **Deno** users import from JSR (`jsr:@publication-md/pagesequence`). The v1 package
   `@tvartom/pagesequence` stays on JSR as it is, and its description points to the new package.

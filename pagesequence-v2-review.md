@@ -464,9 +464,9 @@ additions". In fact several things change:
 - **14.2** Positions refer to the NFC input before any repair. *Not chosen, for the same reason as 14.1.*
 - **14.3** No repair applies inside straight quotes. Curly quotes are the exception: they still have
   to be recognised as quotes.
-- [ ] **14.4** Optional: repair `P-Q` to `P..Q` when both pages have the same number (2 or more) of
+- **14.4** Optional: repair `P-Q` to `P..Q` when both pages have the same number (2 or more) of
   labels. It has only one reading, and it is the most likely mistake, since `-` is the range
-  operator. *Skip: optional; skip it to keep `clean` small.*
+  operator. *Chosen by the author.*
 - **14.5** Drop the "different spelling" repair (`:341-343`). It needs its own case-insensitive
   fold, it only fixes typos such as `i-IV`, and without it `clean` and `normalize` agree on all valid
   input (item 15).
@@ -542,7 +542,7 @@ to `I-III`, so the property fails on valid generated input.
 - The TypeScript package (`ts/`) has no build step. Node refuses to strip types from `.ts` files under `node_modules`
   (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`), so the npm package must ship compiled `.js` and
   `.d.ts`. JSR takes the `.ts` source.
-- Nothing checks that `package.json`, `jsr.json` and `pyproject.toml` all carry the tag's version.
+- Nothing checks that `package.json`, `deno.json` and `pyproject.toml` all carry the tag's version.
 - There is no plan for a partly failed release, e.g. npm published but PyPI failed.
 - The JS test runner isn't named.
 - This repo already *is* `publication-md/pagesequence`, so the new layout replaces v1's flat
@@ -558,7 +558,7 @@ to `I-III`, so the property fails on valid generated input.
 - **18.5** Plan the first npm publish as a manual publish with 2FA, then configure trusted publishing. *Chosen by the author, with 18.1.*
 - [x] **18.6** Register the PyPI name early.
 - **18.7** Tag or branch v1 1.3.3 before restructuring, so a v1 fix is still possible. *Done: the annotated tag `v1.3.3` is on `286b6f1`, which JSR published as 1.3.3 on 2025-03-05, and the branch `v1` holds that tag plus the test fix `97b80c6`. Neither is pushed yet: `git push origin v1.3.3 v1`.*
-- [x] **18.8** Add SPDX `license` fields to all three manifests. *All three, since npm stays (18.1). The JSR config may be `deno.json` (22.6).*
+- [x] **18.8** Add SPDX `license` fields to all three manifests. *All three, since npm stays (18.1). The JSR config is `deno.json` (22.6).*
 
 ### 19. Separate the format spec from the project plan
 `:446-464`
@@ -757,7 +757,6 @@ prototype below wrote them with `\`.
 - **22.5 Span lookup.** Should a part block's `pages` mean the labels listed (as in v1) or the
   physical span between them (item 12)? *Settled by the author: labels. References are written with
   the labels printed in the publication, never with PDF pages.*
-- [ ] **22.6 One config file for JSR.** `ts/deno.json` can be both the JSR config and the place for
-  the local tasks, which makes `jsr.json` unnecessary. *Recommended: use `deno.json`, which the
-  local tasks need anyway, and drop `jsr.json` from the layout and the publishing steps. Not yet
-  confirmed.*
+- **22.6 One config file for JSR.** `ts/deno.json` can be both the JSR config and the place for
+  the local tasks, which makes `jsr.json` unnecessary. *Chosen by the author: `deno.json`, which
+  the local tasks need anyway. `jsr.json` is gone from the layout and the publishing steps.*

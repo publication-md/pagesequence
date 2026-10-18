@@ -344,6 +344,8 @@ The repairs:
 - `|` between two single labels → `+` (a habit from v1). Next to a range, it stays an error.
 - `…` → `..`
 - `..` between single labels → `-`
+- `-` between two pages with the same number (2 or more) of labels → `..`: `2+3-46+47` →
+  `2+3..46+47`. An item with more than one `-`, such as `1-3+4-6`, stays an error.
 - curly quotes `“`, `”` and `„` → `"`
 - whitespace other than U+0020 → U+0020, by the language's own definition of whitespace
 - empty items and a trailing `,` are dropped

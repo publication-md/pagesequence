@@ -76,6 +76,7 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   - `toRoman` and `fromRoman`: both cases, the values 1 and 3999, and what they reject (`IIII`,
     `IC`, `Iv`, `MMMM` and `""`; 0, 4000 and 2.5);
   - open ends that can't be closed: `i-`, `A-`, `08-` and `inflikat.1-`;
+  - `-` between spreads: `2+3-46+47`, and `1-3+4-6`, which stays an error;
   - unlabelled pages: `""` more than once, `""+2`, and a lookup that contains `""`;
   - the limits: 10 000 labels and 100 code points, one more of each, and a lower and a higher
     `maxLabels`;
@@ -140,8 +141,8 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 
 ## Phase 6: Build for each registry, locally
 
-- [ ] **P6.1** Set version 2.0.0 in `ts/package.json`, in the JSR config and in
-  `py/pyproject.toml`, each with an SPDX licence field.
+- [ ] **P6.1** Set version 2.0.0 in `ts/package.json`, `ts/deno.json` and `py/pyproject.toml`, each
+  with an SPDX licence field.
 - [ ] **P6.2** Build for npm:
   - `tsc` builds `ts/dist/`: ESM `.js` and `.d.ts` files.
   - Set `"sideEffects": false` in `package.json`, and give each plugin a subpath in `exports`
@@ -150,7 +151,7 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   - Install it in a scratch project and run a smoke test.
   - Bundle an app that uses only the core, and check that no plugin is in the bundle.
   - Run the shared cases against `dist/` with `node --test`.
-- [ ] **P6.3** Give each plugin its own entry in the JSR config's `exports`, and check JSR with
+- [ ] **P6.3** Give each plugin its own entry in the `exports` of `ts/deno.json`, and check JSR with
   `deno publish --dry-run`, run from `ts/`.
 - [ ] **P6.4** Build for PyPI: `uv build` makes the sdist and the wheel. Install the wheel in a
   fresh virtual environment and run a smoke test.
@@ -175,7 +176,7 @@ This is the first phase that adds files to `.github/workflows/`.
 - [ ] **P7.1** Add a test workflow on every push. It runs `./check.sh`: both test suites and the
   cross-language check.
 - [ ] **P7.2** Add a version check: the tag's version must equal the versions in `package.json`,
-  the JSR config and `pyproject.toml`.
+  `deno.json` and `pyproject.toml`.
 - [ ] **P7.3** Add a release workflow, started by a `v2.x.y` tag. Each publish step can be re-run,
   and it skips a registry that already has the version.
 
