@@ -76,7 +76,8 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   - `toRoman` and `fromRoman`: both cases, the values 1 and 3999, and what they reject (`IIII`,
     `IC`, `Iv`, `MMMM` and `""`; 0, 4000 and 2.5);
   - open ends that can't be closed: `i-`, `A-`, `08-` and `inflikat.1-`;
-  - the limits: 1000 labels and 100 code points, and one more of each;
+  - the limits: 10 000 labels and 100 code points, one more of each, and a lower and a higher
+    `maxLabels`;
   - flags and plugins, as listed in `pagesequence-v2.md` ("Shared test data"), plus the run
     `I+II..VIIII+X/roman_additive`.
 - [ ] **P2.4** Add conversion cases: one per distinct line of `v2/list_of_grottan_in_v1.txt` (42).
@@ -93,7 +94,7 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   The parser module covers:
   - the lexer and parser, flags included;
   - the three numbering systems and the reading rule;
-  - the `plugins` option, the system interface and `alphabet`;
+  - the `plugins` and `maxLabels` options, the system interface and `alphabet`;
   - expansion and the fold;
   - `clean`;
   - the `PageSequence` class, `normalize`, `equals` and `PageSequenceError`.

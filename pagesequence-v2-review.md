@@ -1,9 +1,9 @@
 # Review: PageSequence v2 proposal
 
-Reviewed `pagesequence-v2.md` as it stands on 2026-10-18 (547 lines). Only the current document
-was reviewed. The v1 source in this repo (`PageSequence.ts`, `Roman.ts`, tests) was used only to
-check what the proposal says about v1. No git history or earlier reviews were consulted.
-Line numbers (`:123`) refer to `pagesequence-v2.md`.
+Reviewed `pagesequence-v2.md` as it stood on 2026-10-18 (547 lines), before the format was split
+out into `spec/pagesequence.md` (item 19). Line numbers (`:123`) refer to that version. The v1
+source in this repo (`PageSequence.ts`, `Roman.ts`, tests) was used only to check what the
+proposal says about v1. No git history or earlier reviews were consulted.
 
 **Revised after the author's responses.** Four principles now apply:
 
@@ -13,40 +13,29 @@ Line numbers (`:123`) refer to `pagesequence-v2.md`.
 - folding must be simple and bounded.
 
 Items 1, 2, 3, 8 and 9 were rewritten to follow them, and item 20 (range flags) was added. Item 20
-now follows the author's design: `V-X\latin` in strict mode, with loadable systems. The author has
-also decided that `!` and `"` are reserved inside labels and must be quoted (1.4a),
-and that a test case lists every error it allows (1.2).
+follows the author's design, and flags are in 2.0: `V-X/latin`, with plugins for the systems
+beyond the three built-in ones. The author has also decided that `!` and `"` are reserved inside
+labels and must be quoted (1.4a), and that a test case lists every error it allows (1.2).
 
 **Numbering.** Items 1–7 are high priority and 8–20 medium. Item 21 collects the low-priority
 points and item 22 the open questions. Action points are numbered *item.point* (1.1, 1.2, …), and
-the entries of a sub-list add a letter (1.4a, 1.4b). Each has its own checkbox.
+the entries of a sub-list add a letter (1.4a, 1.4b).
 
-**Ticks.** A ticked box means *act on this*. It is either the author's decision (1.2, 1.4a, 20.4b)
-or the review's recommendation, chosen by the author's principles: keep it simple, keep the library
-small, and add no dependencies. In a list of options, the ticked one is the recommended choice. An
-unticked point is not recommended or not needed now, and the reason follows in italics. 99 of the 137 boxes are ticked.
+**Checkboxes.** A checkbox marks a point that is still an option. The author ticks the points to
+act on, and a point loses its box once it is implemented. So a ticked box is chosen but not done
+yet, and an unticked box is an option that is still open, with the reason it waits in italics. A
+point without a box is implemented or settled, or is an alternative that was not chosen.
 
-**Applied (2026-10-18).** Every ticked point that changes the documents is applied:
+**Status (2026-10-18).** Every point without a box is in `spec/pagesequence.md` (the format) or
+`pagesequence-v2.md` (the design and migration note). The ticked points left need files that don't
+exist yet, and `ROADMAP.md` has a task for each:
 
-- The format is now `spec/pagesequence.md`, and `pagesequence-v2.md` is the design and migration
-  note.
-- Line numbers in this review refer to the version that was reviewed, before that change.
-- This includes the author's later ticks 18.1, 18.3 and 18.5 (npm with a build, re-runnable publish
-  steps, and a first npm publish by hand).
-- 12.3 and 22.5 are settled by the author: a reference is made of labels, never of PDF pages. Both
-  documents now say so up front, and the span lookup is gone from "Later".
-- The author's later ticks in item 20 (20.2, 20.3a, 20.5, 20.6a, 20.6c) wait for one question:
-  should range flags be part of 2.0?
-
-Still to do outside the documents:
-
-- 6.3: the reference check in publication-md.
-- 16.1–16.4: writing `testdata/cases.json` and the cross-language test.
-- 18.2, 18.4 and 18.8: CI and the manifests, once they exist.
-- 18.5: the first npm publish, by hand.
-- 18.6: registering the PyPI name.
-- 18.7 is done: the tag `v1.3.3` is on `286b6f1` (published as 1.3.3 on 2025-03-05), but not pushed
-  yet.
+- 8.3, 9.2, 10.3, 11.2, 16.3, 16.4 and 19.3: cases in `testdata/cases.json` (phase 2);
+- 16.2: the cross-language test (phase 5, then CI);
+- 18.8: licence fields in the manifests (phase 6);
+- 6.3: the reference check in publication-md (phase 6);
+- 18.2: the version check in CI (phase 7);
+- 18.6: registering the PyPI name (phase 8).
 
 ## Verdict
 
@@ -60,10 +49,7 @@ rules are implemented literally (see "What was checked"). The gaps are in what m
 - how the v1 conversion actually gets its page model.
 
 Close these before `testdata/cases.json` is written. The test file can only be as exact as the
-spec.
-
-**20 items (1–7 high, 8–20 medium), 14 low-priority points (21.1–21.14) and 5 open questions
-(22.1–22.5): 90 numbered points, plus 47 lettered sub-points.**
+spec. All of them are now closed in the spec.
 
 ## What was checked
 
@@ -74,7 +60,8 @@ spec.
 | Node 26 (Unicode 17.0) vs Python 3.13 (Unicode 15.1), over all code points | 55 code points lowercase differently. The whitespace and digit sets differ (item 2) |
 | Registries, 2026-10-18 | On PyPI, `pagesequence`, `publication-md-pagesequence` and `page-sequence` are free. npm: nothing published under `@publication-md`. JSR: scope `@publication-md` doesn't exist yet. GitHub: `publication-md/pagesequence` exists and is this repo's `origin` |
 | Follow-up tests (items 8 and 9) | On 3000 random page models, the linear fold gives the same normal form as the longest-stretch rule, under both the current reading rules and item 9's, and every result reads back to the same pages. Five reading rules were compared over every roman range within 1–100 and every letter range (item 9). Overload probes: a 40 kB input expands to 20 million code points, and a 5000-digit integer crashes Python's `int()` |
-| Range flags (item 20) | A prototype of `\name` flags, a loadable Swedish alphabet and a release list. 3000 random page models were normalised both with and without them loaded, and every result reads back to the same pages |
+| Range flags (item 20) | A prototype of flags (then written `\name`), a Swedish alphabet and a release list. 3000 random page models were normalised both with and without these systems, and every result reads back to the same pages |
+| After the review: roman, flags and plugins | The strict roman reader (10.2) accepts exactly the canonical numerals among all 299 592 strings of up to 6 characters from `IVXLCDMa`. A fold with plugins gives the spec's normal forms, e.g. `V-X/latin`, `I-X/roman_additive` and `A-Ö/latin_sv`. A bundle (`deno bundle`) of an app that uses only the core leaves out every plugin when the package declares `"sideEffects": false` |
 | Real v1 data: `v2/list_of_grottan_in_v1.txt` (235 strings, 42 distinct) | All 235 parse in v1. Section-by-section parsing (6.1) gives the same pages as v1 for every one. All 235 convert to v2 and read back to the same pages. None is rejected (no duplicates; at most 60 labels), none reads differently in v2 as written, and none needs a flag. 143 keep their text, 12 change only in spacing, and the 80 with `\|` are rewritten. No string uses `!`, 3-label pages, zero padding, spaces in labels or non-ASCII characters |
 
 The prototype and check scripts were throwaway and are not in the repo.
@@ -117,8 +104,8 @@ tests don't depend on it.
   - **1.4a** `!` and `"` are reserved characters and must be quoted inside a label (`"Hej!"`,
     `"My \"label\""`). `!` is an operator only at the start of an item, and `"` opens a quoted
     label only at the start of a label. So `Hej!` and `My"label` are `reserved-char`, as the error
-    table already says. *Chosen by the author;* still to be written into the spec (`:43-47`).
-  - [ ] **1.4b** ~~Or let `Hej!` be `syntax` and change the table.~~ Not chosen.
+    table already says. *Chosen by the author.*
+  - **1.4b** ~~Or let `Hej!` be `syntax` and change the table.~~ Not chosen.
 - **1.5** Add table rows for the cases not covered: `-5`, `2+`, `+3`, `1..`, `2+3..`, `!` alone, `!!3`,
   `1-!3`, `"a"b`.
 
@@ -193,9 +180,9 @@ written exactly as in the input" (`:285`).
 
 **Action.**
 - **4.1** Choose one. *Recommended: 4.1c, the simplest.*
-  - [ ] **4.1a** Keep both ends verbatim and generate only the labels between them.
-  - [ ] **4.1b** Make an alias unreadable as a range or run end (`no-system`).
-  - **4.1c** Drop aliases until a real case needs them (see 22.3 and item 20). *No known string has a non-ASCII character. An `aliases` field can come in a minor version, since it only makes invalid ends readable. This differs from the author's note that definitions should cover aliases.*
+  - **4.1a** Keep both ends verbatim and generate only the labels between them. *Not chosen.*
+  - **4.1b** Make an alias unreadable as a range or run end (`no-system`). *Not chosen.*
+  - **4.1c** Drop aliases until a real case needs them (see 22.3 and item 20). *No known string has a non-ASCII character. Aliases can come in a minor version, since they only make invalid ends readable; they are under "Later" in `pagesequence-v2.md`.*
 
 ### 5. Make the label grammar exact
 `:37-39`, `:58-64`
@@ -235,7 +222,7 @@ v1 accepts things v2 rejects:
 - duplicate labels, e.g. `1-5, 3` or `Omslag, 2-3, omslag`, where lookup silently returns the last
   one;
 - empty strings with a page count (`create("", 52)`);
-- more than 1000 labels.
+- more labels than v2's limit.
 
 Some v1 strings read differently in v2, not only `C-D`:
 
@@ -263,16 +250,14 @@ rules, letter readings, duplicate check.
   The merged-spread rows grow from one item to three. That follows from "`+` joins labels, not
   ranges" (`:84`).
 
-The checks in 6.2 are still worth keeping for strings not in the list.
-
 **Action.**
 - **6.1** Build the model by splitting each v1 string on `,` and parsing each section on its own.
   v1 labels can't contain `,`. For each section: strip `!` and record it, split the `|` groups,
   and use the v1 module only to expand ranges. *Done for the known strings: `v2/list_of_grottan_in_v2.txt` is the checked v2 form of each line of `v2/list_of_grottan_in_v1.txt`, so converting is a lookup between the two files.*
-- [ ] **6.2** Have the script report, and stop on: *Skip: not needed, since none of these occur in the known data.*
-  - [ ] **6.2a** v2 errors (duplicates, too long);
-  - [ ] **6.2b** empty stored strings (they need the PDF page count);
-  - [ ] **6.2c** every sequence whose *text* reads differently in v2 than in v1. These are likely v1 data bugs
+- **6.2** Have the script report, and stop on: *Not chosen: converting is a lookup between the two `v2/` files (6.1), and none of these occur in the known data.*
+  - **6.2a** v2 errors (duplicates, too long);
+  - **6.2b** empty stored strings (they need the PDF page count);
+  - **6.2c** every sequence whose *text* reads differently in v2 than in v1. These are likely v1 data bugs
     worth a human look, not something to preserve silently.
 - [x] **6.3** Also check stored references: for each one, compare v1 `getIndexList(ref)` with v2's. *Recommended: as a one-off check in publication-md.*
 
@@ -286,10 +271,10 @@ changes what a stored part block points to.
 
 **Action.**
 - **7.1** Choose one, then make the Versioning and Publishing text agree with it: *Recommended: 7.1b. `clean` can then change freely.*
-  - [ ] **7.1a** The repairs used for references are a fixed, versioned list. Only adding a repair that
-    turns an error into a result is a minor version.
+  - **7.1a** The repairs used for references are a fixed, versioned list. Only adding a repair that
+    turns an error into a result is a minor version. *Not chosen.*
   - **7.1b** References are parsed strictly, plus a small fixed set of repairs (dashes, `5-5`).
-  - [ ] **7.1c** References are stored normalised.
+  - **7.1c** References are stored normalised. *Not chosen.*
 
 ---
 
@@ -312,13 +297,12 @@ changes what a stored part block points to.
    exactly one step after the first.
 2. Extend while the next page equals the next generated label (one comparison per page).
 3. Shorten from the end until `first-last` itself reads the same way as the pair (same system,
-   cut, case or width, and start value). Only collisions such as `V, W, X` shorten, by one or two
-   pages.
+   cut, case and start value). Only collisions such as `V, W, X` shorten, by one or two pages.
 4. Write the stretch as one item if it is long enough (2 single-label pages, or 3 pages with
    several labels). Otherwise write the page on its own.
 
-With range flags (item 20), step 1 also tries every loaded system, and step 3 writes a flag
-instead of shortening (20.8).
+With range flags in 2.0 (item 20), step 1 also tries every plugin system that is given, and step 3
+writes a flag instead of shortening (20.8).
 
 The test used 3000 random page models: integers, padded numbers, roman, letters, prefixes,
 spreads, fold-outs, quoted words and ignored pages. Results:
@@ -330,9 +314,10 @@ spreads, fold-outs, quoted words and ignored pages. Results:
 
 **Action.**
 - **8.1** Define the normal form by these four steps instead of "the longest stretch that folds". The
-  results are the same, the cost is linear, and the steps are the implementation.
+  results are the same, the cost is linear, and the steps are the implementation. *Applied, with
+  step 3 replaced by 20.8.*
 - **8.2** Cap label length, e.g. at 100 code points (error `too-long`). This bounds an expansion to
-  1000 × 100 code points.
+  the label limit × 100 code points.
 - [x] **8.3** Add a timing case at the limits to both test suites. *Recommended: as a plain case at the limits, without a timer; the test runner's timeout catches a slow fold.*
 
 ### 9. Replace the I/V/X exception with "the lowest end wins"
@@ -370,8 +355,8 @@ are valid, and none of them tie.
 **Action.**
 - **9.1** Replace the exception (`:184-188`) with:
 
-  > Try each system as now. Drop readings that are invalid (descending, different case or
-  > width, uneven run). The first remaining reading in hierarchy order fixes where the label is
+  > Try each system as now. Drop readings that are invalid (descending, different case, uneven
+  > run). The first remaining reading in hierarchy order fixes where the label is
   > cut. Of the remaining readings with that cut, the one whose last value is lowest wins; equal
   > values go by hierarchy order. If no reading is valid, report the error of the first system
   > that read both ends.
@@ -414,10 +399,10 @@ Several open ends have more than one reading:
 
 **Action.**
 - **11.1** Choose one: *Recommended: 11.1c.*
-  - [ ] **11.1a** Allow an open end only after a label that one system reads as a whole token
-    (integer first, then the hierarchy), checked by round trip.
-  - [ ] **11.1b** Or define a single-label rule, e.g. the last token that some system reads, in
-    hierarchy order.
+  - **11.1a** Allow an open end only after a label that one system reads as a whole token
+    (integer first, then the hierarchy), checked by round trip. *Not chosen.*
+  - **11.1b** Or define a single-label rule, e.g. the last token that some system reads, in
+    hierarchy order. *Not chosen.*
   - **11.1c** Allow an open end only after an integer (`1-`, `i-iv, 1-`). Everything else stays
     `open-end`, so no system has to be guessed.
 - [x] **11.2** Add cases for `i-`, `A-`, `08-` and `inflikat.1-`. *Recommended: with 11.1c, `i-`, `A-`, `08-` and `inflikat.1-` become error cases.*
@@ -451,14 +436,15 @@ additions". In fact several things change:
 - `create("", n)` is an error;
 - duplicate labels are errors;
 - `C-D`, `L-M` and `I-L` read as letters;
-- `08-12` keeps its zeros;
-- references are parsed with the `clean` rules;
+- `08-12` is an error (3.2);
+- references are parsed as v2 sequences (7.1b);
 - errors have kinds;
 - possibly the shape of lookup results (item 12).
 
 **Action.**
 - **13.1** List these in one place, with what consumers must change. For example, code that relied on
-  the empty default needs ``create(text || `1-${n}`, n)``.
+  the empty default needs ``create(text || `1-${n}`, n)``. *Applied: "Breaking changes from v1" in
+  `pagesequence-v2.md`.*
 
 ### 14. Specify the `clean` repairs exactly
 `:326-347`
@@ -472,10 +458,10 @@ additions". In fact several things change:
   re-cased (`Plansch A, plansch B`).
 
 **Action.**
-- [ ] **14.1** Give repair kinds their own table, like error kinds: `dash`, `semicolon`, `pipe`,
+- **14.1** Give repair kinds their own table, like error kinds: `dash`, `semicolon`, `pipe`,
   `ellipsis`, `single-label-run`, `curly-quote`, `space`, `empty-item`, `equal-ends`, `open-end`,
-  `case`. *Skip: `clean` is outside the strict model, so test only its result and let each implementation name its own repairs.*
-- [ ] **14.2** Positions refer to the NFC input before any repair. *Skip: same reason as 14.1.*
+  `case`. *Not chosen: `clean` is outside the strict model, so only its result is tested, and each implementation names its own repairs.*
+- **14.2** Positions refer to the NFC input before any repair. *Not chosen, for the same reason as 14.1.*
 - **14.3** No repair applies inside straight quotes. Curly quotes are the exception: they still have
   to be recognised as quotes.
 - [ ] **14.4** Optional: repair `P-Q` to `P..Q` when both pages have the same number (2 or more) of
@@ -493,8 +479,8 @@ additions". In fact several things change:
 to `I-III`, so the property fails on valid generated input.
 
 **Action.**
-- [ ] **15.1** Change the precondition to "no stretch that would fold after case respelling", or have the
-  generator use one case per numbering run. *Skip: not needed with 14.5. Without respelling, `clean` agrees with `normalize` on valid input.*
+- **15.1** Change the precondition to "no stretch that would fold after case respelling", or have the
+  generator use one case per numbering run. *Not needed with 14.5. Without respelling, `clean` agrees with `normalize` on valid input.*
 
 ### 16. Close the gaps in `cases.json` and testing
 `:466-502`
@@ -530,12 +516,13 @@ to `I-III`, so the property fails on valid generated input.
 - No Python names are given.
 
 **Action.**
-- **17.1** Define the signatures of `equals` and `diff`. *Recommended: only `equals(a, b)` on two strings, throwing on invalid input like `normalize`.*
-- [ ] **17.2** Define `diff`'s result: `null`, or `{index, a: {ignored, labels} | null, b: …}`. *Skip: drop `diff` from the API. With `pages()`, a caller can find the first difference in a few lines.*
+- **17.1** Define the signatures of `equals` and `diff`. *Applied: only `equals(a, b)` on two strings, throwing on invalid input like `normalize`. It also takes `{ plugins }` (20.13).*
+- **17.2** Define `diff`'s result: `null`, or `{index, a: {ignored, labels} | null, b: …}`. *Not needed: `diff` is dropped from the API. With `pages()`, a caller can find the first difference in a few lines.*
 - **17.3** Add `pages()` (or `toJSON()`).
 - **17.4** Define `PageSequenceError {kind, position}` in both languages.
 - **17.5** Give the Python names: `PageSequence(text, length=None)`, `get_index_list`, `labels_at`,
-  `clean(text, length=None)`, and `create` returning `None`.
+  `clean(text, length=None)`, and `create` returning `None`. *Applied, with a keyword-only
+  `plugins=()` added (20.13).*
 
 ### 18. Tighten the publishing plan
 `:444-530`
@@ -552,7 +539,7 @@ to `I-III`, so the property fails on valid generated input.
   publish of a new package over OIDC. Third-party guides say the first publish has to be manual.
 
 **Problems.**
-- `js/` has no build step. Node refuses to strip types from `.ts` files under `node_modules`
+- The TypeScript package (`ts/`) has no build step. Node refuses to strip types from `.ts` files under `node_modules`
   (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`), so the npm package must ship compiled `.js` and
   `.d.ts`. JSR takes the `.ts` source.
 - Nothing checks that `package.json`, `jsr.json` and `pyproject.toml` all carry the tag's version.
@@ -562,16 +549,16 @@ to `I-III`, so the property fails on valid generated input.
   layout in place.
 
 **Action.**
-- **18.1** Add the npm build: `tsc` → `dist/`, ESM, with `exports` and `types`. *Skip: simpler to publish the JS package to JSR only. JSR also serves npm clients (`npx jsr add @publication-md/pagesequence`), so there is no build step and no npm setup. Tick this if npmjs.com is a must.*
+- **18.1** Add the npm build: `tsc` → `dist/`, ESM, with `exports` and `types`. *Chosen by the author: npm with a build, next to JSR.*
 - [x] **18.2** Add a CI step that fails if any manifest's version differs from the tag.
 - **18.3** Make each publish step re-runnable on its own, skipping a registry that already has the
-  version. *Skip: simpler to release a new patch version after a partial failure.*
+  version. *Chosen by the author.*
 - **18.4** Name the test runner (`deno test`, `node --test` or vitest) and the minimum Node and Python
   versions. *Recommended: test runners without dependencies: `deno test` or `node --test` for JS, and `unittest` for Python.*
-- **18.5** Plan the first npm publish as a manual publish with 2FA, then configure trusted publishing. *Skip: only needed for npmjs.com (see 18.1).*
+- **18.5** Plan the first npm publish as a manual publish with 2FA, then configure trusted publishing. *Chosen by the author, with 18.1.*
 - [x] **18.6** Register the PyPI name early.
-- **18.7** Tag or branch v1 1.3.3 before restructuring, so a v1 fix is still possible. *Done: the annotated tag `v1.3.3` is on `286b6f1`, which JSR published as 1.3.3 on 2025-03-05. It is not pushed yet: `git push origin v1.3.3`.*
-- [x] **18.8** Add SPDX `license` fields to all three manifests. *Recommended: `jsr.json` and `pyproject.toml`; `package.json` only if npm stays.*
+- **18.7** Tag or branch v1 1.3.3 before restructuring, so a v1 fix is still possible. *Done: the annotated tag `v1.3.3` is on `286b6f1`, which JSR published as 1.3.3 on 2025-03-05, and the branch `v1` holds that tag plus the test fix `97b80c6`. Neither is pushed yet: `git push origin v1.3.3 v1`.*
+- [x] **18.8** Add SPDX `license` fields to all three manifests. *All three, since npm stays (18.1). The JSR config may be `deno.json` (22.6).*
 
 ### 19. Separate the format spec from the project plan
 `:446-464`
@@ -585,96 +572,90 @@ implementer can't tell which parts are requirements.
 - **19.1** Split out `spec/pagesequence.md`: syntax, numbering, normal form, errors, repairs and API
   semantics, written with MUST/SHOULD.
 - **19.2** Turn the rest into a non-normative design and migration note.
-- [x] **19.3** Move the Grottan examples into `cases.json`, and keep a few generic examples in the spec.
+- [x] **19.3** Move the Grottan examples into `cases.json`, and keep a few generic examples in the spec. *The spec part is done; the cases come with `cases.json`.*
 
-### 20. Range flags: name the system after the range (`V-X\latin`)
-This is the author's design.
+### 20. Range flags: name the system after the range (`V-X/latin`)
+This is the author's design. Flags are in 2.0 (20.10) and are written with `/` (20.11). The
+prototype below wrote them with `\`.
 
 **Design.**
-- A range or run can end with `\name`, which names the numbering system to read it with:
-  `A-U, 1-2, V-X\latin` or `A-Ö\latin_sv`.
+- A range or run can end with `/name`, which names the numbering system to read it with:
+  `A-U, 1-2, V-X/latin` or `A-Ö/latin_sv`.
 - Flags are part of strict mode, and stored strings may contain them.
-- A name must be built in or loaded (e.g. `latin_sv`); otherwise parsing throws.
-- Standard names follow a naming rule. Custom systems can be loaded under their own names, for
-  example a list of software releases.
-- System definitions also cover aliases.
+- A name must be built in or given as a plugin (e.g. `latin_sv`); otherwise parsing throws
+  (`unknown-system`).
+- Standard names follow a naming rule (20.3). Custom systems can be given under their own names,
+  for example a list of software releases.
 
 **Prototype results.**
-- `A-U,1-2,V-X\latin` gives 26 pages.
-- `A-Ö\latin_sv` gives 29 pages with `latin_sv` loaded, and an error without it.
-- `V\latin` (a flag after a single page) is a syntax error.
+- `A-U,1-2,V-X/latin` gives 26 pages.
+- `A-Ö/latin_sv` gives 29 pages with `latin_sv` given, and an error without it.
+- A flag after a single page (`V/latin`) is an error.
 - A list system works with the existing prefix and suffix rule, as long as widening uses the
-  characters of the system's tokens: `"Version 1.0"-"Version 3.0"\x_releases` gives Version 1.0,
+  characters of the system's tokens: `"Version 1.0"-"Version 3.0"/x_releases` gives Version 1.0,
   1.1, 2.0, 2.1 and 3.0.
 - Normal forms (20.8):
-  - `V, W, X` → `V-X\latin`, and the letters I…X → `I-X\latin`.
-  - Swedish A…Ö → `A-Ö\latin_sv` with the system loaded, and `A-Z, Å, Ä, Ö` without it.
+  - `V, W, X` → `V-X/latin`, and the letters I…X → `I-X/latin`.
+  - Swedish A…Ö → `A-Ö/latin_sv` with the system given, and `A-Z, Å, Ä, Ö` without it.
   - `A-E`, `C-D`, roman `V-X` and all the other examples need no flag.
-- 3000 random page models were normalised twice, with no extra systems and with all of them
-  loaded. Every result reads back to the same pages (0 failures).
+- 3000 random page models were normalised twice, with no extra systems and with all of them. Every
+  result reads back to the same pages (0 failures).
 - None of the 235 known v1 strings needs a flag.
 
 **Consequences.**
 - Collisions get an explicit answer. The default rule (item 9) then only has to get common cases
   right, and the fold no longer needs to shorten a stretch (item 8, step 3).
-- Greek, Hebrew and Swedish become data, not code. Items 4, 22.2 and 22.3 turn into questions about
-  definition files.
-- "Every reader agrees on every string" (`:178-179`) becomes "every reader with the same systems
-  loaded agrees".
-- The normal form also depends on which systems are loaded (A…Ö above), just as it already
-  depends on the version (`:208-211`).
+- Swedish, Greek and Hebrew become plugins outside the core (20.12, 20.19), which answers 22.2 and
+  22.3. Aliases (item 4) stay out until a real case needs them.
+- "Every reader agrees on every string" (`:178-179`) becomes "every reader given the same plugins
+  agrees".
+- The normal form also depends on which plugins are given (A…Ö above), just as it already depends
+  on the version (`:208-211`).
 
 **Action.**
 
-*Recommended: in 2.0, only reserve `\` (20.1d). The rest can follow in a 2.x release, because a
-flag only makes strings valid that were invalid before, and none of the 235 known strings needs one.*
-
-*Superseded: the author put flags in 2.0. See the follow-up after 20.9.*
-
-- **20.1** Syntax: *Defer, except 20.1d.*
-  - **20.1a** `\name` goes right after the last label of a range or run.
+- **20.1** Syntax:
+  - **20.1a** `/name` goes right after the last label of a range or run.
   - **20.1b** There is one flag per item, and it applies to every column.
-  - [ ] **20.1c** A flag anywhere else is `syntax`.
-  - **20.1d** `\` becomes a reserved character in bare labels, so `a\b` must be quoted. *Do this in 2.0 even with flags deferred: reserving a character later is a breaking change.*
+  - [ ] **20.1c** A flag anywhere else is `syntax`. *Not taken: the spec makes it `reserved-char`,
+    like a misplaced `!` (20.17). Tick this to use `syntax` instead.*
+  - **20.1d** `\` becomes a reserved character in bare labels, so `a\b` must be quoted. `/` is
+    reserved too, since it starts a flag (20.11).
 - **20.2** Names are `[a-z0-9_]+`. An unknown name is a new error kind, `unknown-system`; add it
-  to the error table. *Defer.*
-- **20.3** Choose the naming standard: *Defer.*
+  to the error table.
+- **20.3** Choose the naming standard:
   - **20.3a** A system name, optionally followed by a BCP 47 language subtag: `roman`, `int`,
     `latin`, `latin_sv`, `latin_da`, `greek`, `hebrew`, `cyrillic_ru`. This is readable, and it
-    matches `latin_sv`.
-  - [ ] **20.3b** Short names such as `az`. They are shorter, but `az` is also the BCP 47 code for
-    Azerbaijani, so this can't be combined with language subtags.
-- **20.4** Choose the rule for custom names: *Defer. 20.4b is the author's rule for when flags come.*
-  - [ ] **20.4a** They start with `x_` (e.g. `x_releases`), like private-use tags. A later standard
-    name can then never change what a stored string means.
-  - **20.4b** Any name is allowed, but loading a definition whose name is built in throws, so a
-    clash fails loudly. *The author's rule ("custom can use any name"), plus that safeguard.*
+    matches `latin_sv`. *Extended by 20.18 with variants such as `roman_additive`.*
+  - **20.3b** Short names such as `az`. They are shorter, but `az` is also the BCP 47 code for
+    Azerbaijani, so this can't be combined with language subtags. *Not chosen.*
+- **20.4** Choose the rule for custom names:
+  - **20.4a** They start with `x_` (e.g. `x_releases`), like private-use tags. A later standard
+    name can then never change what a stored string means. *Not chosen.*
+  - **20.4b** Any name is allowed, but a plugin whose name is built in throws, so a clash fails
+    loudly. *The author's rule ("custom can use any name"), plus that safeguard.*
 - **20.5** Give each system exactly one name. Alternative names for the same system (`az` and
-  `latin`) would give the normal form two spellings. *Defer.*
-- [ ] **20.6** Make definitions data that both JS and Python load (e.g. `systems/latin_sv.json`).
-  A definition holds: *Defer.*
-  - [x] **20.6a** the name;
-  - [ ] **20.6b** the kind: `alphabet` (single letters, with upper and lower lists when the script has case) or
-    `list` (whole tokens such as release numbers, without case);
-  - [x] **20.6c** the ordered letters or tokens;
-  - [ ] **20.6d** the aliases.
-
-  A `list` system uses its tokens' characters for widening. Roman and integer stay as code.
-- [ ] **20.7** Aliases only matter if both ends of a range are kept as written (4.1a). With 4.1b
-  they are never read, so they can be dropped from the format. *Skip: covered by 4.1c.*
-- **20.8** Normal form: *Defer.*
-  - **20.8a** At each page, try the default rule, then every loaded system in a fixed order: the built-ins
-    in hierarchy order, then the others by name.
+  `latin`) would give the normal form two spellings.
+- **20.6** What a plugin holds. *Plugins are code, not data files that both languages load
+  (20.12), and `alphabet()` makes one from its letters (20.15).*
+  - **20.6a** the name;
+  - [ ] **20.6b** a `list` kind besides `alphabet`: whole tokens such as release numbers, without
+    case, widening over the characters of its tokens. *Later: a helper for it is under "Later" in
+    `pagesequence-v2.md`.*
+  - **20.6c** the ordered letters (or tokens, for 20.6b);
+  - [ ] **20.6d** the aliases. *Later, with aliases (4.1c).*
+- **20.8** Normal form:
+  - **20.8a** At each page, try the default rule, then every plugin given, in a fixed order: the
+    built-ins in hierarchy order, then the plugins by name.
   - **20.8b** The longest stretch wins; on a tie, the earlier candidate wins.
-  - **20.8c** Write `\name` only when the default rule doesn't read `first-last` the same way.
+  - **20.8c** Write `/name` only when the default rule doesn't read `first-last` the same way.
 
   This replaces step 3 of item 8.
-- [ ] **20.9** Replace `:178-179` with the loading rule. Say that a project declares the systems it
-  uses (e.g. in publication-md's config), so validate and the Python skills load the same
-  definitions. *Defer.*
+- **20.9** Replace `:178-179` with the rule for which systems a reader has, and say that a project
+  declares the systems it uses (e.g. in publication-md's config). *Applied with 20.13: the project
+  lists its plugins in its config, and its tools pass them to every call.*
 
-**Follow-up (2026-10-18).** Flags moved into 2.0, so the *Defer* notes above no longer apply. The
-spec and `pagesequence-v2.md` ("Plugins") now hold the result.
+**Decided after the review.** The spec and `pagesequence-v2.md` ("Plugins") hold the result.
 
 - **20.10** Put flags in 2.0, with 20.1 and 20.8 as the syntax and the normal form. *Decided by
   the author.*
@@ -686,7 +667,7 @@ spec and `pagesequence-v2.md` ("Plugins") now hold the result.
   data files of 20.6. *Decided by the author.*
 - **20.13** No global registry: each call that reads a sequence takes its plugins in a `plugins`
   option. A registry would make the same code behave differently depending on what was registered.
-  This replaces the loading rule of 20.9. *Decided by the author.*
+  This is how 20.9 is applied. *Decided by the author.*
 - **20.14** The plugin interface: `name`, `tokenChars`, `read(token)` → `{ value, style }` and
   `format(value, style)`. The reader checks the round trip itself, so `read` can be lenient.
   *Recommended, not yet confirmed.*
@@ -738,8 +719,6 @@ spec and `pagesequence-v2.md` ("Plugins") now hold the result.
 - **21.10** `:403`: "Most strings come out unchanged" is true of the meaning, not the text. Any
   v1 string not written with `, ` or not fully folded changes, e.g. `1-3,A,B,4-6` →
   `1-3, A-B, 4-6`.
-- [ ] **21.11** `:54-55`: "never placed just before a combining mark": say the boundary moves so the
-  common part shrinks (the prefix boundary back, the suffix boundary forward). *Skip: moot with 2.5.*
 - **21.12** `:337-340`: say whether an ignored open range (`1-10, !11-`) can be closed. *Recommended: yes; `!` changes nothing.*
 - **21.13** `:537-538`: "navigation-line stripping" isn't explained and isn't in the API.
   Explain it or drop it.
@@ -757,21 +736,22 @@ spec and `pagesequence-v2.md` ("Plugins") now hold the result.
 
 ## 22. Suggested open questions
 
-- [ ] **22.1 Unlabelled pages.** Blank pages, plates and inserts without a printed number currently
+- **22.1 Unlabelled pages.** Blank pages, plates and inserts without a printed number currently
   need invented unique names. Is `""` allowed? Should there be a placeholder that is exempt from
-  `duplicate-label`? *Skip: answered by 5.3. `""` is an error, and unlabelled pages keep invented names.*
+  `duplicate-label`? *Answered by 5.3: `""` is an error, and unlabelled pages keep invented names.*
 - **22.2 Swedish letters.** `X-Ö` and `"Bilaga Å"`-style ranges are `no-system`. Should Å, Ä, Ö
   follow Z in the Latin table? Danish and Norwegian use the order Æ, Ø, Å, so one table can't serve
-  all three. Adding letters after Z only makes invalid strings valid, so it is a minor version. With range
-  flags (item 20) this could be a loadable alphabet instead. *Skip: defer with item 20. No known string uses Å, Ä or Ö.*
+  all three. *Answered by 20.19: the Latin table stays A–Z, and the plugin `latin_sv` reads
+  `A-Ö/latin_sv`. Danish and Norwegian can get their own plugins.*
 - **22.3 Greek and Hebrew now or later.** By the document's own rule, a new system is a minor
-  version. Shipping only Latin removes the alias question (item 4) from 2.0. Whether the alphabet code
-  is generic can be tested in unit tests without making Greek and Hebrew part of the format.
-  With item 20 they can ship as loadable alphabets. The known v1 data has no non-ASCII characters
-  at all. *Recommended: ship only roman numerals, Latin letters and integers. Greek and Hebrew can come later as data (item 20).*
-- [ ] **22.4 The 1000-label limit.** It is plenty for Grottan, but low for a general npm/PyPI library
+  version. Shipping only Latin removes the alias question (item 4) from 2.0. The known v1 data has
+  no non-ASCII characters at all. *Answered by 20.12 and 20.19: only roman numerals, Latin letters
+  and integers are built in, and Greek and Hebrew ship as plugins, read without their final forms
+  until aliases come (4.1c).*
+- **22.4 The 1000-label limit.** It is plenty for Grottan, but low for a general npm/PyPI library
   (books, bound annual volumes). Raising it later is a minor version, but it depends on item 8.
-  The longest known v1 string has 60 labels. *Skip: keep 1000. The known data has at most 60 labels.*
+  The longest known v1 string has 60 labels. *Decided by the author: the default is 10 000, and a
+  caller can set another limit with `maxLabels`, next to `plugins`.*
 - **22.5 Span lookup.** Should a part block's `pages` mean the labels listed (as in v1) or the
   physical span between them (item 12)? *Settled by the author: labels. References are written with
   the labels printed in the publication, never with PDF pages.*

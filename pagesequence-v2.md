@@ -82,8 +82,9 @@ without dependencies:
   makes `C-D` letters and `V-X` roman, without a special case for I, V and X. A flag gives the
   other reading: `V-X/latin`. So the normal form never has to shorten a stretch to avoid a
   collision.
-- **A linear normal form:** it is built in one pass. Together with the limits (1000 labels, 100
-  code points per label, 9-digit integers), this also bounds the work done on hostile input.
+- **A linear normal form:** it is built in one pass. Together with the limits (10 000 labels by
+  default, 100 code points per label, 9-digit integers), this also bounds the work done on hostile
+  input. A caller that needs more labels sets `maxLabels`.
 - **Errors:** the kinds are fixed, but the order between several errors is not. A test case lists
   every error it allows.
 - **References** are read strictly, plus two repairs. So `clean` can change without changing what
@@ -172,8 +173,8 @@ v1 is used in one project, so it is converted once rather than supported.
   equal ends. Each index appears once, in first-seen order. v1 could repeat an index:
   `[19, 20, …, 27, 19]`.
 - **Errors have a kind and a position** (`PageSequenceError`).
-- **New limits:** at most 1000 labels, labels of at most 100 code points, and integers of at most 9
-  digits.
+- **New limits:** at most 10 000 labels unless the caller sets `maxLabels`, labels of at most 100
+  code points, and integers of at most 9 digits.
 - **`fromRoman` is strict.** It reads what the roman system reads, and gives `undefined` for
   anything else. v1 gave 4 for `IIII`, 1 for `IC` and 0 for text that isn't roman, and it read
   mixed case (`Iv`) and `MMMM`.
@@ -184,7 +185,7 @@ v1 is used in one project, so it is converted once rather than supported.
   `equals` and `alphabet`.
 - **New syntax:** flags (`V-X/latin`), and the plugin systems they name. Every call that reads a
   sequence takes the plugin systems in a `plugins` option. The constructor still takes the page
-  count as its second argument, as in v1, or `{ length, plugins }`.
+  count as its second argument, as in v1, or `{ length, plugins, maxLabels }`.
 
 ## Distribution and implementations
 
@@ -259,6 +260,7 @@ file, and CI runs both, so a change in behaviour fails in both languages at once
 - `equals`: pairs, and the expected result for each;
 - `plugins`: the names of the plugin systems that every call in the case is given, such as
   `["roman_additive"]`. Without it, none;
+- `maxLabels`: the label limit that every call in the case is given. Without it, the default;
 - `errors`: for invalid input, every error the input may give, as `{kind, position}`. An
   implementation passes when the error it reports matches one of them. Every kind has at least one
   case.
@@ -282,7 +284,8 @@ normalisation, cleaning, lookups, limits and conversion. The groups include:
   A…Ö is `A-Ö/latin_sv` or `A-Z, Å, Ä, Ö`.
 - **cleaning:** open ends that can't be closed: `i-`, `A-`, `08-`, `inflikat.1-`.
 - **limits:**
-  - exactly 1000 labels and a label of exactly 100 code points, and one more of each;
+  - exactly 10 000 labels and a label of exactly 100 code points, and one more of each;
+  - a lower and a higher `maxLabels`;
   - no timer, since the test runner's timeout catches a slow fold.
 - **conversion:** one case per distinct line of `v2/list_of_grottan_in_v1.txt` (42). Each case
   holds the v1 string, its v2 form from `v2/list_of_grottan_in_v2.txt`, and the pages.
@@ -382,4 +385,3 @@ version:
 - **Fixed-width integers** (`08-12`).
 - **Aliases,** such as the Greek final sigma and the Hebrew final forms.
 - **A run stepping by something other than its width,** e.g. every second page.
-- **A higher label limit,** if a publication needs more than 1000 labels.

@@ -78,10 +78,11 @@ qchar    = any character except '"', "\" and control characters
   combining ring are the same label. Lengths, limits and positions count code points.
 - **Limits.**
   - A label is at most 100 code points long, not counting quotes and escapes.
-  - A sequence expands to at most 1000 labels.
+  - A sequence expands to at most 10 000 labels. A caller can set another limit with `maxLabels`
+    (see "API"). The limit only decides whether a sequence is accepted, never how it reads.
 
   Either one exceeded is an error (`too-long`). The size of a range or run is computed from its end
-  values before it is expanded, so `1-5000` fails at once.
+  values before it is expanded, so `1-50000` fails at once.
 
 ## Meaning
 
@@ -318,7 +319,7 @@ of the message is also up to the implementation.
 | `run-shape` | The ends of a run have different numbers of labels | `2+3..46+47+48` |
 | `uneven-run` | The ends of a run are not a whole number of steps apart, or its columns step a different number of times | `2+3..5+6`, `2+3..46+49` |
 | `duplicate-label` | A label appears twice on the pages that are not ignored, compared without case | `1-5, 3`, `2+2`, `Omslag, 2-31, omslag` |
-| `too-long` | The sequence expands to more than 1000 labels, or a label is longer than 100 code points | `1-5000` |
+| `too-long` | The sequence expands to more labels than the limit (10 000 unless `maxLabels` sets another), or a label is longer than 100 code points | `1-50000` |
 | `bad-length` | The page count is not a positive whole number | `create("1-3", -1)` |
 | `length-mismatch` | A page count is given, and the sequence has a different number of PDF pages | `create("1-3", 4)` |
 
@@ -365,7 +366,7 @@ The class keeps the v1 API and meaning, except for the changes listed in
 
 **The class:**
 
-- `new PageSequence(text, length?)` and `new PageSequence(text, { length?, plugins? })` parse
+- `new PageSequence(text, length?)` and `new PageSequence(text, { length?, plugins?, maxLabels? })` parse
   strictly. On invalid input they throw `PageSequenceError` with `kind` and `position`. An empty
   `text` is an error: plain numbering is stored as `1-52`.
 - `PageSequence.create(text, …)` takes the same arguments, but returns `undefined` instead of
@@ -384,7 +385,8 @@ The class keeps the v1 API and meaning, except for the changes listed in
   block.
 - The reference is parsed as a sequence, with two repairs: dashes (`–`, `—` and `−` → `-`) and
   equal ends (`5-5` → `5`). No other `clean` repair applies, so a change to `clean` never changes
-  what a stored reference points to. It is read with the sequence's own `plugins`.
+  what a stored reference points to. It is read with the sequence's own `plugins` and
+  `maxLabels`.
 - The lookup gives the PDF pages that carry the reference's labels.
   - A PDF page with other labels, such as an insert between them, is included only if the
     reference lists its labels: in `1-9, 10+11, 10a-10d, 12-20`, `10-12` gives the pages of 10, 11
@@ -406,10 +408,13 @@ The class keeps the v1 API and meaning, except for the changes listed in
 
 **Functions:**
 
-- `normalize(text, { plugins? }) → string` gives the normal form. It throws on invalid input.
-- `clean(text, { length?, plugins? }) → { normalized, repairs }` (see "Cleaning").
-- `equals(a, b, { plugins? }) → boolean` reads two sequence strings and compares their page
-  models. It throws on invalid input.
+- `normalize(text, { plugins?, maxLabels? }) → string` gives the normal form. It throws on invalid
+  input.
+- `clean(text, { length?, plugins?, maxLabels? }) → { normalized, repairs }` (see "Cleaning").
+- `equals(a, b, { plugins?, maxLabels? }) → boolean` reads two sequence strings and compares their
+  page models. It throws on invalid input.
+- `maxLabels` is the label limit, 10 000 by default (see "Limits"). Like `plugins`, an instance
+  keeps it for its lookups.
 - `toRoman(num, lowerCase?) → string` writes an integer from 1 to 3999 as a canonical roman
   numeral, in upper case unless `lowerCase` is true. Any other number throws a `RangeError`.
 - `fromRoman(roman) → number | undefined` gives the value of a roman numeral, read as the roman
@@ -446,13 +451,13 @@ The class keeps the v1 API and meaning, except for the changes listed in
 
 **Python** uses the same names in snake case:
 
-- `PageSequence(text, length=None, *, plugins=())` and `PageSequence.create(...)`, which returns
-  `None` on error;
+- `PageSequence(text, length=None, *, plugins=(), max_labels=10000)` and
+  `PageSequence.create(...)`, which returns `None` on error;
 - `get_index_length_all()`, `get_index_length()`, `get_label_length()`, `get_index_list(pages=None)`,
   `get_label_list(pages=None)`;
 - `labels_at(index)`, `format_at(index)`, `pages()` and `str()`;
-- the functions `normalize(text, *, plugins=())`, `clean(text, length=None, *, plugins=())` and
-  `equals(a, b, *, plugins=())`;
+- the functions `normalize(text)`, `clean(text, length=None)` and `equals(a, b)`, each with the
+  keyword-only `plugins=()` and `max_labels=10000`;
 - `to_roman(num, lower_case=False)`, which raises `ValueError` outside 1–3999, and
   `from_roman(roman)`, which returns `None` for anything that isn't roman;
 - `alphabet(name, upper, lower=None)`. A system has `name`,
