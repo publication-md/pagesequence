@@ -30,12 +30,26 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 
 ## Phase 0: Settle what is still open
 
-- [ ] **P0.1** Decide item 20 of the review: are range flags (`V-X\latin`) part of 2.0, or later?
-  The answer decides whether the parser, the tests and the API include `\name`.
+- [x] **P0.1** Decide item 20 of the review: are range flags (`V-X/latin`) part of 2.0, or later?
+  The answer decides whether the parser, the tests and the API include `/name`. *Decided: flags
+  are in 2.0. Only `roman`, `latin` and `integer` are built in, and other systems are plugins
+  ("Plugins" in `pagesequence-v2.md`).*
 - [x] **P0.2** Decide whether v1's `romanPattern` stays public, next to `toRoman` and `fromRoman`.
   It isn't how v2 finds roman numerals: it matches `MMMM` and mixed case such as `Iv`, which v2
   doesn't read as roman. Python's `re` can't compile it as written (variable-width look-behind).
   *Decided: skip it. It is listed under the breaking changes in `pagesequence-v2.md`.*
+- [ ] **P0.3** Confirm the choices made when flags moved into 2.0. They are in the spec now, but
+  only the first has been decided:
+  - *Decided: no global `registerSystem`. Every call that reads a sequence takes the plugin
+    systems in a `plugins` option, so the same code always behaves the same;*
+  - the plugin interface: `name`, `tokenChars`, `read(token)` → `{ value, style }` and
+    `format(value, style)`. The reader checks the round trip, so `read` can be lenient;
+  - `alphabet(name, upper, lower?)` is public, so a custom alphabet takes one line;
+  - `V/latin` is `reserved-char`, like a misplaced `!`, and not `syntax` as review item 20.1c
+    says;
+  - a standard name may end in a variant (`roman_additive`), not only a language subtag (20.3a);
+  - all four plugins ship in 2.0: `roman_additive`, `latin_sv`, `greek` and `hebrew`. Greek and
+    Hebrew are read without their final forms, since aliases come later.
 
 **Exit:** no open decision blocks phases 1–6.
 
@@ -76,8 +90,8 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 ## Phase 2: Shared test data
 
 - [ ] **P2.1** Write `testdata/cases.json` in the format from `pagesequence-v2.md` ("Shared test
-  data"), grouped into syntax, ranges, runs, quoting, numbering, normalisation, cleaning, lookups,
-  limits and conversion.
+  data"), grouped into syntax, ranges, runs, quoting, numbering, flags, plugins, normalisation,
+  cleaning, lookups, limits and conversion.
 - [ ] **P2.2** Make every example in the spec a case. Every error kind has at least one case, and
   inputs with several errors list all of them in `errors`.
 - [ ] **P2.3** Add the edge cases:
@@ -86,7 +100,9 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   - `toRoman` and `fromRoman`: both cases, the values 1 and 3999, and what they reject (`IIII`,
     `IC`, `Iv`, `MMMM` and `""`; 0, 4000 and 2.5);
   - open ends that can't be closed: `i-`, `A-`, `08-` and `inflikat.1-`;
-  - the limits: 1000 labels and 100 code points, and one more of each.
+  - the limits: 1000 labels and 100 code points, and one more of each;
+  - flags and plugins, as listed in `pagesequence-v2.md` ("Shared test data"), plus the run
+    `I+II..VIIII+X/roman_additive`. Each plugin case names its plugins in `plugins`.
 - [ ] **P2.4** Add conversion cases: one per distinct line of `v2/list_of_grottan_in_v1.txt` (42).
   Each has its v2 form from `v2/list_of_grottan_in_v2.txt`, and its pages.
 - [ ] **P2.5** Add the v1 test cases that still apply, and lookups showing that references are
@@ -99,9 +115,11 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 
 - [ ] **P3.1** Write the parser module in `ts/src/`, and `mod.ts`, which exports it and `roman.ts`.
   The parser module covers:
-  - the lexer and parser;
+  - the lexer and parser, flags included;
   - the three numbering systems and the reading rule, reading roman with `fromRoman`;
-  - expansion and the linear fold;
+  - the `plugins` option, the system interface and `alphabet`. The built-in systems use the same
+    interface as plugins, so the core tests it;
+  - expansion and the linear fold, which tries each system and writes a flag where needed;
   - `clean`;
   - the `PageSequence` class, `normalize`, `equals` and `PageSequenceError`.
 
@@ -112,15 +130,19 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   `node:test`. It also checks the roman round trip for 1–3999 in both cases, as v1's
   `Roman.test.ts` did.
 - [ ] **P3.3** Add the local tasks in `ts/deno.json`: `test`, `lint` and `fmt --check`.
-- [ ] **P3.4** Keep it small: no dependencies, and two source modules, the parser and `roman.ts`.
-  Record their size, so later growth is visible.
+- [ ] **P3.4** Keep it small: no dependencies, and a core of two source modules, the parser and
+  `roman.ts`. Record their size, so later growth is visible.
+- [ ] **P3.5** Write the plugins in `ts/src/plugins/`, one module each: `roman_additive.ts`,
+  `latin_sv.ts`, `greek.ts` and `hebrew.ts`. Follow the rules in "Plugins" in
+  `pagesequence-v2.md`: importing a plugin has no side effects, and `alphabet(…)` calls are marked
+  `/* @__PURE__ */`.
 
 **Exit:** all shared cases pass with `deno task test`.
 
 ## Phase 4: Python implementation
 
-- [ ] **P4.1** Write `py/src/pagesequence/` with the same structure, `roman.py` included, using the
-  Python names from the spec.
+- [ ] **P4.1** Write `py/src/pagesequence/` with the same structure, `roman.py` and `plugins/`
+  included, using the Python names from the spec.
 - [ ] **P4.2** Write `py/tests/`. It reads `../testdata/cases.json` with `unittest`.
 - [ ] **P4.3** Write `pyproject.toml`: name `pagesequence`, Python 3.11 or later, no dependencies.
 
@@ -129,7 +151,8 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 ## Phase 5: Cross-language check, locally
 
 - [ ] **P5.1** Write a seeded generator, `testdata/generate.py`, using the standard library only.
-  It writes a few thousand inputs to a file.
+  It writes a few thousand inputs to a file, including runs in the plugin systems. Each input is
+  checked with no plugin systems and with all of them.
 - [ ] **P5.2** Have each implementation write its results as JSON, and a compare script report the
   first difference.
 - [ ] **P5.3** Check the properties from `pagesequence-v2.md`: round trip, idempotent, unique, not
@@ -148,10 +171,14 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   `py/pyproject.toml`, each with an SPDX licence field.
 - [ ] **P6.2** Build for npm:
   - `tsc` builds `ts/dist/`: ESM `.js` and `.d.ts` files.
+  - `package.json` has `"sideEffects": false`, and `exports` has a subpath for each plugin
+    (`./plugins/roman_additive`).
   - `npm pack` makes the tarball.
   - Install it in a scratch project and run a smoke test.
+  - Bundle an app that uses only the core, and check that no plugin is in the bundle.
   - Run the shared cases against `dist/` with `node --test`.
-- [ ] **P6.3** Check JSR with `deno publish --dry-run`, run from `ts/`.
+- [ ] **P6.3** Check JSR with `deno publish --dry-run`, run from `ts/`. Each plugin is its own
+  entry in `exports`.
 - [ ] **P6.4** Build for PyPI: `uv build` makes the sdist and the wheel. Install the wheel in a
   fresh virtual environment and run a smoke test.
 - [ ] **P6.5** Write the package READMEs (`ts/README.md` and `py/README.md`), which the registries

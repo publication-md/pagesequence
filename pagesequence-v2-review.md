@@ -622,6 +622,13 @@ This is the author's design.
 *Recommended: in 2.0, only reserve `\` (20.1d). The rest can follow in a 2.x release, because a
 flag only makes strings valid that were invalid before, and none of the 235 known strings needs one.*
 
+*Decided by the author: flags are in 2.0, written with `/` instead of `\` (`V-X/latin`), so they
+need no escaping in JSON, YAML or code. `/` becomes a reserved character. Only `roman`, `latin` and
+`integer` are built in; other systems are plugins (`roman_additive`, `latin_sv`, `greek`,
+`hebrew`), shipped in the package but left out of code that doesn't use them. Plugins are passed to
+each call in a `plugins` option; there is no global registry. See "Flags" in the spec and
+"Plugins" in `pagesequence-v2.md`. Choices still to confirm are in `ROADMAP.md`, P0.3.*
+
 - [ ] **20.1** Syntax: *Defer, except 20.1d.*
   - [ ] **20.1a** `\name` goes right after the last label of a range or run.
   - [ ] **20.1b** There is one flag per item, and it applies to every column.

@@ -31,9 +31,11 @@ those labels into PDF pages. MUST, MUST NOT, SHOULD and MAY are used as in RFC 2
 ```
 sequence = item { "," item }
 item     = [ "!" ] ( range | run | page )   "!": every PDF page of the item is ignored
-range    = label "-" label                  PDF pages with one label each
-run      = page ".." page                   PDF pages with the same number (2 or more) of labels each
+range    = label "-" label [ flag ]         PDF pages with one label each
+run      = page ".." page [ flag ]          PDF pages with the same number (2 or more) of labels each
 page     = label { "+" label }              one PDF page: its labels, in reading order
+flag     = "/" name                         the numbering system that reads the range or run
+name     = namechar { namechar }            namechar: "a"–"z", "0"–"9" and "_"
 label    = bare | quoted
 bare     = barechar { barechar }            trimmed of spaces; see "Bare labels"
 quoted   = '"' qpart { qpart } '"'
@@ -44,20 +46,24 @@ qchar    = any character except '"', "\" and control characters
 - **Spaces.** U+0020 is the only whitespace. Spaces around `,`, `-`, `+`, `..`, `!` and labels are
   ignored. Spaces inside a bare label are part of it.
 - **Reserved characters.** The reserved characters are:
-  - `,` `-` `+` `!` `"` `\`;
+  - `,` `-` `+` `!` `"` `/` `\`;
   - the characters that `clean` repairs: `;` `|` `…` `–` `—` `−` `“` `”` `„`;
   - the control characters U+0000–U+001F and U+007F–U+009F.
 
   Every other character is label text, including other spaces such as U+00A0. Reserving the
-  repaired characters keeps strict mode from reading `1–52` or `1; 2` as a single label. `\` is
-  kept free for naming a numbering system after a range in a later version.
+  repaired characters keeps strict mode from reading `1–52` or `1; 2` as a single label. `/`
+  starts a flag (see "Flags"), and `\` is the escape inside quoted labels.
 - **Bare labels.** A bare label is any text without reserved characters and without `..`. It
   can't start or end with `.`, so `1...3` is an error rather than `1.` to `3` or `1` to `.3`.
-- **Where `!` and `"` count.**
+- **Where `!`, `"` and `/` count.**
   - `!` is an operator only as the first non-space character of an item. Anywhere else it is a
     reserved character: `Hej!`, `!!3` and `1-!3` are errors (`reserved-char`). Write `"Hej!"`.
   - `"` opens a quoted label only where a label starts. Anywhere else it is a reserved character
     (`My"label`).
+  - `/` starts a flag only after the last label of a range or run, and the name follows it
+    directly. Anywhere else it is a reserved character: `a/b`, `1990/1` and `V/latin` are errors
+    (`reserved-char`). Write `"1990/1"`. A flag without a name, such as `1-5/` or `1-5/Latin`, is
+    an error (`syntax`).
 - **Quoted labels.**
   - A label that can't be written bare is written in double quotes. Inside the quotes everything
     is text, except that `\"` is a quote and `\\` a backslash.
@@ -138,6 +144,9 @@ Given the first label `a` and the last label `b`:
      `uneven-run`);
    - or `no-system` if no system read them.
 
+With a flag, step 3 reads with the named system only. Its reading is the reading if it is valid,
+and otherwise its error is the error (see "Flags").
+
 The labels are the prefix, then each value from the first to the last in the system's format, then
 the suffix. In a run the values step by the number of labels per page. Exactly one part of a label
 steps: `1a-2c`, where two parts would step, is an error; write `1a-1c, 2a-2c`.
@@ -147,7 +156,7 @@ of a range always come out exactly as they were written.
 
 ### Numbering systems
 
-In hierarchy order:
+Three systems are built in. Without a flag, they are read in this hierarchy order:
 
 1. **roman**
    - Canonical roman numerals with values 1–3999, all upper case or all lower case: `I`, `IV`,
@@ -185,6 +194,44 @@ the last value of `C-D` is 4 as letters but 500 as roman.
 | `CC` | `CD` | roman 200→400, for the same reason | `CC`, `CCI`, …, `CD` |
 | `08` | `12` | error `no-system`: a leading zero is not read | |
 
+### Flags
+
+A flag after a range or run names the system that reads it. The name is a built-in system or a
+plugin system passed in `plugins` (see "API"); any other name is an error (`unknown-system`).
+
+- **The named system reads alone.** `V-X/latin` is the letters `V`, `W`, `X`, while `V-X` is roman.
+  If the system doesn't read both ends, the error is `no-system`: `IV-X/roman_additive`. Naming the
+  system that would read anyway changes nothing: `V-X/roman` is `V-X`.
+- **A run's flag applies to each column.** `I+II..VIIII+X/roman_additive` is `I+II`, `III+IIII`,
+  `V+VI`, `VII+VIII`, `VIIII+X`. Without the flag it is an error (`no-system`).
+- **Plugin systems are read only through a flag.** They are never in the hierarchy. So a string
+  without flags reads the same in every reader, and a string with a flag reads the same in every
+  reader that is given its system.
+- **Names.** A standard name is the name of a system or script, optionally followed by `_` and a
+  language subtag (`latin_sv`) or a variant (`roman_additive`). Each system has one name.
+
+### Plugin systems
+
+These systems are defined here and ship with the implementations. Each one is read only by a call
+that is given it in `plugins` (see "API").
+
+1. **roman_additive**
+   - Roman numerals 1–3999 written without subtraction: a digit repeats up to four times. 4 is
+     `IIII`, 9 is `VIIII`, 40 is `XXXX`, 90 is `LXXXX`, 400 is `CCCC` and 900 is `DCCCC`.
+   - All upper case or all lower case, and the case is kept. `IV` and `IX` are not read.
+   - Token characters as for roman.
+   - `I-X/roman_additive` is `I`, `II`, `III`, `IIII`, `V`, `VI`, `VII`, `VIII`, `VIIII`, `X`.
+2. **latin_sv**
+   - The Swedish alphabet: `A`–`Z`, then `Å`, `Ä`, `Ö`, and the same in lower case. A letter's
+     value is its position. The case is kept.
+   - No token characters. `A-Ö/latin_sv` is 29 PDF pages.
+3. **greek**
+   - The 24 letters `Α`–`Ω` and `α`–`ω`, by position. The case is kept. No token characters.
+   - The final sigma `ς` is not read.
+4. **hebrew**
+   - The 22 letters `א`–`ת`, by position, without case. No token characters.
+   - The final forms `ך`, `ם`, `ן`, `ף` and `ץ` are not read. This is the alphabet, not gematria.
+
 ## Normal form
 
 The same sequence can be written in several ways: `1,2,3` and `1-3`, `1-3, 4-6` and `1-6`,
@@ -194,16 +241,16 @@ The same sequence can be written in several ways: `1,2,3` and `1-3`, `1-3, 4-6` 
    exactly, case included.
 2. **Fold** in one pass from the first PDF page:
    1. If the next page has the same ignored flag and the same number of labels, read the two pages
-      as a range (one label each) or a run (several labels each). This is the *pair reading*. The
-      second page must be exactly one step after the first.
-   2. Extend while the following page equals the next label (or labels) the pair reading
+      as a range (one label each) or a run (several labels each), with each system in turn: the
+      built-in systems in hierarchy order, then the given plugin systems in name order. Each
+      valid reading is a *pair reading*. The second page must be exactly one step after the first.
+   2. Extend each pair reading while the following page equals the next label (or labels) it
       generates.
-   3. Shorten from the end until the stretch's own first and last pages read the same way as the
-      pair: the same system, cut, case and start value. This only happens where systems collide.
-      For example, `V-X` reads as roman, so the letters `V, W, X` shorten by one page.
+   3. The longest stretch wins. Of stretches of the same length, the earlier system's wins.
    4. Write the stretch as one item if it has at least 2 pages with one label each, or at least 3
-      pages with several labels each. Otherwise write the page on its own. Continue after what was
-      written.
+      pages with several labels each. Write the winning system's flag after it only if the item
+      would read as other pages without it: the letters `V, W, X` are written `V-X/latin`, because
+      `V-X` reads as roman. Otherwise write the page on its own. Continue after what was written.
 3. **Join** the items with `, ` (one space after the comma), with no other whitespace. `!` is
    written directly before its item.
 4. **Quote** a label when it can't be written bare, or when it contains a space, escaping `"` and
@@ -211,10 +258,11 @@ The same sequence can be written in several ways: `1,2,3` and `1-3`, `1-3, 4-6` 
    label.
 
 **It is unique,** because step 1 removes every difference in notation and steps 2–4 depend only on
-the model. **It is short.** Apart from the quotes that step 4 adds to labels with spaces, it is
-never longer than the plain list: `a-b` is one character shorter than `a, b`, and `P..Q` is shorter
-than the list from 3 pages on. Where systems collide, it is not always the shortest possible
-string.
+the model and the given systems. With `latin_sv` given, the letters A…Ö are written
+`A-Ö/latin_sv`; without it, `A-Z, Å, Ä, Ö`. **It is short.** Apart from the quotes that step 4 adds
+to labels with spaces, and the flags written where systems collide, it is never longer than the
+plain list: `a-b` is one character shorter than `a, b`, and `P..Q` is shorter than the list from 3
+pages on. Where systems collide, it is not always the shortest possible string.
 
 Examples:
 
@@ -227,9 +275,12 @@ Examples:
 - `"Omslag", 2-31` → `Omslag, 2-31` (the quotes were not needed)
 - `Appendix A - Appendix C` → `"Appendix A"-"Appendix C"` (the labels contain a space)
 - `I, ii, III` stays as it is: the labels differ in case, so they don't continue each other
-- `V, W, X` → `V-W, X`, because `V-X` would read as roman
+- `V, W, X` → `V-X/latin`, because `V-X` would read as roman
 - `V, W, X, Y` → `V-Y`, because `Y` is not a roman numeral
-- the 16 letters `I, J, …, W, X` → `I-W, X`, because `I-X` would read as roman
+- the 16 letters `I, J, …, W, X` → `I-X/latin`, because `I-X` would read as roman
+- `V-X/roman` → `V-X`: the flag isn't needed
+- `I, II, III, IIII, V, VI, VII, VIII, VIIII, X` → `I-X/roman_additive` with `roman_additive`
+  given, and `I-III, IIII, V-VIII, VIIII, X` without it
 - `1–52` (with an en dash) is an error; `clean` repairs it
 
 `normalize` is strict. It accepts exactly the syntax above, and it is what stored data uses. To
@@ -251,8 +302,8 @@ of the message is also up to the implementation.
 
 | Kind | When | Examples |
 |---|---|---|
-| `syntax` | The text doesn't follow the grammar | `1-2-3`, `1-3+4-6`, `2+3-46+47`, `1+2..3+4..5+6`, `-5`, `2+`, `+3`, `1..`, `2+3..`, `"a"b`, `"a\b"` |
-| `reserved-char` | A reserved character is outside quotes, or a control character is anywhere | `1–52`, `1; 2`, `2\|3`, `Hej!`, `!!3`, `1-!3`, `My"label`, `a\b` |
+| `syntax` | The text doesn't follow the grammar | `1-2-3`, `1-3+4-6`, `2+3-46+47`, `1+2..3+4..5+6`, `-5`, `2+`, `+3`, `1..`, `2+3..`, `"a"b`, `"a\b"`, `1-5/`, `1-5/Latin` |
+| `reserved-char` | A reserved character is outside quotes, or a control character is anywhere | `1–52`, `1; 2`, `2\|3`, `Hej!`, `!!3`, `1-!3`, `My"label`, `a\b`, `a/b`, `V/latin` |
 | `unclosed-quote` | A quoted label has no closing `"` | `"Omslag, 2-31` |
 | `dot-at-edge` | A bare label starts or ends with `.` | `1...3`, `s.` |
 | `empty` | The sequence is empty | the empty string |
@@ -260,7 +311,8 @@ of the message is also up to the implementation.
 | `open-end` | A range has no last label | `1-` |
 | `single-label-run` | `..` is used between pages with one label each | `1..16` |
 | `equal-ends` | A range or run has the same first and last end | `3-3`, `2+3..2+3` |
-| `no-system` | No numbering system reads both ends | `1a-2c`, `omslag-baksida`, `Y-AB`, `08-12`, `1-1000000000` |
+| `no-system` | No numbering system reads both ends | `1a-2c`, `omslag-baksida`, `Y-AB`, `08-12`, `1-1000000000`, `IV-X/roman_additive` |
+| `unknown-system` | A flag names a system that is neither built in nor given in `plugins` | `1-5/klingon`, and `A-Ö/latin_sv` without `latin_sv` |
 | `different-case` | The ends are read with different case | `i-IV`, `a-C` |
 | `descending` | The last value is lower than the first | `5-3`, `D-A` |
 | `run-shape` | The ends of a run have different numbers of labels | `2+3..46+47+48` |
@@ -313,9 +365,11 @@ The class keeps the v1 API and meaning, except for the changes listed in
 
 **The class:**
 
-- `new PageSequence(text, length?)` parses strictly. On invalid input it throws `PageSequenceError`
-  with `kind` and `position`. An empty `text` is an error: plain numbering is stored as `1-52`.
-- `PageSequence.create(text, length?)` does the same, but returns `undefined` instead of throwing.
+- `new PageSequence(text, length?)` and `new PageSequence(text, { length?, plugins? })` parse
+  strictly. On invalid input they throw `PageSequenceError` with `kind` and `position`. An empty
+  `text` is an error: plain numbering is stored as `1-52`.
+- `PageSequence.create(text, …)` takes the same arguments, but returns `undefined` instead of
+  throwing.
 - Pass the PDF's page count as `length` whenever it is known. The sequence is then checked against
   it, which catches a missing spread or a page counted twice.
 - `getIndexLengthAll()` is the number of PDF pages, ignored ones included; `length` is checked
@@ -330,7 +384,7 @@ The class keeps the v1 API and meaning, except for the changes listed in
   block.
 - The reference is parsed as a sequence, with two repairs: dashes (`–`, `—` and `−` → `-`) and
   equal ends (`5-5` → `5`). No other `clean` repair applies, so a change to `clean` never changes
-  what a stored reference points to.
+  what a stored reference points to. It is read with the sequence's own `plugins`.
 - The lookup gives the PDF pages that carry the reference's labels.
   - A PDF page with other labels, such as an insert between them, is included only if the
     reference lists its labels: in `1-9, 10+11, 10a-10d, 12-20`, `10-12` gives the pages of 10, 11
@@ -348,14 +402,14 @@ The class keeps the v1 API and meaning, except for the changes listed in
 - For an ignored page, both give its labels as written after `!`. For an index outside the PDF,
   they give `undefined`.
 - `pages()` gives the page model as a list of `{ignored, labels}`.
-- `toString()` gives the normal form.
+- `toString()` gives the normal form, written with the sequence's own `plugins`.
 
 **Functions:**
 
-- `normalize(text) → string` gives the normal form. It throws on invalid input.
-- `clean(text, { length? }) → { normalized, repairs }` (see "Cleaning").
-- `equals(a, b) → boolean` reads two sequence strings and compares their page models. It throws on
-  invalid input.
+- `normalize(text, { plugins? }) → string` gives the normal form. It throws on invalid input.
+- `clean(text, { length?, plugins? }) → { normalized, repairs }` (see "Cleaning").
+- `equals(a, b, { plugins? }) → boolean` reads two sequence strings and compares their page
+  models. It throws on invalid input.
 - `toRoman(num, lowerCase?) → string` writes an integer from 1 to 3999 as a canonical roman
   numeral, in upper case unless `lowerCase` is true. Any other number throws a `RangeError`.
 - `fromRoman(roman) → number | undefined` gives the value of a roman numeral, read as the roman
@@ -363,26 +417,64 @@ The class keeps the v1 API and meaning, except for the changes listed in
   Anything else gives `undefined`. So `fromRoman(toRoman(n)) === n` for every value, and
   `fromRoman` accepts exactly the tokens the roman system reads.
 
+**Numbering systems:**
+
+- **Plugin systems are passed in, never registered.** Every call that reads a sequence takes the
+  plugin systems it may use in `plugins`, and without it only the built-in systems are read. There
+  is no global state, so the same call with the same arguments reads the same everywhere.
+- A built-in name, or two systems with the same name, in `plugins` throws.
+- Each plugin system that ships with the package is imported from its own module:
+
+  ```ts
+  import { PageSequence } from "@publication-md/pagesequence";
+  import { romanAdditive } from "@publication-md/pagesequence/plugins/roman_additive";
+
+  const plugins = [romanAdditive];
+  const seq = new PageSequence("i-x/roman_additive, 1-48", { length: 58, plugins });
+  ```
+- A system is an object with:
+  - `name`, as in "Flags";
+  - `tokenChars`, the characters that widening moves over (see "Finding what steps"), or `""`;
+  - `read(token)`, which gives `{ value, style }` or `undefined`. The value is a whole number of
+    0 or more. The style tells apart tokens with the same value, such as upper and lower case;
+  - `format(value, style)`, which gives the token, or `undefined` when the value has none.
+
+  The reader checks the round trip itself: a token is read only if `format` gives it back. Two
+  ends with different styles are an error (`different-case`).
+- `alphabet(name, upper, lower?)` makes a system of single letters with values by position, such
+  as `alphabet("latin_sv", "ABC…XYZÅÄÖ", "abc…xyzåäö")`.
+
 **Python** uses the same names in snake case:
 
-- `PageSequence(text, length=None)` and `PageSequence.create(...)`, which returns `None` on error;
+- `PageSequence(text, length=None, *, plugins=())` and `PageSequence.create(...)`, which returns
+  `None` on error;
 - `get_index_length_all()`, `get_index_length()`, `get_label_length()`, `get_index_list(pages=None)`,
   `get_label_list(pages=None)`;
 - `labels_at(index)`, `format_at(index)`, `pages()` and `str()`;
-- the functions `normalize(text)`, `clean(text, length=None)` and `equals(a, b)`;
+- the functions `normalize(text, *, plugins=())`, `clean(text, length=None, *, plugins=())` and
+  `equals(a, b, *, plugins=())`;
 - `to_roman(num, lower_case=False)`, which raises `ValueError` outside 1–3999, and
   `from_roman(roman)`, which returns `None` for anything that isn't roman;
+- `alphabet(name, upper, lower=None)`. A system has `name`,
+  `token_chars`, `read(token)`, which returns `(value, style)` or `None`, and
+  `format(value, style)`, which returns a `str` or `None`. The plugin systems are imported from
+  their own modules: `from pagesequence.plugins.roman_additive import roman_additive`;
 - the exception `PageSequenceError`, with `.kind` and `.position`.
 
 ## Versioning
 
-- The numbering systems and their hierarchy are part of the format version.
-- A new system must use characters that no existing system uses and that are not reserved. It then
-  only gives a meaning to strings that were invalid before, so it is a minor version.
+- The built-in systems, their hierarchy, the flags and the plugin systems defined in this spec are
+  part of the format version.
+- A new built-in system must use characters that no existing system uses and that are not
+  reserved. It then only gives a meaning to strings that were invalid before, so it is a minor
+  version.
+- A new plugin system is a minor version too. It is read only through its flag, which was an error
+  (`unknown-system`) before.
 - Raising a limit is also a minor version, for the same reason.
 - Anything that changes how a valid string reads is a major version.
 - What `clean` repairs, and how, can change in a minor version. It only affects what people type;
   references don't use it.
 - A new version can still change the normal form of an unchanged model, for example when a new
   system can fold what an earlier version listed. So a normal form is tied to the version that
-  wrote it, and stored sequences are compared with `equals`, never as strings.
+  wrote it and the systems it was given, and stored sequences are compared with `equals`,
+  never as strings.

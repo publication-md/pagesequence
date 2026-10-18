@@ -43,9 +43,12 @@ A PageSequence maps PDF pages to the labels printed on them. Version 1 has three
 - **Readable without instructions:** spaces are allowed, and every part looks like what it means.
 - **The same capabilities as v1:** ranges of numbers, roman numerals and letters, prefixed labels,
   and ignored duplicate pages.
-- **Small and without dependencies:** each implementation is one small module, with no
-  dependencies at run time or in its tests. Only the npm build uses a tool, the TypeScript
-  compiler.
+- **Small and without dependencies:** each implementation is a small core, with no dependencies
+  at run time or in its tests. Numbering systems beyond the three built-in ones are plugins, which
+  code that doesn't use them leaves out. Only the npm build uses a tool, the TypeScript compiler.
+- **Every numbering written exactly:** where the reading rule picks the wrong system, or a
+  publication numbers its pages its own way, a flag names the system: `V-X/latin`,
+  `I-X/roman_additive`.
 
 ## Why these characters
 
@@ -59,21 +62,26 @@ A PageSequence maps PDF pages to the labels printed on them. Version 1 has three
 - **`..` for a run of PDF pages:** it is well known from programming ("from … to"), and it can step
   pages with several labels. `-` can't do that: `2+3-46+47` reads as arithmetic.
 - **`!` unchanged:** it marks an ignored page.
-- **`\` reserved:** it is kept free for naming the numbering system of a range later (`V-X\latin`),
-  so that can come in a minor version (see "Later").
+- **`/` for a flag:** it names the numbering system of a range or run (`V-X/latin`). Unlike `\`,
+  it needs no escaping in JSON, YAML, JavaScript or Python strings. None of the known strings
+  contains a `/`. `\` stays reserved, since it is the escape inside quoted labels.
 
 ## Choices that keep it small
 
 The format covers what the known data needs, so that each implementation stays a small module
 without dependencies:
 
-- **Three numbering systems:** roman numerals, Latin letters and integers. Greek, Hebrew,
-  fixed-width integers (`08`) and aliases are left out until a real case needs them (see
+- **Three built-in numbering systems:** roman numerals, Latin letters and integers. Every other
+  system is a plugin, read only through a flag. `roman_additive`, `latin_sv`, `greek` and `hebrew`
+  ship with the package, and code that doesn't pass them in leaves them out (see "Plugins").
+  Fixed-width integers (`08`) and aliases are left out until a real case needs them (see
   "Later").
 - **A simple strict model.** Only the plain space is whitespace, and control characters are
   reserved. What `clean` accepts on top of that may differ between languages.
 - **One rule where roman numerals and letters collide:** the reading that ends lowest wins. That
-  makes `C-D` letters and `V-X` roman, without a special case for I, V and X.
+  makes `C-D` letters and `V-X` roman, without a special case for I, V and X. A flag gives the
+  other reading: `V-X/latin`. So the normal form never has to shorten a stretch to avoid a
+  collision.
 - **A linear normal form:** it is built in one pass. Together with the limits (1000 labels, 100
   code points per label, 9-digit integers), this also bounds the work done on hostile input.
 - **Errors:** the kinds are fixed, but the order between several errors is not. A test case lists
@@ -158,7 +166,8 @@ v1 is used in one project, so it is converted once rather than supported.
 - **Single-letter ranges** such as `C-D`, `L-M` and `I-L` read as letters. v1 read them as roman.
 - **A number with a leading zero can't be a range end.** `08-12` is an error; v1 read it as 8, 9,
   …, dropping the zero.
-- **`!`, `"`, `\` and control characters are reserved,** so a label that contains one is quoted.
+- **`!`, `"`, `/`, `\` and control characters are reserved,** so a label that contains one is
+  quoted: `"1990/1"`.
 - **References** (`getIndexList(pages)`) are read as v2 sequences, plus two repairs: dashes and
   equal ends. Each index appears once, in first-seen order. v1 could repeat an index:
   `[19, 20, …, 27, 19]`.
@@ -171,8 +180,11 @@ v1 is used in one project, so it is converted once rather than supported.
 - **`toRoman` throws outside 1–3999.** v1 gave `""` for 0 and `MMMM` for 4000.
 - **`romanPattern` is gone.** It matched `MMMM` and mixed case, which v2 doesn't read as roman.
   `fromRoman` tells whether a token is roman.
-- **New functions:** `labelsAt`, `formatAt`, `pages()`, `toString()`, `normalize`, `clean` and
-  `equals`.
+- **New functions:** `labelsAt`, `formatAt`, `pages()`, `toString()`, `normalize`, `clean`,
+  `equals` and `alphabet`.
+- **New syntax:** flags (`V-X/latin`), and the plugin systems they name. Every call that reads a
+  sequence takes the plugin systems in a `plugins` option. The constructor still takes the page
+  count as its second argument, as in v1, or `{ length, plugins }`.
 
 ## Distribution and implementations
 
@@ -203,6 +215,34 @@ pagesequence/
   LICENSE (MIT)  LICENSE-SPEC (CC0)  AUTHORS
 ```
 
+The plugin systems are in `ts/src/plugins/` and `py/src/pagesequence/plugins/`, one module each.
+
+### Plugins
+
+The plugin systems ship in the package, but a plugin does nothing until the caller passes it in,
+and code that doesn't use it leaves it out:
+
+- **Passed in, never registered.** Each call that reads a sequence gets its plugin systems in
+  `plugins`. A global registry would make the same code in a file behave differently depending on
+  what another module had registered. Passing them in means the same call with the same arguments
+  always reads the same, and tests can run a case with or without plugins without resetting
+  anything.
+- **Each plugin is its own module,** exported as a subpath
+  (`@publication-md/pagesequence/plugins/roman_additive`) and not from `mod.ts`. A plugin that
+  isn't imported is then never loaded, with or without a bundler. In Python, it is a module that
+  isn't imported.
+- **Importing a plugin does nothing else.** So the package has no side effects, and
+  `package.json` declares `"sideEffects": false`.
+- **A plugin made by a call,** such as `alphabet(…)`, is marked `/* @__PURE__ */`. Otherwise a
+  bundler that reads the source, not the npm package, keeps it.
+- **The exports are named after the systems:** `romanAdditive`, `latinSv`, `greek` and `hebrew` in
+  TypeScript, and `roman_additive`, `latin_sv`, `greek` and `hebrew` in Python.
+
+A bundling test (`deno bundle`, which uses esbuild) backs these rules. An app that used only the
+core left out all plugins, even when `mod.ts` re-exported them, as long as the package declared
+`"sideEffects": false`. Without that, an unmarked `alphabet(…)` call stayed in.
+These plugins replace the data files of item 20.6 in `pagesequence-v2-review.md`.
+
 ### Shared test data
 
 `testdata/cases.json` is the contract between the implementations. Both test suites read the same
@@ -217,6 +257,8 @@ file, and CI runs both, so a change in behaviour fails in both languages at once
 - `lookups`: a list of `{pages, indexes, labels}`, the expected `getIndexList(pages)` and
   `getLabelList(pages)`;
 - `equals`: pairs, and the expected result for each;
+- `plugins`: the names of the plugin systems that every call in the case is given, such as
+  `["roman_additive"]`. Without it, none;
 - `errors`: for invalid input, every error the input may give, as `{kind, position}`. An
   implementation passes when the error it reports matches one of them. Every kind has at least one
   case.
@@ -227,13 +269,17 @@ file, and CI runs both, so a change in behaviour fails in both languages at once
             {"kind": "reserved-char", "position": 8}]}
 ```
 
-Cases are grouped by feature: syntax, ranges, runs, quoting, numbering, normalisation, cleaning,
-lookups, limits and conversion. The groups include:
+Cases are grouped by feature: syntax, ranges, runs, quoting, numbering, flags, plugins,
+normalisation, cleaning, lookups, limits and conversion. The groups include:
 
 - **numbering:**
   - each system;
   - the reading rule: `C-D`, `V-X`, `I-M`, `x-l`, `iv-ix`, `xi-xl`, `CC-CD`;
   - roman numerals that are not canonical: `IIII-V` is `no-system`.
+- **flags:** `V-X/latin`, `V-X/roman` → `V-X`, the letters I…X → `I-X/latin`, and the errors
+  `1-5/klingon`, `V/latin`, `1-5/` and `IV-X/roman_additive`.
+- **plugins:** each plugin system, with its normal forms with and without the plugin:
+  A…Ö is `A-Ö/latin_sv` or `A-Z, Å, Ä, Ö`.
 - **cleaning:** open ends that can't be closed: `i-`, `A-`, `08-`, `inflikat.1-`.
 - **limits:**
   - exactly 1000 labels and a label of exactly 100 code points, and one more of each;
@@ -251,10 +297,12 @@ library:
 1. A seeded generator writes a few thousand random inputs to a file. Each input is a page model
    built from:
    - runs of integers, roman numerals, letters and prefixed labels;
+   - runs in the plugin systems;
    - single pages, spreads and ignored pages;
-   - odd labels (spaces, quotes, `,`, `-`, `+`, `..`).
+   - odd labels (spaces, quotes, `,`, `-`, `+`, `..`, `/`, `\`).
 
-   Each model is written as a plain list, partly folded, and with extra spaces.
+   Each model is written as a plain list, partly folded, and with extra spaces. Each input is run
+   twice: with no plugin systems, and with all of them.
 2. Each implementation reads the file and writes its results (pages, normal form, error kind) as
    JSON. CI compares the two result files.
 3. On the same inputs, each test suite also checks:
@@ -262,7 +310,7 @@ library:
    - **idempotent:** `normalize(normalize(x))` equals `normalize(x)`;
    - **unique:** different spellings of the same model give the same normal form;
    - **not longer:** the normal form is never longer than the plain list, apart from the quotes
-     added to labels with spaces;
+     added to labels with spaces and the flags written where systems collide;
    - **`clean` agrees:** for valid input whose only whitespace is U+0020, `clean(x).normalized`
      equals `normalize(x)`.
 
@@ -318,6 +366,8 @@ A failing input is cut down by hand to a small case and added to `cases.json`.
     normal forms written by different versions, are never reported as changes.
   - To show where two sequences differ, it compares their `pages()`.
   - Validate passes the PDF's page count when the PDF is available.
+  - Its config lists the plugin systems a project uses, and its tools pass that list to every
+    call, so validate and `toc-sync` read the same.
   - `formatAt` replaces publication-md's own label joining (`joinLabels`).
 - **Python skills** (`roots.py` and friends) can then use the Python package instead of copying
   the logic.
@@ -327,10 +377,9 @@ A failing input is cut down by hand to a small case and added to `cases.json`.
 Each of these only makes valid some strings that are invalid in 2.0, so each can come in a minor
 version:
 
-- **Range flags:** naming the numbering system after a range, as in `V-X\latin` or `A-Ö\latin_sv`.
-  They would come with loadable systems: Swedish letters, Greek, Hebrew, or lists such as software
-  releases. `\` is reserved for this now. Item 20 of `pagesequence-v2-review.md` has the design.
+- **More plugin systems,** and a helper for systems of whole tokens, such as software releases
+  (item 20.6b of the review).
 - **Fixed-width integers** (`08-12`).
-- **Aliases,** such as the Greek final sigma.
+- **Aliases,** such as the Greek final sigma and the Hebrew final forms.
 - **A run stepping by something other than its width,** e.g. every second page.
 - **A higher label limit,** if a publication needs more than 1000 labels.
