@@ -34,15 +34,15 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 
 ## Phase 1: README and repository structure
 
-- [ ] **P1.1** Move v1 out of the root. It lives on in the tag `v1.3.3`, on the branch `v1` and on
+- **P1.1** Move v1 out of the root. It lives on in the tag `v1.3.3`, on the branch `v1` and on
   JSR (`@tvartom/pagesequence`).
   - Move `Roman.ts` to `ts/src/roman.ts` with `git mv`, so its history follows.
   - Remove `PageSequence.ts`, `index.ts` and `mod.ts`, the two v1 test files, and `deno.json` and
     `deno.lock`.
-- [ ] **P1.2** Create the layout from `pagesequence-v2.md`: `testdata/`, `ts/` and `py/`, next to
+- **P1.2** Create the layout from `pagesequence-v2.md`: `testdata/`, `ts/` and `py/`, next to
   `spec/` and `v2/`, which already exist.
-- [ ] **P1.3** Add `LICENSE` (MIT), `LICENSE-SPEC` (CC0) and `AUTHORS`.
-- [ ] **P1.4** Write the root `README.md`:
+- **P1.3** Add `LICENSE` (MIT), `LICENSE-SPEC` (CC0) and `AUTHORS`.
+- **P1.4** Write the root `README.md`:
   - what PageSequence is for: a table of contents written in the labels printed in the
     publication, turned into PDF pages;
   - a short guide to the notation, with three or four examples;
@@ -51,13 +51,13 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   - the logo from `logo/`.
 
   The package READMEs come in phase 6.
-- [ ] **P1.5** Extend `.gitignore` with `dist/`, `*.tgz`, `.venv/`, `__pycache__/`, `*.egg-info/`
+- **P1.5** Extend `.gitignore` with `dist/`, `*.tgz`, `.venv/`, `__pycache__/`, `*.egg-info/`
   and `build/`.
-- [ ] **P1.6** Update the dev container with the devcontainer-kit skill.
+- **P1.6** Update the dev container with the devcontainer-kit skill.
   - Add `uv`, below the Dockerfile's sentinel. Node 26, Deno 2.9.7 and Python 3.13 are already
     there.
   - Limit VS Code's Deno extension to `ts/` (`deno.enablePaths`).
-- [ ] **P1.7** Create the config files in `ts/` that the layout in `pagesequence-v2.md` lists.
+- **P1.7** Create the config files in `ts/` that the layout in `pagesequence-v2.md` lists.
 
 **Exit:**
 - the new layout is in place, and the README explains the project;

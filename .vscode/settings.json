@@ -1,5 +1,7 @@
 {
   "deno.enable": true,
+  // Only the TypeScript package is Deno code; py/ and the rest are not.
+  "deno.enablePaths": ["ts"],
 
   // Logo orange: the arrow in logo/pagesequence.svg (#D9480F), darkened a little so
   // white icons stay legible. Applies on Reload Window; no rebuild.

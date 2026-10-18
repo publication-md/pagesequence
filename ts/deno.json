@@ -1,0 +1,6 @@
+{
+  "name": "@publication-md/pagesequence",
+  "exports": {
+    ".": "./src/mod.ts"
+  }
+}

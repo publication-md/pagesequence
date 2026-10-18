@@ -17,3 +17,13 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Build output
+dist/
+*.tgz
+build/
+
+# Python
+.venv/
+__pycache__/
+*.egg-info/

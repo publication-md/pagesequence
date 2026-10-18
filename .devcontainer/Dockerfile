@@ -145,7 +145,7 @@ RUN curl -fsSL https://claude.ai/install.sh | bash -s -- "${CLAUDE_CODE_VERSION}
 #       && apt-get clean && rm -rf /var/lib/apt/lists/*
 #   USER node
 
-# Deno — this repo is a Deno/JSR package (deno.json, deno.lock), so the toolchain
+# Deno — the TypeScript package in ts/ is a Deno/JSR package (ts/deno.json), so the toolchain
 # is a system tool here, not an npm one. Official release zip at a pinned version,
 # like git-delta above; bump DENO_VERSION and rebuild to upgrade (`deno upgrade`
 # cannot write to /usr/local/bin). uname -m gives x86_64/aarch64, matching the
@@ -163,3 +163,15 @@ USER node
 # cannot be eval'd like pnpm's; dropped on oh-my-zsh's fpath, compinit finds it.
 RUN mkdir -p /home/node/.oh-my-zsh/cache/completions \
   && deno completions zsh > /home/node/.oh-my-zsh/cache/completions/_deno
+
+# uv — builds the Python package in py/ (`uv build`). Python 3.13 comes with the
+# base image. Official release tarball at a pinned version, like Deno above; bump
+# UV_VERSION and rebuild to upgrade.
+USER root
+ARG UV_VERSION=0.13.1
+RUN wget -qO /tmp/uv.tar.gz \
+      "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-$(uname -m)-unknown-linux-gnu.tar.gz" \
+  && tar -xzf /tmp/uv.tar.gz -C /usr/local/bin --strip-components=1 \
+  && rm /tmp/uv.tar.gz \
+  && uv --version
+USER node
