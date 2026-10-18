@@ -3,6 +3,20 @@
 This note explains PageSequence v2 and how to get there from v1. The format itself is in
 [`spec/pagesequence.md`](spec/pagesequence.md); where the two differ, the spec wins.
 
+## What it is for
+
+A table of contents is written with the page numbers printed in the publication. A part block in
+publication-md says `pages: "20-21"` in labels. That works even where the numbering isn't 1 to n:
+
+- an unnumbered cover;
+- roman front matter;
+- an insert with its own numbering;
+- a missing page;
+- a spread scanned as one PDF page.
+
+The page sequence turns those labels into PDF pages. References are always made of labels, never
+of PDF page numbers.
+
 ## Why
 
 A PageSequence maps PDF pages to the labels printed on them. Version 1 has three problems.
@@ -309,6 +323,4 @@ version:
 - **Fixed-width integers** (`08-12`).
 - **Aliases,** such as the Greek final sigma.
 - **A run stepping by something other than its width,** e.g. every second page.
-- **A span lookup,** if a part block needs the physical span between two labels rather than the
-  labels themselves.
 - **A higher label limit,** if a publication needs more than 1000 labels.

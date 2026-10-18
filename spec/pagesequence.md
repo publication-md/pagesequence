@@ -3,8 +3,10 @@
 Status: draft. Licence: CC0. The reasons behind the design, the move from v1 and the plans for
 the implementations are in [`pagesequence-v2.md`](../pagesequence-v2.md).
 
-A page sequence maps the pages of a PDF to the labels printed on them. MUST, MUST NOT, SHOULD and
-MAY are used as in RFC 2119.
+A page sequence maps the pages of a PDF to the labels printed on them. That is its purpose:
+references to pages, such as the entries of a table of contents, are written with the labels
+printed in the publication. This holds even where the numbering isn't 1 to n. The sequence turns
+those labels into PDF pages. MUST, MUST NOT, SHOULD and MAY are used as in RFC 2119.
 
 ## Terms
 
@@ -16,6 +18,8 @@ MAY are used as in RFC 2119.
 - An **ignored** PDF page is a duplicate scan. It keeps its labels, but they take no part in
   lookups or in the each-label-once rule.
 - The **page model** is the meaning of a sequence: a list of PDF pages, each `{ignored, labels}`.
+- A **reference** names pages by their labels, written as a sequence, such as a part block's
+  `pages: "20-21"`. A reference is always made of labels, never of PDF page numbers.
 
 ## Syntax
 
@@ -322,8 +326,11 @@ The class keeps the v1 API and meaning, except for the changes listed in
 - The reference is parsed as a sequence, with two repairs: dashes (`–`, `—` and `−` → `-`) and
   equal ends (`5-5` → `5`). No other `clean` repair applies, so a change to `clean` never changes
   what a stored reference points to.
-- Only the reference's labels are used. A reference means labels, not the physical span between
-  them.
+- The lookup gives the PDF pages that carry the reference's labels.
+  - A PDF page with other labels, such as an insert between them, is included only if the
+    reference lists its labels: in `1-9, 10+11, 10a-10d, 12-20`, `10-12` gives the pages of 10, 11
+    and 12, and `10-11, 10a-10d, 12` also gives the insert.
+  - PDF page numbers are never used in a reference.
 - The lookup ignores case.
 - An invalid reference, or one with a label that isn't in the sequence, gives `undefined`. The
   each-label-once rule applies to references too, so `3, 3` gives `undefined`.

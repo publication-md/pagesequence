@@ -24,7 +24,7 @@ the entries of a sub-list add a letter (1.4a, 1.4b). Each has its own checkbox.
 **Ticks.** A ticked box means *act on this*. It is either the author's decision (1.2, 1.4a, 20.4b)
 or the review's recommendation, chosen by the author's principles: keep it simple, keep the library
 small, and add no dependencies. In a list of options, the ticked one is the recommended choice. An
-unticked point is not recommended or not needed now, and the reason follows in italics. 90 of the 137 boxes are ticked.
+unticked point is not recommended or not needed now, and the reason follows in italics. 99 of the 137 boxes are ticked.
 
 **Applied (2026-10-18).** Every ticked point that changes the documents is applied:
 
@@ -33,6 +33,8 @@ unticked point is not recommended or not needed now, and the reason follows in i
 - Line numbers in this review refer to the version that was reviewed, before that change.
 - This includes the author's later ticks 18.1, 18.3 and 18.5 (npm with a build, re-runnable publish
   steps, and a first npm publish by hand).
+- 12.3 and 22.5 are settled by the author: a reference is made of labels, never of PDF pages. Both
+  documents now say so up front, and the span lookup is gone from "Later".
 - The author's later ticks in item 20 (20.2, 20.3a, 20.5, 20.6a, 20.6c) wait for one question:
   should range flags be part of 2.0?
 
@@ -429,7 +431,7 @@ Several open ends have more than one reading:
   first-seen order and list that under breaking changes (item 13). *Recommended: unique indexes in first-seen order. It is one rule that is easy to state; add it to item 13.*
 - [x] **12.2** Say whether references are exempt from `duplicate-label`. *Recommended: not exempt, since references use the same parser.*
 - [x] **12.3** Document that a reference means labels, not a span. If part blocks need physical spans, add
-  `getIndexSpan(pages)`: from the page of the first label to the page of the last label (see 22.5). *Recommended: document it only. Add no span API until a part block needs one (22.5).*
+  `getIndexSpan(pages)`: from the page of the first label to the page of the last label (see 22.5). *Settled by the author: a reference is made of labels, never of PDF pages, which is the whole idea of the library. No span API.*
 
 ### 13. Add an explicit "Breaking changes from v1" list
 `:411`
@@ -730,5 +732,6 @@ flag only makes strings valid that were invalid before, and none of the 235 know
 - [ ] **22.4 The 1000-label limit.** It is plenty for Grottan, but low for a general npm/PyPI library
   (books, bound annual volumes). Raising it later is a minor version, but it depends on item 8.
   The longest known v1 string has 60 labels. *Skip: keep 1000. The known data has at most 60 labels.*
-- [ ] **22.5 Span lookup.** Should a part block's `pages` mean the labels listed (as in v1) or the
-  physical span between them (item 12)? *Skip: keep labels, as in v1 (12.3).*
+- [x] **22.5 Span lookup.** Should a part block's `pages` mean the labels listed (as in v1) or the
+  physical span between them (item 12)? *Settled by the author: labels. References are written with
+  the labels printed in the publication, never with PDF pages.*
