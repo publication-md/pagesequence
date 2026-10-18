@@ -202,7 +202,7 @@ written exactly as in the input" (`:285`).
   - **5.2a** `qchar` = any character except `"` and `\`;
   - **5.2b** `escape` = `\` followed by `"` or `\`;
   - **5.2c** say whether a `\` before any other character is literal or an error. *Recommended: an error, so `\"` and `\\` are the only escapes.*
-- **5.3** Decide on `""`: an error (`empty-item`), or the way to write an unlabelled page (22.1). *Recommended: an error (`empty-item`); unlabelled pages keep invented names (22.1).*
+- **5.3** Decide on `""`: an error (`empty-item`), or the way to write an unlabelled page (22.1). *Decided by the author: the way to write an unlabelled page (22.1).*
 - **5.4** Forbid control characters (category Cc), even inside quotes.
 - **5.5** State that a quoted label can't touch other label text (`"a"b` → `syntax`). This also
   settles open question 3 for now.
@@ -738,7 +738,9 @@ prototype below wrote them with `\`.
 
 - **22.1 Unlabelled pages.** Blank pages, plates and inserts without a printed number currently
   need invented unique names. Is `""` allowed? Should there be a placeholder that is exempt from
-  `duplicate-label`? *Answered by 5.3: `""` is an error, and unlabelled pages keep invented names.*
+  `duplicate-label`? *Decided by the author: `""` is the empty label for an unlabelled page. It is
+  exempt from `duplicate-label`, so it may repeat, and a reference can't contain it, so a lookup
+  never finds it.*
 - **22.2 Swedish letters.** `X-Ö` and `"Bilaga Å"`-style ranges are `no-system`. Should Å, Ä, Ö
   follow Z in the Latin table? Danish and Norwegian use the order Æ, Ø, Å, so one table can't serve
   all three. *Answered by 20.19: the Latin table stays A–Z, and the plugin `latin_sv` reads

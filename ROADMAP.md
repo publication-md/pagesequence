@@ -76,6 +76,7 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   - `toRoman` and `fromRoman`: both cases, the values 1 and 3999, and what they reject (`IIII`,
     `IC`, `Iv`, `MMMM` and `""`; 0, 4000 and 2.5);
   - open ends that can't be closed: `i-`, `A-`, `08-` and `inflikat.1-`;
+  - unlabelled pages: `""` more than once, `""+2`, and a lookup that contains `""`;
   - the limits: 10 000 labels and 100 code points, one more of each, and a lower and a higher
     `maxLabels`;
   - flags and plugins, as listed in `pagesequence-v2.md` ("Shared test data"), plus the run

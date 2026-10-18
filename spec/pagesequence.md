@@ -19,7 +19,8 @@ those labels into PDF pages. MUST, MUST NOT, SHOULD and MAY are used as in RFC 2
   ignored pages: in `1, !1, 2` the page labelled 2 has index 2. Messages to people show 1-based PDF
   page numbers, so "PDF page 22" is index 21.
 - A **label** is what is printed on a page: `12`, `iv`, `Omslag`. A PDF page has one or more
-  labels, in reading order. A spread scanned as one PDF page has two.
+  labels, in reading order. A spread scanned as one PDF page has two. A page with nothing printed
+  on it can have the **empty label**, which is always written quoted: `""`.
 - An **ignored** PDF page is a duplicate scan. It keeps its labels, but they take no part in
   lookups or in the each-label-once rule.
 - The **page model** is the meaning of a sequence: a list of PDF pages, each `{ignored, labels}`.
@@ -38,7 +39,7 @@ flag     = "/" name                         the numbering system that reads the 
 name     = namechar { namechar }            namechar: "a"–"z", "0"–"9" and "_"
 label    = bare | quoted
 bare     = barechar { barechar }            trimmed of spaces; see "Bare labels"
-quoted   = '"' qpart { qpart } '"'
+quoted   = '"' { qpart } '"'                '""' is the empty label
 qpart    = qchar | "\" '"' | "\" "\"        "\" '"' is a quote, "\" "\" a backslash
 qchar    = any character except '"', "\" and control characters
 ```
@@ -69,7 +70,7 @@ qchar    = any character except '"', "\" and control characters
     is text, except that `\"` is a quote and `\\` a backslash.
   - A `\` before any other character is an error (`syntax`).
   - Control characters are not allowed, even inside quotes (`reserved-char`).
-  - `""` is an error (`empty-item`).
+  - `""` is the empty label, for a page with nothing printed on it (see "Unlabelled pages").
   - A quoted label can't touch other label text: `"a"b` and `"Bilaga A-"1-12` are errors
     (`syntax`).
   - Examples: the label `My "label" - 1` is written `"My \"label\" - 1"`, and
@@ -105,11 +106,14 @@ qchar    = any character except '"', "\" and control characters
   - an empty item, such as `1,,2`, a trailing `,` or a lone `!`, is an error (`empty-item`);
   - an open end such as `1-` is an error (`open-end`).
 
-  `clean` turns `""` and `1-` into plain numbering when it is given the page count.
+  `clean` turns an empty text and `1-` into plain numbering when it is given the page count.
 - **Each label once.** A label appears at most once on the pages that are not ignored, compared
   without case (see "Case"). So a lookup always finds one page. `1-5, 3`, `2+2` and
   `Omslag, 2-31, omslag` are errors (`duplicate-label`). A duplicate scan is marked with `!`:
   `1-5, !3`.
+- **Unlabelled pages.** The empty label `""` is exempt from the each-label-once rule, so it can
+  appear any number of times: `"", 2-15, "", ""` and `""+2`. A reference can't contain it, so a
+  lookup never finds an unlabelled page; it is reached only by its index.
 - **Case.** A label keeps its case as written. Lookup and the each-label-once rule compare labels
   after lowercasing them with the language's own function (`toLowerCase()` in JS, `str.lower()` in
   Python). That is not case folding, so `ß` and `ss` stay different labels. Implementations on
@@ -308,7 +312,7 @@ of the message is also up to the implementation.
 | `unclosed-quote` | A quoted label has no closing `"` | `"Omslag, 2-31` |
 | `dot-at-edge` | A bare label starts or ends with `.` | `1...3`, `s.` |
 | `empty` | The sequence is empty | the empty string |
-| `empty-item` | An item or a quoted label is empty | `1,,2`, `1-52,`, `!`, `""` |
+| `empty-item` | An item is empty | `1,,2`, `1-52,`, `!` |
 | `open-end` | A range has no last label | `1-` |
 | `single-label-run` | `..` is used between pages with one label each | `1..16` |
 | `equal-ends` | A range or run has the same first and last end | `3-3`, `2+3..2+3` |
@@ -394,7 +398,8 @@ The class keeps the v1 API and meaning, except for the changes listed in
   - PDF page numbers are never used in a reference.
 - The lookup ignores case.
 - An invalid reference, or one with a label that isn't in the sequence, gives `undefined`. The
-  each-label-once rule applies to references too, so `3, 3` gives `undefined`.
+  each-label-once rule applies to references too, so `3, 3` gives `undefined`. A reference that
+  contains the empty label `""` also gives `undefined`.
 - `getIndexList(pages)` gives each index once, in first-seen order.
 
 **Other methods:**

@@ -163,7 +163,8 @@ v1 is used in one project, so it is converted once rather than supported.
   which `clean("", { length: 52 })` gives. Code that relied on the empty default needs
   ``create(text || `1-${n}`, n)``.
 - **A label may appear only once** on the pages that are not ignored. v1 accepted duplicates, and
-  its lookups returned the last one.
+  its lookups returned the last one. The exception is the empty label `""`, for a page with nothing
+  printed on it: it may repeat, and a lookup never finds it.
 - **Single-letter ranges** such as `C-D`, `L-M` and `I-L` read as letters. v1 read them as roman.
 - **A number with a leading zero can't be a range end.** `08-12` is an error; v1 read it as 8, 9,
   …, dropping the zero.
@@ -280,6 +281,8 @@ normalisation, cleaning, lookups, limits and conversion. The groups include:
   - roman numerals that are not canonical: `IIII-V` is `no-system`.
 - **flags:** `V-X/latin`, `V-X/roman` → `V-X`, the letters I…X → `I-X/latin`, and the errors
   `1-5/klingon`, `V/latin`, `1-5/` and `IV-X/roman_additive`.
+- **unlabelled pages:** `""` more than once, `""+2`, and a lookup that contains `""`, which gives
+  `undefined`.
 - **plugins:** each plugin system, with its normal forms with and without the plugin:
   A…Ö is `A-Ö/latin_sv` or `A-Z, Å, Ä, Ö`.
 - **cleaning:** open ends that can't be closed: `i-`, `A-`, `08-`, `inflikat.1-`.
