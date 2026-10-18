@@ -38,7 +38,9 @@ apply to it.
 | `v1` | `conversion` only: the v1 string, from `../v2/list_of_grottan_in_v1.txt`. `input` is its v2 form, from `../v2/list_of_grottan_in_v2.txt`, and `pages` is the page model v1 gives it. |
 | `note` | A comment for people. |
 
-When `pages` is given, a test also checks `getIndexList()` and `getLabelList()` without an argument
+A case without any of `errors`, `pages`, `normalized`, `format`, `labelsAt`, `lengths`, `lookups`
+and `equals` (a case with only `cleaned`) says nothing about strict parsing, so the constructor is
+not called. When `pages` is given, a test also checks `getIndexList()` and `getLabelList()` without an argument
 against it: the indexes of the pages that are not ignored, and their labels in order.
 
 ## Roman cases

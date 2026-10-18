@@ -2,5 +2,14 @@
   "name": "@publication-md/pagesequence",
   "exports": {
     ".": "./src/mod.ts"
+  },
+  "nodeModulesDir": "none",
+  "tasks": {
+    "test": "deno test --allow-read test/",
+    "lint": "deno lint",
+    "fmt": "deno fmt --check"
+  },
+  "fmt": {
+    "lineWidth": 120
   }
 }

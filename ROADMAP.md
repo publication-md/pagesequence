@@ -93,7 +93,7 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 
 ## Phase 3: TypeScript implementation
 
-- [ ] **P3.1** Write the parser module in `ts/src/`, and `mod.ts`, which exports it and `roman.ts`.
+- **P3.1** Write the parser module in `ts/src/`, and `mod.ts`, which exports it and `roman.ts`.
   The parser module covers:
   - the lexer and parser, flags included;
   - the three numbering systems and the reading rule;
@@ -101,15 +101,15 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   - expansion and the fold;
   - `clean`;
   - the `PageSequence` class, `normalize`, `equals` and `PageSequenceError`.
-- [ ] **P3.2** Bring `roman.ts` to the spec ("API"), remove `romanPattern`, and fix the doc comments
+- **P3.2** Bring `roman.ts` to the spec ("API"), remove `romanPattern`, and fix the doc comments
   (6 is `VI`, and `IV` is 4).
-- [ ] **P3.3** Write the plugins in `ts/src/plugins/`, one module each, as "Plugins" in
+- **P3.3** Write the plugins in `ts/src/plugins/`, one module each, as "Plugins" in
   `pagesequence-v2.md` describes: `roman_additive.ts`, `latin_sv.ts`, `greek.ts` and `hebrew.ts`.
-- [ ] **P3.4** Write `ts/test/`. It reads `../testdata/cases.json` and runs every case with
+- **P3.4** Write `ts/test/`. It reads `../testdata/cases.json` and runs every case with
   `node:test`. It also checks the roman round trip for 1–3999 in both cases, as v1's
   `Roman.test.ts` did.
-- [ ] **P3.5** Add the local tasks in `ts/deno.json`: `test`, `lint` and `fmt --check`.
-- [ ] **P3.6** Record the size of the core (the parser and `roman.ts`) and of each plugin, so later
+- **P3.5** Add the local tasks in `ts/deno.json`: `test`, `lint` and `fmt --check`.
+- **P3.6** Record the size of the core (the parser and `roman.ts`) and of each plugin, so later
   growth is visible.
 
 **Exit:** all shared cases pass with `deno task test`.
