@@ -26,6 +26,25 @@ or the review's recommendation, chosen by the author's principles: keep it simpl
 small, and add no dependencies. In a list of options, the ticked one is the recommended choice. An
 unticked point is not recommended or not needed now, and the reason follows in italics. 90 of the 137 boxes are ticked.
 
+**Applied (2026-10-18).** Every ticked point that changes the documents is applied:
+
+- The format is now `spec/pagesequence.md`, and `pagesequence-v2.md` is the design and migration
+  note.
+- Line numbers in this review refer to the version that was reviewed, before that change.
+- This includes the author's later ticks 18.1, 18.3 and 18.5 (npm with a build, re-runnable publish
+  steps, and a first npm publish by hand).
+- The author's later ticks in item 20 (20.2, 20.3a, 20.5, 20.6a, 20.6c) wait for one question:
+  should range flags be part of 2.0?
+
+Still to do outside the documents:
+
+- 6.3: the reference check in publication-md.
+- 16.1–16.4: writing `testdata/cases.json` and the cross-language test.
+- 18.2, 18.4 and 18.8: CI and the manifests, once they exist.
+- 18.5: the first npm publish, by hand.
+- 18.6: registering the PyPI name.
+- 18.7: tagging v1 1.3.3.
+
 ## Verdict
 
 The design holds together. Every worked example in the document comes out as stated when the
@@ -533,13 +552,13 @@ to `I-III`, so the property fails on valid generated input.
   layout in place.
 
 **Action.**
-- [ ] **18.1** Add the npm build: `tsc` → `dist/`, ESM, with `exports` and `types`. *Skip: simpler to publish the JS package to JSR only. JSR also serves npm clients (`npx jsr add @publication-md/pagesequence`), so there is no build step and no npm setup. Tick this if npmjs.com is a must.*
+- [x] **18.1** Add the npm build: `tsc` → `dist/`, ESM, with `exports` and `types`. *Skip: simpler to publish the JS package to JSR only. JSR also serves npm clients (`npx jsr add @publication-md/pagesequence`), so there is no build step and no npm setup. Tick this if npmjs.com is a must.*
 - [x] **18.2** Add a CI step that fails if any manifest's version differs from the tag.
-- [ ] **18.3** Make each publish step re-runnable on its own, skipping a registry that already has the
+- [x] **18.3** Make each publish step re-runnable on its own, skipping a registry that already has the
   version. *Skip: simpler to release a new patch version after a partial failure.*
 - [x] **18.4** Name the test runner (`deno test`, `node --test` or vitest) and the minimum Node and Python
   versions. *Recommended: test runners without dependencies: `deno test` or `node --test` for JS, and `unittest` for Python.*
-- [ ] **18.5** Plan the first npm publish as a manual publish with 2FA, then configure trusted publishing. *Skip: only needed for npmjs.com (see 18.1).*
+- [x] **18.5** Plan the first npm publish as a manual publish with 2FA, then configure trusted publishing. *Skip: only needed for npmjs.com (see 18.1).*
 - [x] **18.6** Register the PyPI name early.
 - [x] **18.7** Tag or branch v1 1.3.3 before restructuring, so a v1 fix is still possible.
 - [x] **18.8** Add SPDX `license` fields to all three manifests. *Recommended: `jsr.json` and `pyproject.toml`; `package.json` only if npm stays.*
@@ -605,10 +624,10 @@ flag only makes strings valid that were invalid before, and none of the 235 know
   - [ ] **20.1b** There is one flag per item, and it applies to every column.
   - [ ] **20.1c** A flag anywhere else is `syntax`.
   - [x] **20.1d** `\` becomes a reserved character in bare labels, so `a\b` must be quoted. *Do this in 2.0 even with flags deferred: reserving a character later is a breaking change.*
-- [ ] **20.2** Names are `[a-z0-9_]+`. An unknown name is a new error kind, `unknown-system`; add it
+- [x] **20.2** Names are `[a-z0-9_]+`. An unknown name is a new error kind, `unknown-system`; add it
   to the error table. *Defer.*
 - [ ] **20.3** Choose the naming standard: *Defer.*
-  - [ ] **20.3a** A system name, optionally followed by a BCP 47 language subtag: `roman`, `int`,
+  - [x] **20.3a** A system name, optionally followed by a BCP 47 language subtag: `roman`, `int`,
     `latin`, `latin_sv`, `latin_da`, `greek`, `hebrew`, `cyrillic_ru`. This is readable, and it
     matches `latin_sv`.
   - [ ] **20.3b** Short names such as `az`. They are shorter, but `az` is also the BCP 47 code for
@@ -618,14 +637,14 @@ flag only makes strings valid that were invalid before, and none of the 235 know
     name can then never change what a stored string means.
   - [x] **20.4b** Any name is allowed, but loading a definition whose name is built in throws, so a
     clash fails loudly. *The author's rule ("custom can use any name"), plus that safeguard.*
-- [ ] **20.5** Give each system exactly one name. Alternative names for the same system (`az` and
+- [x] **20.5** Give each system exactly one name. Alternative names for the same system (`az` and
   `latin`) would give the normal form two spellings. *Defer.*
 - [ ] **20.6** Make definitions data that both JS and Python load (e.g. `systems/latin_sv.json`).
   A definition holds: *Defer.*
-  - [ ] **20.6a** the name;
+  - [x] **20.6a** the name;
   - [ ] **20.6b** the kind: `alphabet` (single letters, with upper and lower lists when the script has case) or
     `list` (whole tokens such as release numbers, without case);
-  - [ ] **20.6c** the ordered letters or tokens;
+  - [x] **20.6c** the ordered letters or tokens;
   - [ ] **20.6d** the aliases.
 
   A `list` system uses its tokens' characters for widening. Roman and integer stay as code.

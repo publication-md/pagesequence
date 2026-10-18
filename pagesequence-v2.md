@@ -1,17 +1,20 @@
-# PageSequence v2 — proposal
+# PageSequence v2: design and migration
+
+This note explains PageSequence v2 and how to get there from v1. The format itself is in
+[`spec/pagesequence.md`](spec/pagesequence.md); where the two differ, the spec wins.
 
 ## Why
 
 A PageSequence maps PDF pages to the labels printed on them. Version 1 has three problems.
 
-1. **`|` is read the wrong way round.** In v1 `,` separates PDF pages and `|` joins the labels on
-   one PDF page: `1,2|3,4|5`. `|` looks like a stronger break than `,`, so people and LLMs read
+1. **`|` is read the wrong way round.** In v1, `,` separates PDF pages and `|` joins the labels on
+   one PDF page: `1,2|3,4|5`. But `|` looks like a stronger break than `,`, so people and LLMs read
    `2|3,4|5` as the groups "2", "3,4" and "5". In the Grottan corpus, markup agents counted the
-   born-digital sequences wrongly in 40 issues and left out a correct `pageSequence`.
+   born-digital sequences wrongly in 40 issues.
 2. **Long patterns can't be written short.** A born-digital issue (cover, spreads, back cover) is
-   `1,2|3,4|5,6|…|47,48`, 25 PDF pages written out one by one.
+   `1,2|3,4|5,6|…|47,48`: 25 PDF pages written out one by one.
 3. **The notation for one PDF page differs from how its labels are shown.** v1 writes `2|3` and
-   shows it as "2–3", writes `20|29` and shows it as "20,29".
+   shows it as "2–3", and writes `20|29` and shows it as "20,29".
 
 ## Goals
 
@@ -22,443 +25,159 @@ A PageSequence maps PDF pages to the labels printed on them. Version 1 has three
 - **The same notation for one PDF page as its display:** a page is shown as it is written, `2+3`
   or `20+29`.
 - **Runs of PDF pages written once,** whether single pages (`1-52`) or spreads (`2+3..46+47`).
-- **Readable without instructions:** spaces allowed, and every part looks like what it means.
+- **Readable without instructions:** spaces are allowed, and every part looks like what it means.
 - **The same capabilities as v1:** ranges of numbers, roman numerals and letters, prefixed labels,
   and ignored duplicate pages.
-
-## Syntax
-
-```
-sequence  = item { "," item }
-item      = [ "!" ] ( range | run | page )   "!" = ignore (a duplicate scan), for every PDF page of the item
-range     = label "-" label            PDF pages with one label each: first … last (as in v1)
-run       = page ".." page             PDF pages with the same number (2 or more) of labels each: first … last
-page      = label { "+" label }        one PDF page; the labels printed on it, in reading order
-label     = bare | quoted
-bare      = { char }                   see "Unquoted labels" below
-quoted    = '"' { char | '\\"' | '\\\\' } '"'   any text; \" is a quote, \\ a backslash
-```
-
-- Whitespace around `,`, `-`, `+`, `..` and `!` is allowed and ignored.
-- **Unquoted labels.** A bare label is any text without the reserved characters and without
-  `..`. The reserved characters are `,` `-` `+` `!` `"` and the characters that `clean` repairs
-  (`;` `|` `…` `–` `—` `−` `“` `”` `„`, and every whitespace character other than the plain space
-  U+0020); reserving those keeps strict mode from reading `1–52` or `1; 2` as a single label. A
-  bare label can't start or end with `.`, so `1...3` is an error rather than `1.` to `3` or `1` to
-  `.3`. The spaces around it are trimmed; spaces inside are part of the label. Whether a label is
-  a number, a roman numeral, a letter or a word is decided by the numbering systems, not by the
-  grammar.
-- **Unicode.** Every function first converts its input to NFC, so a precomposed `å` and `a` plus
-  a combining ring are the same label; the normal form is NFC. Lengths, positions (in errors and
-  repairs) and the common prefix and suffix in "Finding what steps" count code points, not UTF-16
-  units, and a prefix or suffix boundary is never placed just before a combining mark (Unicode
-  category M). Case-insensitive lookup compares labels after Unicode's full lowercase mapping
-  (JS `toLowerCase()`, Python `str.lower()`, which give the same result), not after case
-  folding, so `ß` and `ss` stay different labels.
-- **Quoted labels.** A label that can't be written bare (it contains a reserved character or
-  `..`, starts or ends with `.`, or has leading/trailing spaces) is written in double quotes.
-  Inside the quotes, `\"` is a quote and
-  `\\` a backslash; everything else is literal, spaces included. Example: the label
-  `My "label" - 1` is written `"My \"label\" - 1"`, and `"Omslag, insida", 2-31` is a cover page
-  followed by pages 2 to 31. Inside quotes a `-` or `+` is text. A quoted label takes part in
-  ranges and runs like any other label (see "Numbering").
-- Spaces inside a label are allowed without quotes (`Appendix A - Appendix C`); the normal form
-  quotes such labels (`"Appendix A"-"Appendix C"`), so the label boundaries are explicit.
-- A label keeps its case as written (`iv`, `Omslag`, `inflikat.8`). Looking up a label
-  (`getIndexList(pages)`, `getLabelList(pages)`) is case-insensitive, as in v1; comparing two
-  sequences is not (see `equals`).
-- **Ranges (`-`)** expand from the first label to the last, one PDF page per label, as in v1:
-  - `1-16` is 16 PDF pages: 1, 2, …, 16.
-  - `i-iv` and `A-D` work as roman numeral and letter ranges.
-  - `inflikat.1-inflikat.12` is a range with a prefix: the prefix is kept, the number steps.
-  - The two ends must differ: `3-3` is an error (`equal-ends`); write `3`.
-- **Runs (`..`)** expand from the first page to the last; each label steps by the number of labels
-  on the page:
-  - `2+3..46+47` is spreads 2+3, 4+5, …, 46+47 (2 labels per page, so 23 PDF pages).
-  - `..` is only used between pages with 2 or more labels: `1..16` is an error, write `1-16`.
-    So each sequence has one way to be written.
-  - The first and last page must have the same shape: the same number of labels, and the same
-    prefix if there is one. The distance between them must be a whole number of steps. Otherwise
-    the sequence is invalid.
-  - The two ends must differ: `2+3..2+3` is an error (`equal-ends`); write `2+3`.
-- **`+` joins labels, not ranges.** `1-3+4-6` (v1 `1-3|4-6`) is invalid; write `1-2, 3+4, 5-6`.
-  A fold-out is one page with more labels: `12+13+14`.
-- **Limit.** A sequence expands to at most 1000 labels; a longer one is an error (`too-long`).
-  The size of each range and run is computed from its end values before it is expanded, and so
-  is the comparison with the page count when one is given, so `1-1000000000` fails at once
-  without building a list.
-- **Nothing empty or open.** An empty sequence (`empty`), an empty item such as `1,,2` or a
-  trailing `,` (`empty-item`) and an open end such as `1-` (`open-end`) are errors, with or
-  without a page count. Unlike v1, `create("", 52)` is an error; `clean` turns both `""` and
-  `1-` into plain numbering when it is given the page count.
-- **Each label once.** A label may appear only once on the pages that are not ignored, compared
-  without case as in lookup, so that a lookup always finds one page: `1-5, 3` and
-  `Omslag, 2-31, omslag` are errors (`duplicate-label`). A duplicate scan is marked with `!`:
-  `1-5, !3`.
-- **Display** of a PDF page's labels is the `page` notation itself: `2+3` → "2+3", `20+29` →
-  "20+29". Notation and presentation are the same thing, except that quotes are dropped:
-  `"Omslag, insida"+2` is shown "Omslag, insida+2", and `"Appendix A"` is shown "Appendix A".
-
-## Numbering
-
-Ranges (`a-b`) and runs (`P..Q`, label by label) are both built from their two end labels in the
-same way, whether the labels are quoted or not.
-
-### Finding what steps
-
-Given the first label `a` and the last label `b`:
-
-1. **Remove the common prefix**, the longest start the two share.
-2. **Remove the common suffix**, the longest end they share (not overlapping the prefix).
-3. **Try each numbering system in hierarchy order** (below), each time starting from the middles
-   left by steps 1 and 2:
-   1. **Widen the middle to whole tokens of that system.** Step the prefix boundary back, and the
-      suffix boundary forward, while the character next to the middle is one of the system's
-      `tokenChars`. This keeps a number from being cut: `10`→`19` has the common prefix `1`, but
-      for the integer system the middle is `10`/`19`, not `0`/`9`.
-   2. **Read both middles with that system.** If it reads both, it wins: the step is from the
-      first value to the last, and the prefix and suffix are kept as they are. Otherwise try the
-      next system.
-
-   Because each system widens on its own, `xa-xc` is not cut wrongly: roman widens to `xa`/`xc`
-   and fails, then letter reads `a`/`c` with the prefix `x`.
-
-Examples:
-
-| From | To | Steps | Labels |
-|---|---|---|---|
-| `1` | `52` | integer 1→52 | `1`, `2`, …, `52` |
-| `"Version: 1.0.0"` | `"Version: 1.12.0"` | integer, the minor version, 0→12 | `Version: 1.0.0`, `Version: 1.1.0`, …, `Version: 1.12.0` |
-| `inflikat.1` | `inflikat.12` | integer 1→12 | `inflikat.1` … `inflikat.12` |
-| `i` | `iv` | roman 1→4 | `i`, `ii`, `iii`, `iv` |
-| `"Plansch A"` | `"Plansch D"` | letter A→D | `Plansch A` … `Plansch D` |
-| `"Tavla α"` | `"Tavla δ"` | greek α→δ | `Tavla α`, `Tavla β`, `Tavla γ`, `Tavla δ` |
-| `1a` | `1c` | letter a→c (prefix `1`) | `1a`, `1b`, `1c` |
-| `"לוח א"` | `"לוח ד"` | hebrew א→ד | `לוח א`, `לוח ב`, `לוח ג`, `לוח ד` |
-| `08` | `12` | integer, width 2 | `08`, `09`, `10`, `11`, `12` |
-
-Exactly one part steps; there is no multi-part (product) stepping. It is an error when the
-middles can't be read by one system (e.g. `1a-2c`, where two parts would step; write
-`1a-1c, 2a-2c`), when they are read with different
-case or width, or when the last value is lower than the first.
-
-### Numbering systems: a separate, extensible part
-
-A numbering system is an object with:
-- `name`;
-- `match(token)`, which returns `{value, style}` or nothing (`style` holds case, zero padding and
-  the like);
-- `format(value, style)`;
-- `tokenChars`, the characters that belong to a token, used in step 3.
-
-The systems are kept in an **ordered list**, the hierarchy. Both middles are tried against each
-system in order, and the first system that reads both wins:
-
-1. **roman**: `I, II, …` and `i, ii, …`, case kept. A token in mixed case (`Iv`) is not roman.
-2. **letter** (Latin): `A … Z` / `a … z`, single letters.
-3. **greek**: `Α … Ω` / `α … ω` (24 letters); the final form `ς` is read as `σ`, never generated.
-4. **hebrew**: `א … ת` (22 letters, no case); the final forms `ך ם ן ף ץ` are read as
-   `כ מ נ פ צ`, never generated.
-5. **integer**: `0, 1, …`. A number with a leading zero and two or more digits has a fixed
-   width, kept in every label (`08-12` gives `08`, `09`, `10`, `11`, `12`); the other end must
-   then have the same number of digits (`08-9` and `08-100` are errors). A number without a
-   leading zero has no fixed width (`9-10` is valid).
-
-Systems 2–4 are one implementation, **alphabet**, driven by a table: its letters in order (an
-upper and a lower list when the script has case, one list when it has none) and its aliases
-(final forms). Greek and Hebrew are included partly to keep this implementation generic. Greek
-can't be counted with code-point arithmetic (its capitals have a gap at U+03A2, and the final `ς`
-lies inside `α–ω`), and it has case and an alias; Hebrew has no case and several aliases. A
-token's value is its position in the table, and its case is the list it was found in. Case never
-comes from `toUpperCase()` or `toLowerCase()`, so both languages agree. A letter that is not in
-the table, such as `ά` with an accent, is not read.
-
-A letter token is always a single letter. There is nothing after the last letter (`Z`, `ω`, `ת`),
-so `Y-AB` is an error. The alphabet systems have no `tokenChars` and never widen, so `Ia-Ic` is
-the prefix `I` and the letters a→c. A new script is one line, its letters and aliases, added to
-the spec as a built-in system. Alphabets are not loaded at runtime, so every reader agrees on
-every string. The scripts never share characters, so their order in the list doesn't matter
-between them. Hebrew numerals (gematria, `יא` = 11) are a different counting and would be a
-separate system.
-
-Roman comes before letter, so `I-IV` is roman. One exception keeps common cases right: **when
-both middles are single letters and one of them is not `I`, `V` or `X`, they are read as
-letters**. That makes `C-D`, `L-M` and `C-M` alphabetical, not roman 100–500, 50–1000 and
-100–1000. `V-X` stays roman (both are `I`, `V` or `X`), and so do `I-III` and `L-LX` (one end is
-not a single letter), so `L-LX` is roman 50–60. More systems (Cyrillic, …) can be added by
-putting them into the list at the right place.
-
-### Effect on normalisation
-
-`normalize` must not write a range or run that reads back differently, for example `V, W, X`
-must not be written `V-X`, which reads as roman V–X. So a fold is checked by **round trip**
-(normalisation step 2): a stretch of pages is written as one range or run only if expanding that
-range or run gives exactly the same pages. This keeps the form correct whatever systems are
-registered.
-
-- Quoting follows rule 4. The diff works on the unquoted text, so
-  `"Plansch A"-"Plansch D"` and the quoted list give the same normal form.
-- **Versioning.** The hierarchy is part of the format version. A new system must use characters
-  that no existing system uses and that are not reserved. Then it can only give a meaning to
-  strings that were invalid before; no valid string changes how it reads, so a new system is a
-  minor version. Before the release, a check that all stored sequences still expand the same
-  confirms it. Anything that changes how a valid string reads is a major version. What `clean`
-  repairs, and how, can change in a minor version: it only affects what people type, never how
-  stored data reads.
-- It can also change the normal form of an unchanged model: a new system can fold what an
-  earlier version listed. With a Cyrillic system, `"Табл. А", "Табл. Б", "Табл. В"` would become
-  `"Табл. А"-"Табл. В"`. So a normal form is tied to the version that wrote it, and stored
-  sequences are compared with `equals`, never as strings.
-
-## Grottan examples
-
-Six of the eleven are written the same in v1 and v2.
-
-- **Scanned, one label per PDF page (1987-2)**
-  - v1 and v2: `1-52`
-- **Born-digital: cover, spreads, back (2007-1)**
-  - v1: `1,2|3,4|5,6|…|51,52` (27 groups)
-  - v2: `1, 2+3..50+51, 52`
-- **Born-digital, 48 pages (2016-4)**
-  - v1: `1,2|3,4|…|47,48`
-  - v2: `1, 2+3..46+47, 48`
-- **PDF missing printed page 21 (1984-3)**
-  - v1 and v2: `1-20, 22-52`
-- **Ignored duplicate scan**
-  - v1: `1,2|3,!3,4`
-  - v2: `1, 2+3, !3, 4`
-- **Centrefold with unrelated labels, and its duplicate scan (1986-1)**
-  - v1: `1-20 | 29,21-28, !29,30-48`
-  - v2: `1-19, 20+29, 21-28, !29, 30-48`
-- **Insert with its own numbering (1978-2)**
-  - v1 and v2: `1-11, inflikat.0-inflikat.11, 12-24`
-- **Pages with letter suffixes, joined pages and a duplicate scan (1973-1)**
-  - v1: `1-10|11,10a,10b|10c,10d,!11,12-20`
-  - v2: `1-9, 10+11, 10a, 10b+10c, 10d, !11, 12-20`
-- **Roman front and back matter (1990-1)**
-  - v1 and v2: `I-VIII, 3-22, IX-XVI`
-- **Roman front matter**
-  - v1 and v2: `i-iv, 1-48`
-- **Named cover and back**
-  - v1 and v2: `Omslag, 2-31, Baksida`
-
-The line from the brief, `1,2|3,4|5,6|…|47,48` (25 groups), becomes `1, 2+3..46+47, 48`.
+- **Small and without dependencies:** each implementation is one small module, with no
+  dependencies at run time or in its tests. Only the npm build uses a tool, the TypeScript
+  compiler.
 
 ## Why these characters
 
 - **`,` between PDF pages (as in v1):** it matches lists in running text.
-- **`-` for a range of PDF pages (as in v1):** it matches "s. 1–52", and it is what people and
-  LLMs write without instructions. A `pages` reference in text uses the same two characters the
-  same way.
-- **`+` for the labels on one PDF page:** it reads as "together" and can't be taken for a break
-  stronger or weaker than `,`, which is what went wrong with `|`. It is also how the page is
-  displayed.
-- **`..` for a run of PDF pages:** it is well-known from programming ("from … to"), and it can
-  step pages with several labels. `-` can't do that: `2+3-46+47` reads as arithmetic.
+- **`-` for a range of PDF pages (as in v1):** it matches "s. 1–52", and it is what people and LLMs
+  write without instructions. A `pages` reference in text uses the same two characters the same
+  way.
+- **`+` for the labels on one PDF page:** it reads as "together", and it can't be taken for a break
+  that is stronger or weaker than `,`, which is what went wrong with `|`. It is also how the page
+  is displayed.
+- **`..` for a run of PDF pages:** it is well known from programming ("from … to"), and it can step
+  pages with several labels. `-` can't do that: `2+3-46+47` reads as arithmetic.
 - **`!` unchanged:** it marks an ignored page.
+- **`\` reserved:** it is kept free for naming the numbering system of a range later (`V-X\latin`),
+  so that can come in a minor version (see "Later").
 
-## Normalisation and comparison
+## Choices that keep it small
 
-The same sequence can be written in several ways: `1,2,3` and `1-3`, `1-3, 4-6` and `1-6`,
-`1 , 2+3 .. 4+5` and `1, 2+3..4+5`. `normalize()` always writes the same short string for a
-sequence, so two sequences are equal exactly when their normal forms, written by the same
-version, are equal.
+The format covers what the known data needs, so that each implementation stays a small module
+without dependencies:
 
-**Algorithm.**
+- **Three numbering systems:** roman numerals, Latin letters and integers. Greek, Hebrew,
+  fixed-width integers (`08`) and aliases are left out until a real case needs them (see
+  "Later").
+- **A simple strict model.** Only the plain space is whitespace, and control characters are
+  reserved. What `clean` accepts on top of that may differ between languages.
+- **One rule where roman numerals and letters collide:** the reading that ends lowest wins. That
+  makes `C-D` letters and `V-X` roman, without a special case for I, V and X.
+- **A linear normal form:** it is built in one pass. Together with the limits (1000 labels, 100
+  code points per label, 9-digit integers), this also bounds the work done on hostile input.
+- **Errors:** the kinds are fixed, but the order between several errors is not. A test case lists
+  every error it allows.
+- **References** are read strictly, plus two repairs. So `clean` can change without changing what
+  stored data points to.
+- **A small API:** `diff` is left out. `pages()` lets a caller compare two models.
 
-1. **Expand** to the canonical model: a list of PDF pages, each `{ignored, labels[]}`, every range
-   and run written out. This model *is* the meaning. `equals(a, b)` compares models (labels
-   exactly, case included) and needs no string at all.
-2. **Fold ranges and runs.** A *stretch* is a series of neighbouring pages with the same ignored
-   flag and the same number of labels. A stretch *folds* when writing it as one item
-   (`first-last` for one label per page, `first..last` for several, with `!` if the pages are
-   ignored) and expanding that item gives exactly the same pages back, labels compared exactly.
-   This one round-trip rule covers stepping (`2+3` → `4+5`, `1` → `2`), label kinds, prefixes,
-   case and the hierarchy.
+## Grottan data
 
-   Scan the pages left to right. At each page, take the longest stretch starting there that
-   folds; the longest, not the one before the first failure, because a longer stretch can fold
-   when a shorter one doesn't (`V-Y` folds, `V-X` reads as roman). Write it as one item if it is
-   long enough: 2 or more pages with one label each (`1-2` beats `1, 2`), 3 or more pages with
-   several labels each (`2+3, 4+5` is as short as `2+3..4+5`). Otherwise write the page on its
-   own. Then go on after what was written.
-3. **Join** the items with `, ` (one space after `,`), with no other whitespace. Labels are
-   written exactly as in the input; `normalize` never respells a label.
-4. **Quote when needed or when the label contains a space.** A label is written in quotes
-   exactly when it can't be written bare (see "Unquoted labels") or when it contains a space,
-   with `"` and `\` escaped. So
-   `"Omslag"` normalises to `Omslag`, `Appendix A` always to `"Appendix A"`, and `My "label" - 1`
-   always to `"My \"label\" - 1"`.
+`v2/list_of_grottan_in_v1.txt` holds the 235 v1 sequences known to be in use, 42 of them distinct:
 
-**Why it is unique.** Step 1 removes every difference in notation, and steps 2–4 depend only on
-the model, so the same model always gives the same string, whatever the input looked like.
+| Strings | Kind | v1 | v2 |
+|---|---|---|---|
+| 143 (61%) | scanned, one label per PDF page | `1-52` | `1-52` |
+| 43 (18%) | born-digital: cover, spreads, back | `1,2\|3,4\|5,6\|…\|51,52` | `1, 2+3..50+51, 52` |
+| 37 (16%) | a centre spread scanned as one PDF page | `1-26\|27-52` | `1-25, 26+27, 28-52` |
+| 12 (5%) | inserts, letters, words, roman numerals | `1-20,A-H,21-40` | `1-20, A-H, 21-40` |
 
-**Why it is short.** Apart from the quotes that step 4 adds to labels with spaces, the normal
-form is never longer than the plain list: a fold is only used where it is shorter (`a-b` is one
-character shorter than `a, b`; `P..Q` is shorter than the list from 3 pages on). It is also the
-shortest form in the usual case, where a stretch folds whenever each pair of neighbours in it
-does. The exception is a stretch that the hierarchy reads differently as a whole, like
-`V, W, X`: the result is still deterministic, but not always the shortest possible.
+- The 143 scanned strings keep their text exactly, and the 12 others without `|` change only in
+  spacing.
+- The 80 that use `|` are rewritten. A merged centre spread grows from one item to three, because
+  `+` joins labels, not ranges.
+- No known string uses `!`, a page with three labels, zero padding, spaces in labels or non-ASCII
+  characters. The longest has 60 labels.
 
-**Examples.**
+Examples, all from the list unless marked otherwise:
 
-- `1,2,3` → `1-3`
-- `1, 2+3, 4+5, 6+7, 8` and `1, 2+3..6+7, 8` → `1, 2+3..6+7, 8`
-- `1-20, 21-52` → `1-52`, but `1-20, 22-52` stays as it is, because 21 is missing
-- `i,ii,iii,iv, 1-48` → `i-iv, 1-48`
-- `1, 2+3, !3, 4` stays as it is: the ignored page breaks the run
-- `1, 2` → `1-2`, but `2+3, 4+5` stays: a run of two spreads is not shorter
-- `"Omslag", 2-31` → `Omslag, 2-31` (the quotes were not needed)
-- `Appendix A - Appendix C` → `"Appendix A"-"Appendix C"` (the labels contain a space)
-- `I, ii, III` stays as it is: the labels differ in case, so they don't continue each other
-- `V, W, X` → `V-W, X`: `V-X` would read as roman (V, VI, …, X)
-- `V, W, X, Y` → `V-Y`: `V-Y` folds as letters, because `Y` is not a roman numeral
-- the 16 letters `I, J, …, W, X` → `I-W, X`: `I-X` would read as roman
-- `1–52` (en dash) is an error; `clean` repairs it
-
-**Strict and cleaning.** `normalize` is strict: it accepts exactly the grammar above and nothing
-else, and it is what stored data, publication-md and validate use. To check that a stored value is
-already in normal form, compare `normalize(x)` with `x`; this checks against the version that is
-running.
-
-`clean` is for input typed or pasted by a person, in a form for example. It repairs notation that
-has exactly one reading and then normalises strictly. It never guesses meaning: input with two
-readings is still an error. The repairs:
-
-- `–` `—` `−` between labels → `-`
-- `;` between items → `,`
-- `|` between two single labels → `+` (a habit from v1); next to a range it stays an error
-- `…` → `..`
-- `..` between single labels → `-`
-- curly quotes `“ ” „` → `"`
-- non-breaking and other Unicode spaces → space
-- empty items and a trailing `,` are dropped
-- a range or run with equal ends → one page: `3-3` → `3`, `2+3..2+3` → `2+3`
-- **open end:** when the page count is given, one open range at the very end (`-` only, not
-  `..`) is closed at it: `i-iv, 1-` with 52 pages → `i-iv, 1-48`, and `1-` with 1 page → `1`. An
-  empty string is the same as `1-`, so `clean("", { length: 52 })` gives `1-52`, plain numbering.
-  Without a page count, or with no pages left for the open range, both are errors
-- **different spelling:** labels that would continue a range or run except for their case are
-  respelled to the case of the first label in the stretch: `I, ii, III` → `I-III`, `i-IV` →
-  `i-iv`
-
-`clean` returns the normal form together with the list of repairs, each with its kind, position,
-the text before and the text after, so a form can show "did you mean `1, 2+3..46+47, 48`?". Input
-that is still invalid after the repairs throws, as in `normalize`. When the page count is given,
-the result is also checked against it, as in `create(text, length)`. Because `clean` can respell,
-it can give a different result from `normalize` even for input that is already valid
-(`I, ii, III`).
-
-**API.**
-
-- `normalize(text) → string`: the canonical form; throws on invalid input.
-- `clean(text, { length? }) → { normalized, repairs }`: repairs user input, closes an open end
-  at `length`, then normalises; throws if the input is still invalid.
-- `equals(a, b) → boolean`: the same page model, labels compared exactly.
-- `diff(a, b)`: the first index where the two differ, with both pages' labels. Useful in
-  validate ("pageSequence in publication.md differs from the sheet at PDF page 22: 21 vs 22").
-  The index is 0-based (see "Indexes"); a message to a person shows the 1-based PDF page number,
-  so "PDF page 22" is index 21.
-- publication-md can store the normal form, and its tools (`toc-sync`, validate) compare with
-  `equals`, never as strings, so formatting differences between the sheet and the repo, and normal
-  forms written by different versions, are never reported as changes.
-
-## Error kinds
-
-An error has a **kind** from this list and a **position**, counted in code points from the start
-of the input after NFC. The message is up to each implementation. `clean` throws the same kinds
-for input it can't repair. The lookups `getIndexList(pages)` and `getLabelList(pages)` don't
-throw: an invalid reference gives `undefined`, as in v1.
-
-| Kind | When | Example |
-|---|---|---|
-| `syntax` | An operator is out of place: the text doesn't follow the grammar | `1-2-3`, `1-3+4-6`, `2+3-46+47`, `1+2..3+4..5+6` |
-| `reserved-char` | A bare label contains a reserved character | `1–52`, `1; 2`, `2\|3`, `Hej!` |
-| `unclosed-quote` | A quoted label has no closing `"` | `"Omslag, 2-31` |
-| `dot-at-edge` | A bare label starts or ends with `.` | `1...3`, `s.` |
-| `empty` | The sequence is empty (in `clean`: and no page count is given) | `""` |
-| `empty-item` | An item is empty | `1,,2`, `1-52,` |
-| `open-end` | A range has no last label (in `clean`: no page count is given, or no pages are left for it) | `1-` |
-| `single-label-run` | `..` between pages with one label each | `1..16` |
-| `equal-ends` | A range or run has the same first and last end | `3-3`, `2+3..2+3` |
-| `no-system` | No numbering system reads both ends | `1a-2c`, `omslag-baksida`, `Y-AB` |
-| `different-case` | The ends are read with different case | `i-IV`, `a-C` |
-| `different-width` | The ends have different fixed widths (zero padding) | `08-9`, `08-100` |
-| `descending` | The last value is lower than the first | `5-3`, `D-A` |
-| `run-shape` | The ends of a run have a different number of labels or different prefixes | `2+3..46+47+48` |
-| `uneven-run` | The ends of a run are not a whole number of steps apart, or its labels don't all step the same number of times | `2+3..5+6`, `2+3..46+49` |
-| `duplicate-label` | A label appears on two pages that are not ignored (compared without case) | `1-5, 3`, `Omslag, 2-31, omslag` |
-| `too-long` | The sequence expands to more than 1000 labels | `1-5000` |
-| `bad-length` | The page count is not a positive whole number | `create("1-3", -1)` |
-| `length-mismatch` | A page count is given, and the sequence has a different number of PDF pages | `create("1-3", 4)` |
+- **Scanned, one label per PDF page (1987-2):** `1-52` in both.
+- **Born-digital, 52 pages (2007-1):** v1 `1,2|3,4|5,6|…|51,52` (27 groups), v2
+  `1, 2+3..50+51, 52`.
+- **Born-digital, 48 pages (2016-4):** v1 `1,2|3,4|…|47,48`, v2 `1, 2+3..46+47, 48`.
+- **A merged centre spread:** v1 `1-26|27-52`, v2 `1-25, 26+27, 28-52`.
+- **PDF missing printed page 21 (1984-3):** v1 `1-20,22-52`, v2 `1-20, 22-52`.
+- **Centrefold with unrelated labels:** v1 `1-20|29,21-28,30-48`, v2
+  `1-19, 20+29, 21-28, 30-48`.
+- **Insert with its own numbering (1978-2):** v1 `1-11,inflikat.0-inflikat.11,12-24`, v2
+  `1-11, inflikat.0-inflikat.11, 12-24`.
+- **A merged spread inside an insert:** v1
+  `1-24,inflikat.1-inflikat.6|inflikat.7-inflikat.12,25-48`, v2
+  `1-24, inflikat.1-inflikat.5, inflikat.6+inflikat.7, inflikat.8-inflikat.12, 25-48`.
+- **Pages with letter suffixes and joined pages:** v1 `1-10|11,10a,10b|10c,10d,12-20`, v2
+  `1-9, 10+11, 10a, 10b+10c, 10d, 12-20`.
+- **Inserted plates:** v1 `1-20,A-H,21-40` and `1-14,14a-14d,15-28`, v2 `1-20, A-H, 21-40` and
+  `1-14, 14a-14d, 15-28`.
+- **A named page:** v1 `1,notis,2-32`, v2 `1, notis, 2-32`.
+- **Roman front and back matter (1990-1):** v1 `I-VIII,3-22,IX-XVI`, v2 `I-VIII, 3-22, IX-XVI`.
+- **An ignored duplicate scan (invented):** v1 `1,2|3,!3,4`, v2 `1, 2+3, !3, 4`.
 
 ## Conversion from v1
 
-v1 is used in one project, so it is converted once, not supported.
+v1 is used in one project, so it is converted once rather than supported.
 
-- A one-off script expands every stored v1 sequence with the v1 module
-  (`@tvartom/pagesequence` 1.3.3), builds the v2 page model from it and writes `normalize()`'s
-  output: `1,2|3,4|5` → `1, 2+3, 4+5`, `1-3|4-6` → `1-2, 3+4, 5-6`. It checks that each new
-  string expands to the same pages as the old one.
-- Most strings come out unchanged, since `,`, `-` and `!` mean the same in both. Going through the
-  page model keeps the meaning exactly, even for the rare v1 string that reads differently in v2
-  (v1 reads `C-D` as roman 100–500).
-- The v2 packages contain no v1 parser and no conversion function. `|` is an invalid character.
-- **No version flag.** After the conversion every stored string is v2.
+- **The known strings are already converted.** `v2/list_of_grottan_in_v2.txt` has the v2 form of
+  each line of `v2/list_of_grottan_in_v1.txt`, in the same order. Each v2 line reads back to the
+  same PDF pages as its v1 line does under v1 (`@tvartom/pagesequence` 1.3.3). Converting the
+  stored data is a lookup between the two files.
+- **How the v2 forms were made,** which also works for any other string:
+  1. Split the v1 string on `,` and parse each section on its own with v1. v1 labels can't contain
+     `,`.
+  2. Strip a leading `!` and record it, because v1 doesn't keep the labels of ignored pages.
+  3. Group the labels into PDF pages, and write the page model with `normalize()`.
+- **No known string is rejected by v2, or reads differently in v2.**
+  - No string has a duplicate label, and none is empty.
+  - None of the 155 strings without `|` reads differently when v2 reads its text as it is.
+  - `C-D`, which v1 reads as roman 100–500, does not occur.
+- **Check the stored references once.** Before switching, publication-md compares v1
+  `getIndexList(ref)` with v2's for every stored reference.
+- The v2 packages contain no v1 parser and no conversion function. In v2, `|` is a reserved
+  character.
+- **No version flag.** After the conversion, every stored string is v2.
 
-## API
+## Breaking changes from v1
 
-The class keeps the v1 API and meaning, with a few additions. The functions `normalize`, `clean`,
-`equals` and `diff` are described under "Normalisation and comparison".
-
-**Indexes.** An index is a 0-based PDF page index that counts ignored pages, as in v1: in
-`1, !1, 2` the page labelled 2 has index 2. Messages to people show 1-based PDF page numbers.
-
-- `new PageSequence(text, length?)` parses strictly and throws an error with a kind (see "Error
-  kinds"). `PageSequence.create(text, length?)` does the same but returns `undefined` instead of
-  throwing, as in v1.
-- `getIndexLengthAll()`: the number of PDF pages, ignored ones included. This is what `length`
-  is checked against.
-- `getIndexLength()`: the number of PDF pages that are not ignored.
-- `getLabelLength()`: the number of labels on the pages that are not ignored. It is larger than
-  `getIndexLength()` when pages have several labels.
-- `getIndexList()` and `getLabelList()` without `pages`: the indexes of all pages that are not
-  ignored, and all their labels in order.
-- `getIndexList(pages?)` and `getLabelList(pages?)` keep their meaning. `pages` (a reference such
-  as `"20-21"` in a part block) is parsed as a sequence and only its labels are used, as in v1.
-  `,` and `-` mean the same in a sequence and in text, so there is one notation for both. A
-  reference is text written by a person, so it is parsed with the `clean` rules and the repairs
-  are ignored: `5-5` finds label 5, and `20–21` with an en dash, copied from a printed contents
-  page, works too.
-- New: `labelsAt(index)` returns the labels of one PDF page, and `formatAt(index)` returns them as
-  displayed (`"2+3"`, `"20+29"`). This replaces the label joining that tools such as
-  publication-md's `joinLabels` do today. For an ignored page they return its labels as written
-  after `!`; for an index outside the PDF they return `undefined`.
-- `PageSequence.create(text, length?)` keeps its v1 signature. Passing the PDF's page count as
-  `length` is recommended whenever it is known: the sequence is then checked against it, which
-  catches miscounted sequences (a missing spread, a page counted twice). publication-md's validate
-  should do so when the PDF is available. Unlike v1, an empty `text` is an error; an issue with
-  plain numbering stores `1-52`, which `clean("", { length: 52 })` produces.
-- New: `toString()` writes the canonical (shortest) form.
+- **`|` is invalid.** `+` joins the labels on one PDF page, and only between single labels:
+  `1-3|4-6` becomes `1-2, 3+4, 5-6`.
+- **An empty string is an error,** even with a page count. Plain numbering is stored as `1-52`,
+  which `clean("", { length: 52 })` gives. Code that relied on the empty default needs
+  ``create(text || `1-${n}`, n)``.
+- **A label may appear only once** on the pages that are not ignored. v1 accepted duplicates, and
+  its lookups returned the last one.
+- **Single-letter ranges** such as `C-D`, `L-M` and `I-L` read as letters. v1 read them as roman.
+- **A number with a leading zero can't be a range end.** `08-12` is an error; v1 read it as 8, 9,
+  …, dropping the zero.
+- **`!`, `"`, `\` and control characters are reserved,** so a label that contains one is quoted.
+- **References** (`getIndexList(pages)`) are read as v2 sequences, plus two repairs: dashes and
+  equal ends. Each index appears once, in first-seen order. v1 could repeat an index:
+  `[19, 20, …, 27, 19]`.
+- **Errors have a kind and a position** (`PageSequenceError`).
+- **New limits:** at most 1000 labels, labels of at most 100 code points, and integers of at most 9
+  digits.
+- **New functions:** `labelsAt`, `formatAt`, `pages()`, `toString()`, `normalize`, `clean` and
+  `equals`.
 
 ## Distribution and implementations
 
 PageSequence is part of **publication-md** and lives at
 <https://github.com/publication-md/pagesequence>. v1 was published on JSR
-(`@tvartom/pagesequence`); v2 is published on **npm** and **JSR** (TypeScript) and **PyPI**
-(Python), with one implementation per language. The licences are publication-md's:
-**MIT** for the code and **CC0** for the format description (`spec/`).
+(`@tvartom/pagesequence`).
+
+v2 is published on **npm** and **JSR** (TypeScript) and on **PyPI** (Python), with one
+implementation per language:
+
+- Neither implementation has dependencies, either at run time or in its tests. The npm package is
+  compiled with the TypeScript compiler (`tsc`), which is only a build tool.
+- The licences are publication-md's: **MIT** for the code, and **CC0** for the format description
+  (`spec/`).
 
 ### Repository layout
 
 ```
 pagesequence/
-  spec/                  the format (this document, once settled)   CC0
+  spec/pagesequence.md   the format                                        CC0
   testdata/cases.json    shared test cases, used by every implementation
-  js/                    TypeScript → npm and JSR  @publication-md/pagesequence   MIT
-    package.json  jsr.json  src/  test/
-  py/                    Python → PyPI  pagesequence (see below)        MIT
+  js/                    TypeScript → npm and JSR  @publication-md/pagesequence  MIT
+    package.json  jsr.json  tsconfig.json  src/  test/    (dist/ is built, not committed)
+  py/                    Python → PyPI  pagesequence                       MIT
     pyproject.toml  src/pagesequence/  tests/
+  v2/                    the known v1 strings and their v2 forms (conversion)
   .github/workflows/     test both on every push; publish everywhere on a tag
   LICENSE (MIT)  LICENSE-SPEC (CC0)  AUTHORS
 ```
@@ -466,82 +185,130 @@ pagesequence/
 ### Shared test data
 
 `testdata/cases.json` is the contract between the implementations. Both test suites read the same
-file, and CI runs both, so a change in behaviour fails in both languages at once. Each case has:
+file, and CI runs both, so a change in behaviour fails in both languages at once. Each case has an
+`input`, and the expected results that apply to it:
 
-- `input` (`"1, 2+3..46+47, 48"`);
-- `pages`: the expected expansion, one entry per PDF page, `{ignored, labels}`;
+- `pages`: the expansion, one entry per PDF page, `{ignored, labels}`;
 - `normalized`: the expected `normalize()` output;
-- `cleaned` and `repairs`: the expected `clean()` output and the kinds of its repairs;
-- `format`: the expected display per PDF page (`"2+3"`, `"20+29"`);
-- `equals` / `diff` cases: a pair and the expected result;
-- `error`: for invalid input, the error *kind* (see "Error kinds") and its position, not the
-  message, so each language can word it its own way. Every kind has at least one case.
+- `cleaned`: the expected `clean()` output, with `length` when a page count is given;
+- `format`: the expected display of each PDF page (`"2+3"`, `"20+29"`);
+- `labelsAt`: expected `labelsAt(index)` results, including ignored and out-of-range pages;
+- `lookups`: a list of `{pages, indexes, labels}`, the expected `getIndexList(pages)` and
+  `getLabelList(pages)`;
+- `equals`: pairs, and the expected result for each;
+- `errors`: for invalid input, every error the input may give, as `{kind, position}`. An
+  implementation passes when the error it reports matches one of them. Every kind has at least one
+  case.
 
-Cases are grouped by feature: syntax, ranges, runs, quoting, numbering (each system plus the
-hierarchy), normalisation and cleaning. Each Grottan example in this document becomes a case.
+```json
+{"input": "1-5, 3, 1–2",
+ "errors": [{"kind": "duplicate-label", "position": 5},
+            {"kind": "reserved-char", "position": 8}]}
+```
 
-### Property tests
+Cases are grouped by feature: syntax, ranges, runs, quoting, numbering, normalisation, cleaning,
+lookups, limits and conversion. The groups include:
 
-`cases.json` holds examples someone thought of. Each implementation also has property tests
-(fast-check in TS, Hypothesis in Python): a generator builds random page models from runs of
-integers, roman numerals, letters and prefixed labels, single pages, spreads and fold-outs,
-ignored pages, and odd labels (spaces, quotes, `,`, `-`, `+`, `..`), with no label twice on pages
-that are not ignored, and checks for each one:
+- **numbering:**
+  - each system;
+  - the reading rule: `C-D`, `V-X`, `I-M`, `x-l`, `iv-ix`, `xi-xl`, `CC-CD`;
+  - roman numerals that are not canonical: `IIII-V` is `no-system`.
+- **cleaning:** open ends that can't be closed: `i-`, `A-`, `08-`, `inflikat.1-`.
+- **limits:**
+  - exactly 1000 labels and a label of exactly 100 code points, and one more of each;
+  - no timer, since the test runner's timeout catches a slow fold.
+- **conversion:** one case per distinct line of `v2/list_of_grottan_in_v1.txt` (42). Each case
+  holds the v1 string, its v2 form from `v2/list_of_grottan_in_v2.txt`, and the pages.
+- **v1:** the v1 test cases that still apply.
+- **Unicode:** only characters that both languages lowercase and normalise the same way.
 
-- **Round trip:** write the model as a plain list, `normalize` it and parse the result: the model
-  comes back unchanged.
-- **Idempotent:** `normalize(normalize(x))` equals `normalize(x)`.
-- **Unique:** different spellings of the same model (listed, partly folded, extra spaces) give
-  the same normal form.
-- **Not longer:** the normal form is never longer than the plain list, apart from the quotes
-  added to labels with spaces.
-- **`clean` agrees:** for valid input with no labels that differ only in case,
-  `clean(x).normalized` equals `normalize(x)` and there are no repairs.
+### Cross-language test
 
-A failing input is shrunk to the smallest case that still fails (`V, W, X`, say) and added to
-`cases.json`, so the other language is tested on it too.
+`cases.json` holds examples someone thought of. CI also runs a generated test, without any test
+library:
+
+1. A seeded generator writes a few thousand random inputs to a file. Each input is a page model
+   built from:
+   - runs of integers, roman numerals, letters and prefixed labels;
+   - single pages, spreads and ignored pages;
+   - odd labels (spaces, quotes, `,`, `-`, `+`, `..`).
+
+   Each model is written as a plain list, partly folded, and with extra spaces.
+2. Each implementation reads the file and writes its results (pages, normal form, error kind) as
+   JSON. CI compares the two result files.
+3. On the same inputs, each test suite also checks:
+   - **round trip:** parsing the normal form gives the model back;
+   - **idempotent:** `normalize(normalize(x))` equals `normalize(x)`;
+   - **unique:** different spellings of the same model give the same normal form;
+   - **not longer:** the normal form is never longer than the plain list, apart from the quotes
+     added to labels with spaces;
+   - **`clean` agrees:** for valid input whose only whitespace is U+0020, `clean(x).normalized`
+     equals `normalize(x)`.
+
+A failing input is cut down by hand to a small case and added to `cases.json`.
 
 ### Publishing
 
-- **One version number everywhere.** It is the PageSequence version (2.x), so
-  "pagesequence 2.1" behaves the same in both languages and on every registry. Adding a numbering
-  system is a minor version, because it never changes how a valid string reads, and so is a
-  change to `clean`; a change to how a valid string reads is a major version (see "Effect on
-  normalisation").
-- **One tag publishes everything.** A tag `v2.1.0` triggers a GitHub Actions release. It runs
-  both test suites, then publishes:
-  - **npm:** `npm publish --access public` from `js/`. The `@publication-md` npm organisation
-    must be created once on npmjs.com. Use npm trusted publishing (OIDC from GitHub Actions, npm
-    CLI 11.5.1 or later), so no token is stored; provenance is then generated automatically.
-    Trusted publishing is set up in the package's settings on npmjs.com, so the package seems to
-    have to exist first: the first release may need a token or a manual publish. Verify before
-    release.
-  - **JSR:** `npx jsr publish` from `js/`, with the `@publication-md` scope created once on
-    jsr.io and the package linked to the GitHub repository there, so the workflow publishes with
-    OIDC and no token.
+- **One version number everywhere.** It is the PageSequence version (2.x), so "pagesequence 2.1"
+  behaves the same in both languages and on every registry. The spec's "Versioning" section says
+  what is a minor and what is a major version.
+- **One tag publishes everything.** A tag such as `v2.1.0` triggers a GitHub Actions release. It
+  checks that `package.json`, `jsr.json` and `pyproject.toml` carry the tag's version, runs both
+  test suites, and then publishes:
+  - **npm:** `tsc` builds `dist/` (ESM `.js` and `.d.ts`, with `exports` and `types` in
+    `package.json`). Then `npm publish --access public` runs from `js/`.
+    - The `@publication-md` npm organisation is created once on npmjs.com.
+    - Use npm trusted publishing: OIDC from GitHub Actions, with npm CLI 11.5.1 or later and Node
+      22.14 or later. Then no token is stored, and provenance is generated automatically.
+    - Trusted publishing is set up in the package's settings, so the package must exist first.
+      Publish the first version by hand, with 2FA, then configure trusted publishing.
+  - **JSR:** `deno publish` from `js/`. The `@publication-md` scope is created once on jsr.io, and
+    the package is linked to the GitHub repository there, so the workflow publishes with OIDC and
+    no token.
   - **PyPI:** `uv build` then `uv publish` from `py/`, with PyPI **Trusted Publishing** (OIDC)
     configured once on pypi.org for this repo and workflow. PyPI allows this before the project
-    exists (a "pending publisher"), so the first release needs no token either. Try it first on
-    TestPyPI.
-- **Deno:** Deno users import from JSR (`jsr:@publication-md/pagesequence`). The v1 package
-  `@tvartom/pagesequence` stays on JSR as it is; its description points to the new package.
-- **Python package name:** `pagesequence` if it is free on PyPI, otherwise
-  `publication-md-pagesequence` (import name `pagesequence` either way). Check before the first
-  release.
+    exists (a "pending publisher"), so the first release needs no token either. Try it on TestPyPI
+    first.
+
+  **Each publish step can be re-run on its own.** It skips a registry that already has the
+  version, so a release that failed half-way is finished by re-running the workflow.
+- **Register the PyPI name early.** A pending publisher doesn't reserve it. `pagesequence` was free
+  on 2026-10-18.
+- **Tests without dependencies:** `deno test` (or `node --test`) for JS, and Python's `unittest`.
+  The JS package targets current runtimes (Deno 2, Node 22 or later). The Python package needs
+  Python 3.11 or later.
+- **Licence fields:** `"license": "MIT"` in `package.json` and `jsr.json`, and `license = "MIT"` in
+  `pyproject.toml`.
+- **Deno** users import from JSR (`jsr:@publication-md/pagesequence`). The v1 package
+  `@tvartom/pagesequence` stays on JSR as it is, and its description points to the new package.
+- **Before restructuring this repository,** tag the v1 state (1.3.3), so a fix to v1 is still
+  possible.
 
 ### Consumers
 
-- **publication-md** vendors v1 today (`vendor/pagesequence`). It switches to
-  `@publication-md/pagesequence` from npm, and its stored sequences are converted once (see
-  "Conversion from v1").
+- **publication-md** vendors v1 today (`vendor/pagesequence`).
+  - It switches to `@publication-md/pagesequence` from npm, and its stored sequences are converted
+    once (see "Conversion from v1").
+  - It can store the normal form. Its tools (`toc-sync`, validate) compare sequences with
+    `equals`, never as strings. So formatting differences between the sheet and the repo, and
+    normal forms written by different versions, are never reported as changes.
+  - To show where two sequences differ, it compares their `pages()`.
+  - Validate passes the PDF's page count when the PDF is available.
+  - `formatAt` replaces publication-md's own label joining (`joinLabels`).
 - **Python skills** (`roots.py` and friends) can then use the Python package instead of copying
-  logic. The navigation-line stripping is one such copy today.
+  the logic.
 
-## Open questions
+## Later
 
-1. **A run stepping by something other than its width** (e.g. every second page). Grottan doesn't
-   need it, so leave it out until a real case appears.
-2. **A three-page fold-out:** `12+13+14` is one PDF page with labels 12, 13 and 14. It works as a
-   page with three labels and needs nothing new.
-3. **Quoting inside prefixed ranges:** should `"Bilaga A-"1-12` (a quoted prefix with a stepping
-   number) be allowed? Not needed for Grottan, so it is left out for now.
+Each of these only makes valid some strings that are invalid in 2.0, so each can come in a minor
+version:
+
+- **Range flags:** naming the numbering system after a range, as in `V-X\latin` or `A-Ö\latin_sv`.
+  They would come with loadable systems: Swedish letters, Greek, Hebrew, or lists such as software
+  releases. `\` is reserved for this now. Item 20 of `pagesequence-v2-review.md` has the design.
+- **Fixed-width integers** (`08-12`).
+- **Aliases,** such as the Greek final sigma.
+- **A run stepping by something other than its width,** e.g. every second page.
+- **A span lookup,** if a part block needs the physical span between two labels rather than the
+  labels themselves.
+- **A higher label limit,** if a publication needs more than 1000 labels.
