@@ -51,9 +51,13 @@ The full format is in [`spec/pagesequence.md`](spec/pagesequence.md).
 ## Development
 
 There are two implementations, TypeScript in `ts/` and Python in `py/`, and both are tested against
-the shared cases in `testdata/cases.json`. `./check.sh` runs both test suites and a generated
-cross-language check. It needs Deno, Node and Python 3.11 or later. It installs only the
-TypeScript compiler, in `ts/node_modules`, and runs the shared cases against the npm build too.
+the shared cases in `testdata/cases.json`. `./check.sh` checks that the package manifests carry one
+version, and runs both test suites and a generated cross-language check. It needs Deno, Node and
+Python 3.11 or later. It installs only the TypeScript compiler, in `ts/node_modules`, and runs the
+shared cases against the npm build too.
+
+Nothing runs on GitHub when you push, so run `./check.sh` before you commit. A release tag such as
+`v2.1.0` starts the release workflow, which runs it again and then publishes to npm, JSR and PyPI.
 
 ## Licence
 

@@ -1,0 +1,134 @@
+# The release, started by pushing a tag such as v2.1.0 or v2.1.0-rc.1. This is the only workflow:
+# nothing runs on a push or a pull request, so run ./check.sh before committing.
+#
+# The check job checks that the manifests carry the tag's version and runs ./check.sh. Then each
+# registry has its own job, which skips a registry that already has the version, so a release that
+# failed half-way is finished by re-running the failed job. The registries trust this workflow
+# (OIDC), so no token is stored.
+name: release
+
+on:
+  push:
+    tags: ["v2.*.*"]
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      python: ${{ steps.version.outputs.python }}
+      npm_tag: ${{ steps.version.outputs.npm_tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "26"
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: "2.9.7"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: |
+            3.11
+            3.13
+      - id: version
+        run: python3 .github/version.py "$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+      - run: ./check.sh
+      - name: Python tests on 3.11, the oldest supported
+        working-directory: py
+        run: python3.11 -m unittest
+
+  npm:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      NPM_TAG: ${{ needs.check.outputs.npm_tag }}
+    defaults:
+      run:
+        working-directory: ts
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "26"
+          registry-url: https://registry.npmjs.org
+      - name: Publish to npm
+        run: |
+          if curl -fsSo /dev/null "https://registry.npmjs.org/@publication-md%2Fpagesequence/$VERSION"; then
+            echo "npm already has $VERSION"
+            exit 0
+          fi
+          npm ci
+          npm run build
+          PAGESEQUENCE_DIST=1 node --test test/
+          npm publish --access public --tag "$NPM_TAG"
+
+  jsr:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+    defaults:
+      run:
+        working-directory: ts
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: "2.9.7"
+      - name: Publish to JSR
+        run: |
+          if curl -fsSo /dev/null "https://jsr.io/@publication-md/pagesequence/${VERSION}_meta.json"; then
+            echo "JSR already has $VERSION"
+            exit 0
+          fi
+          deno publish
+
+  pypi:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      VERSION: ${{ needs.check.outputs.python }}
+    defaults:
+      run:
+        working-directory: py
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: "0.13.1"
+          enable-cache: false
+      - name: Publish to PyPI
+        run: |
+          if curl -fsSo /dev/null "https://pypi.org/pypi/pagesequence/$VERSION/json"; then
+            echo "PyPI already has $VERSION"
+            exit 0
+          fi
+          uv build
+          uv publish --trusted-publishing always

@@ -214,7 +214,7 @@ pagesequence/
   py/                    Python → PyPI  pagesequence                       MIT
     pyproject.toml  src/pagesequence/  tests/
   v2/                    the known v1 strings and their v2 forms (conversion)
-  .github/workflows/     test both on every push; publish everywhere on a tag
+  .github/workflows/     on a release tag only: test both, then publish everywhere
   LICENSE (MIT)  LICENSE-SPEC (CC0)  AUTHORS
 ```
 
@@ -249,8 +249,8 @@ These plugins replace the data files of item 20.6 in `pagesequence-v2-review.md`
 ### Shared test data
 
 `testdata/cases.json` is the contract between the implementations. Both test suites read the same
-file, and CI runs both, so a change in behaviour fails in both languages at once. Each case has an
-`input`, and the expected results that apply to it:
+file, and `./check.sh` runs both, so a change in behaviour fails in both languages at once. Each
+case has an `input`, and the expected results that apply to it:
 
 - `pages`: the expansion, one entry per document page, `{ignored, labels}`;
 - `normalized`: the expected `normalize()` output;
@@ -305,8 +305,8 @@ normalisation, cleaning, lookups, limits and conversion. The groups include:
 
 ### Cross-language test
 
-`cases.json` holds examples someone thought of. CI also runs a generated test, without any test
-library:
+`cases.json` holds examples someone thought of. `./check.sh` also runs a generated test, without any
+test library:
 
 1. A seeded generator writes a few thousand random inputs to a file. Each input is a page model
    built from:
@@ -318,7 +318,7 @@ library:
    Each model is written as a plain list, partly folded, and with extra spaces. Each input is run
    twice: with no plugin systems, and with all of them.
 2. Each implementation reads the file and writes its results (pages, normal form, error kind) as
-   JSON. CI compares the two result files.
+   JSON, and a script compares the two result files.
 3. On the same inputs, each test suite also checks:
    - **round trip:** parsing the normal form gives the model back;
    - **idempotent:** `normalize(normalize(x))` equals `normalize(x)`;
@@ -337,11 +337,13 @@ A failing input is cut down by hand to a small case and added to `cases.json`.
 - **One version number everywhere.** It is the PageSequence version (2.x), so "pagesequence 2.1"
   behaves the same in both languages and on every registry. The spec's "Versioning" section says
   what is a minor and what is a major version.
-- **One tag publishes everything.** A tag such as `v2.1.0` triggers a GitHub Actions release. It
-  checks that `package.json`, `deno.json` and `pyproject.toml` carry the tag's version, runs both
-  test suites, and then publishes:
+- **One tag publishes everything.** A tag such as `v2.1.0` or `v2.1.0-rc.1` starts a GitHub
+  Actions release, and nothing else runs on GitHub: no workflow runs on a push or a pull request.
+  The release checks that `package.json`, `deno.json` and `pyproject.toml` carry the tag's version,
+  runs `./check.sh`, and then publishes, with one job per registry:
   - **npm:** `tsc` builds `dist/` (ESM `.js` and `.d.ts`, with `exports` and `types` in
-    `package.json`). Then `npm publish --access public` runs from `ts/`.
+    `package.json`). Then `npm publish --access public` runs from `ts/`, with `--tag next` for a
+    release candidate, so `latest` isn't moved.
     - The `@publication-md` npm organisation is created once on npmjs.com.
     - Use npm trusted publishing: OIDC from GitHub Actions, with npm CLI 11.5.1 or later and Node
       22.14 or later. Then no token is stored, and provenance is generated automatically.
@@ -352,11 +354,11 @@ A failing input is cut down by hand to a small case and added to `cases.json`.
     no token.
   - **PyPI:** `uv build` then `uv publish` from `py/`, with PyPI **Trusted Publishing** (OIDC)
     configured once on pypi.org for this repo and workflow. PyPI allows this before the project
-    exists (a "pending publisher"), so the first release needs no token either. Try it on TestPyPI
-    first.
+    exists (a "pending publisher"), so the first release needs no token either. The first release
+    candidate is the first try.
 
-  **Each publish step can be re-run on its own.** It skips a registry that already has the
-  version, so a release that failed half-way is finished by re-running the workflow.
+  **Each publish job can be re-run on its own.** It skips a registry that already has the version,
+  so a release that failed half-way is finished by re-running the failed job.
 - **Register the PyPI name early.** A pending publisher doesn't reserve it. `pagesequence` was free
   on 2026-10-18.
 - **Tests without dependencies:** `deno test` (or `node --test`) for JS, and Python's `unittest`.

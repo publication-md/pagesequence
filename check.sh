@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run every local check: both test suites and the cross-language check.
+# Run every local check: the versions, both test suites and the cross-language check.
 #
 #     ./check.sh [--seed N] [--models N]
 #
@@ -10,6 +10,9 @@ cd "$(dirname "$0")"
 
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
+
+echo "== Versions"
+python3 .github/version.py
 
 echo "== TypeScript (Deno)"
 (cd ts && deno task test && deno task lint && deno task fmt)

@@ -28,13 +28,8 @@ point without a box is implemented or settled, or is an alternative that was not
 
 **Status (2026-10-18).** Every point without a box is in `spec/pagesequence.md` (the format) or
 `pagesequence-v2.md` (the design and migration note), or is implemented: the cases of 8.3, 9.2,
-10.3, 11.2, 16.3, 16.4 and 19.3 are in `testdata/cases.json`. The ticked points left need files that
-don't exist yet, and `ROADMAP.md` has a task for each:
-
-- 16.2: the cross-language test, which runs locally with `./check.sh` (phase 5) and is not yet in
-  CI (phase 7);
-- 18.2: the version check in CI (phase 7);
-- 18.6: registering the PyPI name (phase 8).
+10.3, 11.2, 16.3, 16.4 and 19.3 are in `testdata/cases.json`. The one ticked point left is 18.6,
+registering the PyPI name, which is a task in `ROADMAP.md` (P8.1).
 
 ## Verdict
 
@@ -495,8 +490,8 @@ to `I-III`, so the property fails on valid generated input.
 **Action.**
 - **16.1** Add `length`, `lookups: [{pages, indexes, labels}]`, per-index `labelsAt` and `errors`
   (1.2) to the schema, and write a JSON Schema for the file. *Recommended: skip the JSON Schema part, since checking it needs a validator dependency.*
-- [x] **16.2** Add a cross-language test in CI: a seeded generator writes N inputs, both implementations
-  write their results as JSON, and CI compares the two. *This can replace fast-check and Hypothesis (`:486`), so neither test suite needs a dependency.*
+- **16.2** Add a cross-language test in CI: a seeded generator writes N inputs, both implementations
+  write their results as JSON, and CI compares the two. *This can replace fast-check and Hypothesis (`:486`), so neither test suite needs a dependency. Done: `./check.sh` runs it, and so does the release workflow before it publishes. By the author's choice, CI runs only on a release tag, not on every push.*
 - **16.3** Carry over the v1 test cases that still apply.
 - **16.4** Add every distinct string in `v2/list_of_grottan_in_v1.txt` (42) as a conversion case:
   the v1 string, the expected v2 normal form and the pages. All 42 convert and read back in the
@@ -549,7 +544,7 @@ to `I-III`, so the property fails on valid generated input.
 
 **Action.**
 - **18.1** Add the npm build: `tsc` → `dist/`, ESM, with `exports` and `types`. *Chosen by the author: npm with a build, next to JSR.*
-- [x] **18.2** Add a CI step that fails if any manifest's version differs from the tag.
+- **18.2** Add a CI step that fails if any manifest's version differs from the tag. *Done: `.github/version.py`, which the release workflow runs with the tag, and `./check.sh` without one, to check that the manifests agree.*
 - **18.3** Make each publish step re-runnable on its own, skipping a registry that already has the
   version. *Chosen by the author.*
 - **18.4** Name the test runner (`deno test`, `node --test` or vitest) and the minimum Node and Python

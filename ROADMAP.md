@@ -10,15 +10,17 @@ The phases:
 
 - **Phases 1–6 are local work.** They end with v2 tested, built and runnable on a developer's
   machine.
-- **Phases 7–9 (CI, the release candidate and the release) come later,** and are not started now.
+- **Phase 7 adds CI:** a release workflow, the only thing that runs on GitHub.
+- **Phases 8–9 (the release candidate and the release) come later,** and are not started now.
 - **Phase 10 deprecates v1** once 2.0.0 is published.
 
 Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its exit criteria hold.
 
 ## Ground rules
 
-- **No GitHub Actions before phase 7.** Nothing goes into `.github/workflows/` until then, so
-  nothing can run on GitHub. Drafts, if wanted, live in `ci/drafts/`, which GitHub ignores.
+- **GitHub Actions run only for a release.** The one workflow, `.github/workflows/release.yml`,
+  starts on a release tag. Nothing runs on a push or a pull request, so `./check.sh` is run locally
+  before each commit.
 - **No dependencies.** Neither implementation has a dependency, at run time or in its tests.
   - JS tests use `node:test` and `node:assert`, which Node and Deno both provide.
   - Python tests use `unittest`.
@@ -169,29 +171,38 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 - publication-md works with the local build;
 - nothing is published.
 
+## Phase 7: CI, on a release only
+
+This is the first phase that adds files to `.github/`.
+
+- **P7.1** Run no workflow on a push or a pull request. The release workflow's first job runs the
+  version check (P7.2) and `./check.sh`: both test suites and the cross-language check. It also
+  runs the Python tests on Python 3.11, the oldest supported.
+- **P7.2** Add a version check, `.github/version.py`: the tag's version must equal the versions in
+  `package.json` (and `package-lock.json`), `deno.json` and `pyproject.toml`. A release candidate
+  tag `v2.0.0-rc.1` matches `2.0.0rc1` in `pyproject.toml`. `./check.sh` runs it without a tag, to
+  check that the manifests agree.
+- **P7.3** Add a release workflow, `.github/workflows/release.yml`, started by a `v2.x.y` or
+  `v2.x.y-rc.n` tag. Each registry has its own job, which can be re-run, and skips a registry that
+  already has the version. A release candidate is published as a pre-release: on npm under the
+  dist-tag `next`, so `latest` isn't moved.
+
+**Exit:**
+- `./check.sh` checks the versions, and the release workflow is in place;
+- no workflow runs on a push or a pull request;
+- nothing is published.
+
 ## Later: not started now
-
-### Phase 7: CI
-
-This is the first phase that adds files to `.github/workflows/`.
-
-- [ ] **P7.1** Add a test workflow on every push. It runs `./check.sh`: both test suites and the
-  cross-language check.
-- [ ] **P7.2** Add a version check: the tag's version must equal the versions in `package.json`,
-  `deno.json` and `pyproject.toml`. A release candidate tag `v2.0.0-rc.1` matches `2.0.0rc1` in
-  `pyproject.toml`.
-- [ ] **P7.3** Add a release workflow, started by a `v2.x.y` or `v2.x.y-rc.n` tag. Each publish step
-  can be re-run, and it skips a registry that already has the version. A release candidate is
-  published as a pre-release: on npm under the dist-tag `next`, so `latest` isn't moved.
 
 ### Phase 8: Release candidate
 
-- [ ] **P8.1** On PyPI, register the name `pagesequence` (free on 2026-10-18), set up a pending
-  trusted publisher, and try a release on TestPyPI.
+- [ ] **P8.1** On PyPI, register the name `pagesequence` (free on 2026-10-18), and set up a pending
+  trusted publisher for the workflow `release.yml`. The first try is `2.0.0-rc.1` (P8.4).
 - [ ] **P8.2** On jsr.io, create the `@publication-md` scope and link the package to the
   repository.
 - [ ] **P8.3** On npmjs.com, create the `@publication-md` organisation. Publish `2.0.0-rc.1` there
-  by hand, with 2FA and `--tag next`, then set up trusted publishing.
+  by hand, with 2FA and `--tag next`, then set up trusted publishing for the workflow
+  `release.yml`.
 - [ ] **P8.4** Push the tag `v2.0.0-rc.1`. The release workflow publishes to JSR and PyPI, and
   skips npm, which already has the version.
 - [ ] **P8.5** Test the release candidate from each registry, in a fresh project each:
