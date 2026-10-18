@@ -1,6 +1,6 @@
 [project]
 name = "pagesequence"
-description = "Map the pages of a PDF to the labels printed on them."
+description = "Map the pages of a document (like a PDF) to the labels printed on them."
 requires-python = ">=3.11"
 dependencies = []
 version = "0.0.0"

@@ -8,33 +8,35 @@ Status: draft. Licence: CC0.
 - The reasons behind the design, the move from v1 and the plans for the implementations are in
   [`pagesequence-v2.md`](../pagesequence-v2.md).
 
-A page sequence maps the pages of a PDF to the labels printed on them. That is its purpose:
-references to pages, such as the entries of a table of contents, are written with the labels
-printed in the publication. This holds even where the numbering isn't 1 to n. The sequence turns
-those labels into PDF pages. MUST, MUST NOT, SHOULD and MAY are used as in RFC 2119.
+A page sequence maps the pages of a document (like a PDF) to the labels printed on them. That is
+its purpose: references to pages, such as the entries of a table of contents, are written with the
+labels printed in the publication. This holds even where the numbering isn't 1 to n. The sequence
+turns those labels into document pages. MUST, MUST NOT, SHOULD and MAY are used as in RFC 2119.
 
 ## Terms
 
-- A **PDF page** is one page of the PDF. Its **index** is its 0-based position in the PDF, counting
-  ignored pages: in `1, !1, 2` the page labelled 2 has index 2. Messages to people show 1-based PDF
-  page numbers, so "PDF page 22" is index 21.
-- A **label** is what is printed on a page: `12`, `iv`, `Omslag`. A PDF page has one or more
-  labels, in reading order. A spread scanned as one PDF page has two. A page with nothing printed
-  on it can have the **empty label**, which is always written quoted: `""`.
-- An **ignored** PDF page is a duplicate scan. It keeps its labels, but they take no part in
+- A **document page** is one page of the document. Its **index** is its 0-based position in the
+  document, counting ignored pages: in `1, !1, 2` the page labelled 2 has index 2. Messages to
+  people show 1-based document page numbers, as a PDF viewer does, so "document page 22" is
+  index 21.
+- A **label** is what is printed on a page: `12`, `iv`, `Omslag`. A document page has one or more
+  labels, in reading order. A spread scanned as one document page has two. A page with nothing
+  printed on it can have the **empty label**, which is always written quoted: `""`.
+- An **ignored** document page is a duplicate scan. It keeps its labels, but they take no part in
   lookups or in the each-label-once rule.
-- The **page model** is the meaning of a sequence: a list of PDF pages, each `{ignored, labels}`.
+- The **page model** is the meaning of a sequence: a list of document pages, each
+  `{ignored, labels}`.
 - A **reference** names pages by their labels, written as a sequence, such as a part block's
-  `pages: "20-21"`. A reference is always made of labels, never of PDF page numbers.
+  `pages: "20-21"`. A reference is always made of labels, never of document page numbers.
 
 ## Syntax
 
 ```
 sequence = item { "," item }
-item     = [ "!" ] ( range | run | page )   "!": every PDF page of the item is ignored
-range    = label "-" label [ flag ]         PDF pages with one label each
-run      = page ".." page [ flag ]          PDF pages with the same number (2 or more) of labels each
-page     = label { "+" label }              one PDF page: its labels, in reading order
+item     = [ "!" ] ( range | run | page )   "!": every document page of the item is ignored
+range    = label "-" label [ flag ]         document pages with one label each
+run      = page ".." page [ flag ]          document pages with the same number (2 or more) of labels each
+page     = label { "+" label }              one document page: its labels, in reading order
 flag     = "/" name                         the numbering system that reads the range or run
 name     = namechar { namechar }            namechar: "a"–"z", "0"–"9" and "_"
 label    = bare | quoted
@@ -87,13 +89,14 @@ qchar    = any character except '"', "\" and control characters
 
 ## Meaning
 
-- `,` separates items. An item is one or more PDF pages.
-- A **page** `a+b` is one PDF page with those labels. A fold-out is a page with three: `12+13+14`.
-- A **range** `a-b` is PDF pages with one label each, from `a` to `b` (see "Numbering"). `1-16` is
-  16 PDF pages: 1, 2, …, 16.
-- A **run** `P..Q` is PDF pages with the same number of labels each, from page `P` to page `Q`.
+- `,` separates items. An item is one or more document pages.
+- A **page** `a+b` is one document page with those labels. A fold-out is a page with three:
+  `12+13+14`.
+- A **range** `a-b` is document pages with one label each, from `a` to `b` (see "Numbering").
+  `1-16` is 16 document pages: 1, 2, …, 16.
+- A **run** `P..Q` is document pages with the same number of labels each, from page `P` to page `Q`.
   Each label steps by the number of labels on the page: `2+3..46+47` is the spreads 2+3, 4+5, …,
-  46+47, which is 23 PDF pages.
+  46+47, which is 23 document pages.
   - `..` is only used between pages with 2 or more labels. `1..16` is an error
     (`single-label-run`); write `1-16`.
   - Both ends of a run have the same number of labels (`run-shape`). Each column steps the same
@@ -118,7 +121,7 @@ qchar    = any character except '"', "\" and control characters
   after lowercasing them with the language's own function (`toLowerCase()` in JS, `str.lower()` in
   Python). That is not case folding, so `ß` and `ss` stay different labels. Implementations on
   different Unicode versions can differ for characters whose case mapping changed between versions.
-- **Display.** A PDF page is shown as its labels joined with `+`, without quotes: `20+29`, and
+- **Display.** A document page is shown as its labels joined with `+`, without quotes: `20+29`, and
   `"Omslag, insida"+2` is shown as "Omslag, insida+2".
 
 ## Numbering
@@ -233,7 +236,7 @@ that is given it in `plugins` (see "API").
 2. **latin_sv**
    - The Swedish alphabet: `A`–`Z`, then `Å`, `Ä`, `Ö`, and the same in lower case. A letter's
      value is its position. The case is kept.
-   - No token characters. `A-Ö/latin_sv` is 29 PDF pages.
+   - No token characters. `A-Ö/latin_sv` is 29 document pages.
 3. **greek**
    - The 24 letters `Α`–`Ω` and `α`–`ω`, by position. The case is kept. No token characters.
    - The final sigma `ς` is not read.
@@ -248,7 +251,7 @@ The same sequence can be written in several ways: `1,2,3` and `1-3`, `1-3, 4-6` 
 
 1. **Expand** the text to its page model. `equals(a, b)` compares models, with labels compared
    exactly, case included.
-2. **Fold** in one pass from the first PDF page:
+2. **Fold** in one pass from the first document page:
    1. If the next page has the same ignored flag and the same number of labels, read the two pages
       as a range (one label each) or a run (several labels each), with each system in turn: the
       built-in systems in hierarchy order, then the given plugin systems in name order. Each
@@ -329,7 +332,7 @@ of the message is also up to the implementation.
 | `duplicate-label` | A label appears twice on the pages that are not ignored, compared without case | `1-5, 3`, `2+2`, `Omslag, 2-31, omslag` |
 | `too-long` | The sequence expands to more labels than the limit (10 000 unless `maxLabels` sets another), or a label is longer than 100 code points | `1-50000` |
 | `bad-length` | The page count is not a positive whole number | `create("1-3", -1)` |
-| `length-mismatch` | A page count is given, and the sequence has a different number of PDF pages | `create("1-3", 4)` |
+| `length-mismatch` | A page count is given, and the sequence has a different number of document pages | `create("1-3", 4)` |
 
 ## Cleaning
 
@@ -381,10 +384,11 @@ The class keeps the v1 API and meaning, except for the changes listed in
   `text` is an error: plain numbering is stored as `1-52`.
 - `PageSequence.create(text, …)` takes the same arguments, but returns `undefined` instead of
   throwing.
-- Pass the PDF's page count as `length` whenever it is known. The sequence is then checked against
-  it, which catches a missing spread or a page counted twice.
-- `getIndexLengthAll()` is the number of PDF pages, ignored ones included; `length` is checked
-  against it. `getIndexLength()` is the number of PDF pages that are not ignored.
+- Pass the document's page count, such as the number of pages in a PDF, as `length` whenever it is
+  known. The sequence is then checked against it, which catches a missing spread or a page counted
+  twice.
+- `getIndexLengthAll()` is the number of document pages, ignored ones included; `length` is checked
+  against it. `getIndexLength()` is the number of document pages that are not ignored.
 - `getLabelLength()` is the number of labels on the pages that are not ignored.
 - `getIndexList()` and `getLabelList()` without an argument give the indexes of all pages that are
   not ignored, and all their labels in order.
@@ -397,11 +401,11 @@ The class keeps the v1 API and meaning, except for the changes listed in
   equal ends (`5-5` → `5`). No other `clean` repair applies, so a change to `clean` never changes
   what a stored reference points to. It is read with the sequence's own `plugins` and
   `maxLabels`.
-- The lookup gives the PDF pages that carry the reference's labels.
-  - A PDF page with other labels, such as an insert between them, is included only if the
+- The lookup gives the document pages that carry the reference's labels.
+  - A document page with other labels, such as an insert between them, is included only if the
     reference lists its labels: in `1-9, 10+11, 10a-10d, 12-20`, `10-12` gives the pages of 10, 11
     and 12, and `10-11, 10a-10d, 12` also gives the insert.
-  - PDF page numbers are never used in a reference.
+  - Document page numbers are never used in a reference.
 - The lookup ignores case.
 - An invalid reference, or one with a label that isn't in the sequence, gives `undefined`. The
   each-label-once rule applies to references too, so `3, 3` gives `undefined`. A reference that
@@ -410,9 +414,9 @@ The class keeps the v1 API and meaning, except for the changes listed in
 
 **Other methods:**
 
-- `labelsAt(index)` gives the labels of one PDF page.
+- `labelsAt(index)` gives the labels of one document page.
 - `formatAt(index)` gives them as displayed (`"2+3"`, `"20+29"`).
-- For an ignored page, both give its labels as written after `!`. For an index outside the PDF,
+- For an ignored page, both give its labels as written after `!`. For an index outside the document,
   they give `undefined`.
 - `pages()` gives the page model as a list of `{ignored, labels}`.
 - `toString()` gives the normal form, written with the sequence's own `plugins`.

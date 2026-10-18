@@ -1,4 +1,4 @@
-"""PageSequence: map the pages of a PDF to the labels printed on them.
+"""PageSequence: map the pages of a document to the labels printed on them.
 
 The plugin systems are not imported here. Each one is imported from its own module, such as
 ``pagesequence.plugins.roman_additive``, and passed in ``plugins``.

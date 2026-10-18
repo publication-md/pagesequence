@@ -27,10 +27,10 @@ apply to it.
 | `maxLabels` | The label limit that every call in the case is given. Without it, the default (10 000). |
 | `length` | The page count passed to the constructor. Without it, none. |
 | `errors` | The input is invalid: every error the constructor may throw, as `{kind, position}`. It passes when the error it throws matches one entry, kind and position. `normalize` must throw a matching error too, unless `length` is set: `normalize` takes no page count. |
-| `pages` | The page model, `pages()`: one entry per PDF page, `{ignored, labels}`. |
+| `pages` | The page model, `pages()`: one entry per document page, `{ignored, labels}`. |
 | `normalized` | `normalize(input)`, and `toString()` of the instance. |
-| `format` | `formatAt(i)` for every PDF page, ignored ones included. |
-| `labelsAt` | `[{index, labels}]`: `labelsAt(index)`. `labels` is `null` for an index outside the PDF (`undefined` in TypeScript, `None` in Python). |
+| `format` | `formatAt(i)` for every document page, ignored ones included. |
+| `labelsAt` | `[{index, labels}]`: `labelsAt(index)`. `labels` is `null` for an index outside the document (`undefined` in TypeScript, `None` in Python). |
 | `lengths` | `{indexLengthAll, indexLength, labelLength}`: `getIndexLengthAll()`, `getIndexLength()` and `getLabelLength()`. |
 | `lookups` | `[{pages, indexes, labels}]`: `getIndexList(pages)` and `getLabelList(pages)`. `null` means `undefined`/`None`. |
 | `equals` | `[{with, result}]`: `equals(input, with)`. |

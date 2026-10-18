@@ -1,5 +1,5 @@
 /**
- * PageSequence: map the pages of a PDF to the labels printed on them.
+ * PageSequence: map the pages of a document to the labels printed on them.
  * The format is in spec/pagesequence.md; this module follows it section by section.
  * @module
  */
@@ -39,7 +39,7 @@ export class PageSequenceError extends Error {
   }
 }
 
-/** One PDF page of the page model. */
+/** One document page of the page model. */
 export interface Page {
   ignored: boolean;
   labels: string[];
@@ -731,7 +731,7 @@ export function clean(text: string, options: LengthOptions = {}): { normalized: 
 
 // ---------------------------------------------------------------- The class
 
-/** A page sequence: the labels printed on each page of a PDF. */
+/** A page sequence: the labels printed on each page of a document. */
 export class PageSequence {
   readonly #pages: Page[];
   readonly #ctx: Context;
@@ -740,7 +740,7 @@ export class PageSequence {
 
   /**
    * Parse `text` strictly. Throws `PageSequenceError` on invalid input.
-   * @param options The PDF's page count, or `{ length, plugins, maxLabels }`.
+   * @param options The document's page count, or `{ length, plugins, maxLabels }`.
    */
   constructor(text: string, options?: number | LengthOptions) {
     const opts: LengthOptions = typeof options === "number" ? { length: options } : options ?? {};
@@ -751,7 +751,7 @@ export class PageSequence {
       throw new PageSequenceError(
         "length-mismatch",
         null,
-        `length-mismatch: the sequence has ${this.#pages.length} PDF pages, not ${opts.length}`,
+        `length-mismatch: the sequence has ${this.#pages.length} document pages, not ${opts.length}`,
       );
     }
     this.#pages.forEach((page, index) => {
@@ -769,12 +769,12 @@ export class PageSequence {
     }
   }
 
-  /** The number of PDF pages, ignored ones included. */
+  /** The number of document pages, ignored ones included. */
   getIndexLengthAll(): number {
     return this.#pages.length;
   }
 
-  /** The number of PDF pages that are not ignored. */
+  /** The number of document pages that are not ignored. */
   getIndexLength(): number {
     return this.#pages.filter((p) => !p.ignored).length;
   }
@@ -821,13 +821,13 @@ export class PageSequence {
     return this.#find(pages)?.map(([, label]) => label);
   }
 
-  /** The labels of one PDF page, or `undefined` outside the PDF. */
+  /** The labels of one document page, or `undefined` outside the document. */
   labelsAt(index: number): string[] | undefined {
     const page = Number.isInteger(index) ? this.#pages[index] : undefined;
     return page && [...page.labels];
   }
 
-  /** The labels of one PDF page as displayed (`"2+3"`), or `undefined` outside the PDF. */
+  /** The labels of one document page as displayed (`"2+3"`), or `undefined` outside the document. */
   formatAt(index: number): string | undefined {
     return this.labelsAt(index)?.join("+");
   }

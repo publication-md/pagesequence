@@ -1,6 +1,6 @@
 {
   "name": "@publication-md/pagesequence",
-  "description": "Map the pages of a PDF to the labels printed on them.",
+  "description": "Map the pages of a document (like a PDF) to the labels printed on them.",
   "type": "module",
   "private": true
 }

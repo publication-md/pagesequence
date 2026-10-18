@@ -10,8 +10,8 @@ The phases:
 
 - **Phases 1–6 are local work.** They end with v2 tested, built and runnable on a developer's
   machine.
-- **Phases 7 and 8 (CI and publishing) come later,** and are not started now.
-- **Phase 9 deprecates v1** once v2 is published.
+- **Phases 7–9 (CI, the release candidate and the release) come later,** and are not started now.
+- **Phase 10 deprecates v1** once 2.0.0 is published.
 
 Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its exit criteria hold.
 
@@ -29,7 +29,7 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
   1. change `spec/pagesequence.md`;
   2. then `testdata/cases.json`;
   3. then both implementations.
-- **The spec leaves draft at release,** as version 1.0 (P8.1).
+- **The spec leaves draft at release,** as version 1.0 (P9.1).
 - **Every phase leaves the repository working.** Commit at the end of each step.
 
 ## Phase 1: README and repository structure
@@ -44,7 +44,7 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 - **P1.3** Add `LICENSE` (MIT), `LICENSE-SPEC` (CC0) and `AUTHORS`.
 - **P1.4** Write the root `README.md`:
   - what PageSequence is for: a table of contents written in the labels printed in the
-    publication, turned into PDF pages;
+    publication, turned into pages of the document;
   - a short guide to the notation, with three or four examples;
   - the status: v2 is in development, and v1 is `@tvartom/pagesequence` on JSR;
   - links to the spec, the design note and this roadmap;
@@ -142,8 +142,9 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 
 ## Phase 6: Build for each registry, locally
 
-- [ ] **P6.1** Set version 2.0.0 in `ts/package.json`, `ts/deno.json` and `py/pyproject.toml`, each
-  with an SPDX licence field.
+- [ ] **P6.1** Set the version of the first release candidate, with an SPDX licence field in each
+  file: `2.0.0-rc.1` in `ts/package.json` and `ts/deno.json`, and `2.0.0rc1` (the PEP 440 form)
+  in `py/pyproject.toml`.
 - [ ] **P6.2** Build for npm:
   - `tsc` builds `ts/dist/`: ESM `.js` and `.d.ts` files.
   - Set `"sideEffects": false` in `package.json`, and give each plugin a subpath in `exports`
@@ -177,36 +178,65 @@ This is the first phase that adds files to `.github/workflows/`.
 - [ ] **P7.1** Add a test workflow on every push. It runs `./check.sh`: both test suites and the
   cross-language check.
 - [ ] **P7.2** Add a version check: the tag's version must equal the versions in `package.json`,
-  `deno.json` and `pyproject.toml`.
-- [ ] **P7.3** Add a release workflow, started by a `v2.x.y` tag. Each publish step can be re-run,
-  and it skips a registry that already has the version.
+  `deno.json` and `pyproject.toml`. A release candidate tag `v2.0.0-rc.1` matches `2.0.0rc1` in
+  `pyproject.toml`.
+- [ ] **P7.3** Add a release workflow, started by a `v2.x.y` or `v2.x.y-rc.n` tag. Each publish step
+  can be re-run, and it skips a registry that already has the version. A release candidate is
+  published as a pre-release: on npm under the dist-tag `next`, so `latest` isn't moved.
 
-### Phase 8: Publishing
+### Phase 8: Release candidate
 
-- [ ] **P8.1** Take the spec out of draft. Its status becomes version 1.0, and after that a change
-  in behaviour follows the spec's "Versioning" rules.
-- [ ] **P8.2** On PyPI, register the name `pagesequence` (free on 2026-10-18), set up a pending
+- [ ] **P8.1** On PyPI, register the name `pagesequence` (free on 2026-10-18), set up a pending
   trusted publisher, and try a release on TestPyPI.
-- [ ] **P8.3** On jsr.io, create the `@publication-md` scope and link the package to the
+- [ ] **P8.2** On jsr.io, create the `@publication-md` scope and link the package to the
   repository.
-- [ ] **P8.4** On npmjs.com, create the `@publication-md` organisation. Publish 2.0.0 there by hand,
-  with 2FA, then set up trusted publishing.
-- [ ] **P8.5** Push the tag `v2.0.0`. The release workflow publishes to JSR and PyPI, and skips npm,
-  which already has 2.0.0.
-- [ ] **P8.6** Switch publication-md to the published package.
+- [ ] **P8.3** On npmjs.com, create the `@publication-md` organisation. Publish `2.0.0-rc.1` there
+  by hand, with 2FA and `--tag next`, then set up trusted publishing.
+- [ ] **P8.4** Push the tag `v2.0.0-rc.1`. The release workflow publishes to JSR and PyPI, and
+  skips npm, which already has the version.
+- [ ] **P8.5** Test the release candidate from each registry, in a fresh project each:
+  - npm: `npm install @publication-md/pagesequence@next`, with Node, and with a bundler that
+    leaves out the unused plugins;
+  - JSR: import `jsr:@publication-md/pagesequence@2.0.0-rc.1` with Deno, plugins included;
+  - PyPI: `pip install --pre pagesequence` in a fresh virtual environment, on Python 3.11 and on
+    the newest Python;
+  - in each, run a smoke test, and check that the package README and the metadata (licence,
+    repository link) show on the registry's page.
+- [ ] **P8.6** Test the release candidate in publication-md, installed from npm:
+  - convert its stored sequences with the two `v2/` files;
+  - run the reference check (6.3 in the review) against v1 from JSR
+    (`@tvartom/pagesequence@1.3.3`);
+  - run publication-md's own tests and build.
+- [ ] **P8.7** For each problem found, add a case to `testdata/cases.json` when it is a behaviour
+  bug, fix it, and publish the next release candidate (`2.0.0-rc.2`, …) with P6.1's version
+  fields, a tag and the release workflow. Then repeat P8.5 and P8.6.
 
-### Phase 9: Deprecate v1
+**Exit:**
+- the latest release candidate passes P8.5 and P8.6;
+- nothing has changed since that release candidate, other than its version.
 
-Do this once v2 is published.
+### Phase 9: Release
 
-- [x] **P9.1** Create the branch `v1` from the tag `v1.3.3`, and add the test fix (`97b80c6`).
-- [ ] **P9.2** Mark v1 as deprecated, with a reference to v2:
+- [ ] **P9.1** Take the spec out of draft. Its status becomes version 1.0, and after that a change
+  in behaviour follows the spec's "Versioning" rules.
+- [ ] **P9.2** Set version 2.0.0 in `ts/package.json`, `ts/deno.json` and `py/pyproject.toml`, and
+  update the status in the root `README.md`.
+- [ ] **P9.3** Push the tag `v2.0.0`. The release workflow publishes to npm (dist-tag `latest`),
+  JSR and PyPI.
+- [ ] **P9.4** Switch publication-md to 2.0.0.
+
+### Phase 10: Deprecate v1
+
+Do this once 2.0.0 is published.
+
+- [x] **P10.1** Create the branch `v1` from the tag `v1.3.3`, and add the test fix (`97b80c6`).
+- [ ] **P10.2** Mark v1 as deprecated, with a reference to v2:
   - a notice at the top of the README;
   - `@deprecated` on the exported class and functions, so editors show it;
   - the package description on JSR.
 
   The code stays the same.
-- [ ] **P9.3** Publish 1.3.4 to JSR from the `v1` branch, and tag it `v1.3.4`.
-- [ ] **P9.4** Archive `@tvartom/pagesequence` on JSR, if the package settings offer it, so its page
-  shows that it is read-only. Check JSR's documentation first.
-- [ ] **P9.5** Update `pagesequence-v2.md`, which says v1 "stays on JSR as it is".
+- [ ] **P10.3** Publish 1.3.4 to JSR from the `v1` branch, and tag it `v1.3.4`.
+- [ ] **P10.4** Archive `@tvartom/pagesequence` on JSR, if the package settings offer it, so its
+  page shows that it is read-only. Check JSR's documentation first.
+- [ ] **P10.5** Update `pagesequence-v2.md`, which says v1 "stays on JSR as it is".

@@ -1,4 +1,4 @@
-"""PageSequence: map the pages of a PDF to the labels printed on them.
+"""PageSequence: map the pages of a document to the labels printed on them.
 
 The format is in spec/pagesequence.md; this module follows it section by section, and has the same
 structure as the TypeScript module ts/src/pagesequence.ts.
@@ -781,10 +781,10 @@ def clean(
 
 
 class PageSequence:
-    """A page sequence: the labels printed on each page of a PDF.
+    """A page sequence: the labels printed on each page of a document.
 
     ``PageSequence(text, length=None, *, plugins=(), max_labels=10000)`` parses ``text`` strictly
-    and raises ``PageSequenceError`` on invalid input. Pass the PDF's page count as ``length``
+    and raises ``PageSequenceError`` on invalid input. Pass the document's page count as ``length``
     whenever it is known.
     """
 
@@ -803,7 +803,7 @@ class PageSequence:
             raise PageSequenceError(
                 "length-mismatch",
                 None,
-                f"length-mismatch: the sequence has {len(self._pages)} PDF pages, not {length}",
+                f"length-mismatch: the sequence has {len(self._pages)} document pages, not {length}",
             )
         #: Lowercased label → (index, label as written), for the pages that are not ignored.
         self._lookup: dict[str, tuple[int, str]] = {}
@@ -821,11 +821,11 @@ class PageSequence:
             return None
 
     def get_index_length_all(self) -> int:
-        """The number of PDF pages, ignored ones included."""
+        """The number of document pages, ignored ones included."""
         return len(self._pages)
 
     def get_index_length(self) -> int:
-        """The number of PDF pages that are not ignored."""
+        """The number of document pages that are not ignored."""
         return sum(1 for p in self._pages if not p["ignored"])
 
     def get_label_length(self) -> int:
@@ -866,13 +866,13 @@ class PageSequence:
         return None if found is None else [label for _, label in found]
 
     def labels_at(self, index: int) -> list[str] | None:
-        """The labels of one PDF page, or ``None`` outside the PDF."""
+        """The labels of one document page, or ``None`` outside the document."""
         if isinstance(index, bool) or not isinstance(index, int) or not 0 <= index < len(self._pages):
             return None
         return list(self._pages[index]["labels"])
 
     def format_at(self, index: int) -> str | None:
-        """The labels of one PDF page as displayed (``"2+3"``), or ``None`` outside the PDF."""
+        """The labels of one document page as displayed (``"2+3"``), or ``None`` outside the document."""
         labels = self.labels_at(index)
         return None if labels is None else "+".join(labels)
 

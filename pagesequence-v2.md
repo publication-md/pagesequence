@@ -13,33 +13,34 @@ publication-md says `pages: "20-21"` in labels. That works even where the number
 - roman front matter;
 - an insert with its own numbering;
 - a missing page;
-- a spread scanned as one PDF page.
+- a spread scanned as one page.
 
-The page sequence turns those labels into PDF pages. References are always made of labels, never
-of PDF page numbers.
+The page sequence turns those labels into pages of the document, such as the PDF of an issue.
+References are always made of labels, never of page numbers in the document.
 
 ## Why
 
-A PageSequence maps PDF pages to the labels printed on them. Version 1 has three problems.
+A PageSequence maps the pages of a document to the labels printed on them. Version 1 has three
+problems.
 
-1. **`|` is read the wrong way round.** In v1, `,` separates PDF pages and `|` joins the labels on
-   one PDF page: `1,2|3,4|5`. But `|` looks like a stronger break than `,`, so people and LLMs read
+1. **`|` is read the wrong way round.** In v1, `,` separates pages and `|` joins the labels on one
+   page: `1,2|3,4|5`. But `|` looks like a stronger break than `,`, so people and LLMs read
    `2|3,4|5` as the groups "2", "3,4" and "5". In the Grottan corpus, markup agents counted the
    born-digital sequences wrongly in 40 issues.
 2. **Long patterns can't be written short.** A born-digital issue (cover, spreads, back cover) is
-   `1,2|3,4|5,6|…|47,48`: 25 PDF pages written out one by one.
-3. **The notation for one PDF page differs from how its labels are shown.** v1 writes `2|3` and
+   `1,2|3,4|5,6|…|47,48`: 25 pages written out one by one.
+3. **The notation for one page differs from how its labels are shown.** v1 writes `2|3` and
    shows it as "2–3", and writes `20|29` and shows it as "20,29".
 
 ## Goals
 
-- **Keep what works in v1:** `,` lists PDF pages and `-` is a range, as in running text, so `1-52`
+- **Keep what works in v1:** `,` lists pages and `-` is a range, as in running text, so `1-52`
   means what everyone expects.
-- **A join that reads as "together":** `+` for the labels on one PDF page (`2+3`, `20+29`),
+- **A join that reads as "together":** `+` for the labels on one page (`2+3`, `20+29`),
   replacing `|`.
-- **The same notation for one PDF page as its display:** a page is shown as it is written, `2+3`
+- **The same notation for one page as its display:** a page is shown as it is written, `2+3`
   or `20+29`.
-- **Runs of PDF pages written once,** whether single pages (`1-52`) or spreads (`2+3..46+47`).
+- **Runs of pages written once,** whether single pages (`1-52`) or spreads (`2+3..46+47`).
 - **Readable without instructions:** spaces are allowed, and every part looks like what it means.
 - **The same capabilities as v1:** ranges of numbers, roman numerals and letters, prefixed labels,
   and ignored duplicate pages.
@@ -52,14 +53,14 @@ A PageSequence maps PDF pages to the labels printed on them. Version 1 has three
 
 ## Why these characters
 
-- **`,` between PDF pages (as in v1):** it matches lists in running text.
-- **`-` for a range of PDF pages (as in v1):** it matches "s. 1–52", and it is what people and LLMs
+- **`,` between pages (as in v1):** it matches lists in running text.
+- **`-` for a range of pages (as in v1):** it matches "s. 1–52", and it is what people and LLMs
   write without instructions. A `pages` reference in text uses the same two characters the same
   way.
-- **`+` for the labels on one PDF page:** it reads as "together", and it can't be taken for a break
+- **`+` for the labels on one page:** it reads as "together", and it can't be taken for a break
   that is stronger or weaker than `,`, which is what went wrong with `|`. It is also how the page
   is displayed.
-- **`..` for a run of PDF pages:** it is well known from programming ("from … to"), and it can step
+- **`..` for a run of pages:** it is well known from programming ("from … to"), and it can step
   pages with several labels. `-` can't do that: `2+3-46+47` reads as arithmetic.
 - **`!` unchanged:** it marks an ignored page.
 - **`/` for a flag:** it names the numbering system of a range or run (`V-X/latin`). Unlike `\`,
@@ -97,9 +98,9 @@ without dependencies:
 
 | Strings | Kind | v1 | v2 |
 |---|---|---|---|
-| 143 (61%) | scanned, one label per PDF page | `1-52` | `1-52` |
+| 143 (61%) | scanned, one label per page | `1-52` | `1-52` |
 | 43 (18%) | born-digital: cover, spreads, back | `1,2\|3,4\|5,6\|…\|51,52` | `1, 2+3..50+51, 52` |
-| 37 (16%) | a centre spread scanned as one PDF page | `1-26\|27-52` | `1-25, 26+27, 28-52` |
+| 37 (16%) | a centre spread scanned as one page | `1-26\|27-52` | `1-25, 26+27, 28-52` |
 | 12 (5%) | inserts, letters, words, roman numerals | `1-20,A-H,21-40` | `1-20, A-H, 21-40` |
 
 - The 143 scanned strings keep their text exactly, and the 12 others without `|` change only in
@@ -111,7 +112,7 @@ without dependencies:
 
 Examples, all from the list unless marked otherwise:
 
-- **Scanned, one label per PDF page (1987-2):** `1-52` in both.
+- **Scanned, one label per page (1987-2):** `1-52` in both.
 - **Born-digital, 52 pages (2007-1):** v1 `1,2|3,4|5,6|…|51,52` (27 groups), v2
   `1, 2+3..50+51, 52`.
 - **Born-digital, 48 pages (2016-4):** v1 `1,2|3,4|…|47,48`, v2 `1, 2+3..46+47, 48`.
@@ -138,13 +139,13 @@ v1 is used in one project, so it is converted once rather than supported.
 
 - **The known strings are already converted.** `v2/list_of_grottan_in_v2.txt` has the v2 form of
   each line of `v2/list_of_grottan_in_v1.txt`, in the same order. Each v2 line reads back to the
-  same PDF pages as its v1 line does under v1 (`@tvartom/pagesequence` 1.3.3). Converting the
+  same document pages as its v1 line does under v1 (`@tvartom/pagesequence` 1.3.3). Converting the
   stored data is a lookup between the two files.
 - **How the v2 forms were made,** which also works for any other string:
   1. Split the v1 string on `,` and parse each section on its own with v1. v1 labels can't contain
      `,`.
   2. Strip a leading `!` and record it, because v1 doesn't keep the labels of ignored pages.
-  3. Group the labels into PDF pages, and write the page model with `normalize()`.
+  3. Group the labels into document pages, and write the page model with `normalize()`.
 - **No known string is rejected by v2, or reads differently in v2.**
   - No string has a duplicate label, and none is empty.
   - None of the 155 strings without `|` reads differently when v2 reads its text as it is.
@@ -157,7 +158,7 @@ v1 is used in one project, so it is converted once rather than supported.
 
 ## Breaking changes from v1
 
-- **`|` is invalid.** `+` joins the labels on one PDF page, and only between single labels:
+- **`|` is invalid.** `+` joins the labels on one page, and only between single labels:
   `1-3|4-6` becomes `1-2, 3+4, 5-6`.
 - **An empty string is an error,** even with a page count. Plain numbering is stored as `1-52`,
   which `clean("", { length: 52 })` gives. Code that relied on the empty default needs
@@ -251,10 +252,10 @@ These plugins replace the data files of item 20.6 in `pagesequence-v2-review.md`
 file, and CI runs both, so a change in behaviour fails in both languages at once. Each case has an
 `input`, and the expected results that apply to it:
 
-- `pages`: the expansion, one entry per PDF page, `{ignored, labels}`;
+- `pages`: the expansion, one entry per document page, `{ignored, labels}`;
 - `normalized`: the expected `normalize()` output;
 - `cleaned`: the expected `clean()` output, with `length` when a page count is given;
-- `format`: the expected display of each PDF page (`"2+3"`, `"20+29"`);
+- `format`: the expected display of each document page (`"2+3"`, `"20+29"`);
 - `labelsAt`: expected `labelsAt(index)` results, including ignored and out-of-range pages;
 - `lookups`: a list of `{pages, indexes, labels}`, the expected `getIndexList(pages)` and
   `getLabelList(pages)`;
