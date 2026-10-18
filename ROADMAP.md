@@ -11,7 +11,8 @@ The phases:
 - **Phases 1–6 are local work.** They end with v2 tested, built and runnable on a developer's
   machine.
 - **Phase 7 adds CI:** a release workflow, the only thing that runs on GitHub.
-- **Phases 8–9 (the release candidate and the release) come later,** and are not started now.
+- **Phase 8 publishes a release candidate** and tests it from each registry and in publication-md.
+- **Phase 9 (the release) comes later,** and is not started now.
 - **Phase 10 deprecates v1** once 2.0.0 is published.
 
 Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its exit criteria hold.
@@ -192,15 +193,13 @@ This is the first phase that adds files to `.github/`.
 - no workflow runs on a push or a pull request;
 - nothing is published.
 
-## Later: not started now
+## Phase 8: Release candidate
 
-### Phase 8: Release candidate
-
-- [ ] **P8.1** On PyPI, register the name `pagesequence` (free on 2026-10-18), and set up a pending
+- **P8.1** On PyPI, register the name `pagesequence` (free on 2026-10-18), and set up a pending
   trusted publisher for the workflow `release.yml`. The first try is `2.0.0-rc.1` (P8.4).
-- [ ] **P8.2** On jsr.io, create the `@publication-md` scope and link the package to the
+- **P8.2** On jsr.io, create the `@publication-md` scope and link the package to the
   repository.
-- [ ] **P8.3** On npmjs.com, create the `@publication-md` organisation. Publish `2.0.0-rc.1` there
+- **P8.3** On npmjs.com, create the `@publication-md` organisation. Publish `2.0.0-rc.1` there
   by hand, with 2FA and `--tag next`, then set up trusted publishing for the workflow
   `release.yml`.
 - [ ] **P8.4** Push the tag `v2.0.0-rc.1`. The release workflow publishes to JSR and PyPI, and
@@ -225,6 +224,8 @@ This is the first phase that adds files to `.github/`.
 **Exit:**
 - the latest release candidate passes P8.5 and P8.6;
 - nothing has changed since that release candidate, other than its version.
+
+## Later: not started now
 
 ### Phase 9: Release
 

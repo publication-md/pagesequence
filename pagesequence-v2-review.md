@@ -28,8 +28,8 @@ point without a box is implemented or settled, or is an alternative that was not
 
 **Status (2026-10-18).** Every point without a box is in `spec/pagesequence.md` (the format) or
 `pagesequence-v2.md` (the design and migration note), or is implemented: the cases of 8.3, 9.2,
-10.3, 11.2, 16.3, 16.4 and 19.3 are in `testdata/cases.json`. The one ticked point left is 18.6,
-registering the PyPI name, which is a task in `ROADMAP.md` (P8.1).
+10.3, 11.2, 16.3, 16.4 and 19.3 are in `testdata/cases.json`. No ticked point is left: 18.6, the
+PyPI name, was registered with the first release candidate (`ROADMAP.md`, P8.1).
 
 ## Verdict
 
@@ -550,7 +550,8 @@ to `I-III`, so the property fails on valid generated input.
 - **18.4** Name the test runner (`deno test`, `node --test` or vitest) and the minimum Node and Python
   versions. *Recommended: test runners without dependencies: `deno test` or `node --test` for JS, and `unittest` for Python.*
 - **18.5** Plan the first npm publish as a manual publish with 2FA, then configure trusted publishing. *Chosen by the author, with 18.1.*
-- [x] **18.6** Register the PyPI name early.
+- **18.6** Register the PyPI name early. *Done: the release workflow published `pagesequence`
+  2.0.0rc1 on 2026-10-18, through a pending trusted publisher.*
 - **18.7** Tag or branch v1 1.3.3 before restructuring, so a v1 fix is still possible. *Done: the annotated tag `v1.3.3` is on `286b6f1`, which JSR published as 1.3.3 on 2025-03-05, and the branch `v1` holds that tag plus the test fix `97b80c6`. Neither is pushed yet: `git push origin v1.3.3 v1`.*
 - **18.8** Add SPDX `license` fields to all three manifests. *All three, since npm stays (18.1). The JSR config is `deno.json` (22.6). Done: `"license": "MIT"` in `package.json` and `deno.json`, and `license = "MIT"` in `pyproject.toml`.*
 

@@ -1,6 +1,6 @@
 {
   "name": "@publication-md/pagesequence",
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.2",
   "description": "Map the pages of a document (like a PDF) to the labels printed on them.",
   "license": "MIT",
   "author": "Lasse Hellman <github@tvartom.com>",
