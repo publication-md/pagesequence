@@ -1,0 +1,2912 @@
+{
+  "description": "Shared test cases for PageSequence; see testdata/README.md.",
+  "groups": {
+    "syntax": [
+      {
+        "input": "1",
+        "pages": [{"ignored": false, "labels": ["1"]}],
+        "normalized": "1",
+        "lengths": {"indexLengthAll": 1, "indexLength": 1, "labelLength": 1},
+        "labelsAt": [
+          {"index": 0, "labels": ["1"]},
+          {"index": 1, "labels": null},
+          {"index": -1, "labels": null}
+        ]
+      },
+      {
+        "input": "1 - 2",
+        "pages": [{"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]}],
+        "normalized": "1-2"
+      },
+      {
+        "input": "1,2,3",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}
+        ],
+        "normalized": "1-3"
+      },
+      {
+        "input": "1 , 2+3 .. 6+7",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2", "3"]},
+          {"ignored": false, "labels": ["4", "5"]}, {"ignored": false, "labels": ["6", "7"]}
+        ],
+        "normalized": "1, 2+3..6+7"
+      },
+      {
+        "input": "  ! 1 ,  2 + 3  ",
+        "pages": [{"ignored": true, "labels": ["1"]}, {"ignored": false, "labels": ["2", "3"]}],
+        "normalized": "!1, 2+3"
+      },
+      {
+        "input": "Appendix A, 12 b",
+        "pages": [
+          {"ignored": false, "labels": ["Appendix A"]}, {"ignored": false, "labels": ["12 b"]}
+        ],
+        "normalized": "\"Appendix A\", \"12 b\"",
+        "note": "spaces inside a bare label are part of it"
+      },
+      {"input": "1-2-3", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "1-3+4-6", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "2+3-46+47", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "1+2..3+4..5+6", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "-5", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "2+", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "+3", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "1..", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "2+3..", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "\"a\"b", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "\"a\" b", "errors": [{"kind": "syntax", "position": 0}]},
+      {
+        "input": "\"a\\b\"",
+        "note": "a backslash before anything but a quote or a backslash",
+        "errors": [{"kind": "syntax", "position": 0}]
+      },
+      {"input": "1-5/", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "1-5/Latin", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "1, 2-3-4", "errors": [{"kind": "syntax", "position": 3}]},
+      {"input": "1–52", "errors": [{"kind": "reserved-char", "position": 0}]},
+      {"input": "1; 2", "errors": [{"kind": "reserved-char", "position": 0}]},
+      {"input": "2|3", "errors": [{"kind": "reserved-char", "position": 0}]},
+      {"input": "Hej!", "errors": [{"kind": "reserved-char", "position": 0}]},
+      {"input": "!!3", "errors": [{"kind": "reserved-char", "position": 0}]},
+      {"input": "1-!3", "errors": [{"kind": "reserved-char", "position": 0}]},
+      {"input": "My\"label", "errors": [{"kind": "reserved-char", "position": 0}]},
+      {"input": "a\\b", "errors": [{"kind": "reserved-char", "position": 0}]},
+      {"input": "a/b", "errors": [{"kind": "reserved-char", "position": 0}]},
+      {"input": "V/latin", "errors": [{"kind": "reserved-char", "position": 0}]},
+      {
+        "input": "1, a\tb",
+        "note": "a control character",
+        "errors": [{"kind": "reserved-char", "position": 3}]
+      },
+      {
+        "input": "\"a\nb\"",
+        "note": "control characters are not allowed even in quotes",
+        "errors": [{"kind": "reserved-char", "position": 0}]
+      },
+      {"input": "1, 2…3", "errors": [{"kind": "reserved-char", "position": 3}]},
+      {"input": "\"Omslag, 2-31", "errors": [{"kind": "unclosed-quote", "position": 0}]},
+      {"input": "1, \"a", "errors": [{"kind": "unclosed-quote", "position": 3}]},
+      {"input": "1...3", "errors": [{"kind": "dot-at-edge", "position": 0}]},
+      {"input": "s.", "errors": [{"kind": "dot-at-edge", "position": 0}]},
+      {"input": "1, .5", "errors": [{"kind": "dot-at-edge", "position": 3}]},
+      {"input": "", "errors": [{"kind": "empty", "position": 0}]},
+      {
+        "input": "   ",
+        "errors": [{"kind": "empty", "position": 0}, {"kind": "empty-item", "position": 0}]
+      },
+      {"input": "1,,2", "errors": [{"kind": "empty-item", "position": 2}]},
+      {"input": "1-52,", "errors": [{"kind": "empty-item", "position": 5}]},
+      {"input": "!", "errors": [{"kind": "empty-item", "position": 0}]},
+      {"input": ",1", "errors": [{"kind": "empty-item", "position": 0}]},
+      {
+        "input": "1, !",
+        "errors": [{"kind": "empty-item", "position": 2}, {"kind": "empty-item", "position": 3}]
+      },
+      {"input": "1-", "errors": [{"kind": "open-end", "position": 0}]},
+      {"input": "5, 1-", "errors": [{"kind": "open-end", "position": 3}]},
+      {"input": "1..16", "errors": [{"kind": "single-label-run", "position": 0}]},
+      {"input": "3-3", "errors": [{"kind": "equal-ends", "position": 0}]},
+      {"input": "2+3..2+3", "errors": [{"kind": "equal-ends", "position": 0}]},
+      {"input": "2+3..46+47+48", "errors": [{"kind": "run-shape", "position": 0}]},
+      {"input": "1..2+3", "errors": [{"kind": "run-shape", "position": 0}]},
+      {"input": "2+3..5+6", "errors": [{"kind": "uneven-run", "position": 0}]},
+      {"input": "2+3..46+49", "errors": [{"kind": "uneven-run", "position": 0}]},
+      {
+        "input": "1+2..1+4",
+        "note": "the first column doesn't step",
+        "errors": [
+          {"kind": "uneven-run", "position": 0},
+          {"kind": "equal-ends", "position": 0},
+          {"kind": "no-system", "position": 0}
+        ]
+      },
+      {"input": "1-5, 3", "errors": [{"kind": "duplicate-label", "position": 5}]},
+      {"input": "2+2", "errors": [{"kind": "duplicate-label", "position": 0}]},
+      {"input": "Omslag, 2-31, omslag", "errors": [{"kind": "duplicate-label", "position": 14}]},
+      {
+        "input": "1-5, 3, 1–2",
+        "errors": [
+          {"kind": "duplicate-label", "position": 5},
+          {"kind": "reserved-char", "position": 8}
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "input": "1-16",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]}
+        ],
+        "normalized": "1-16"
+      },
+      {
+        "input": "1-52",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]},
+          {"ignored": false, "labels": ["33"]}, {"ignored": false, "labels": ["34"]},
+          {"ignored": false, "labels": ["35"]}, {"ignored": false, "labels": ["36"]},
+          {"ignored": false, "labels": ["37"]}, {"ignored": false, "labels": ["38"]},
+          {"ignored": false, "labels": ["39"]}, {"ignored": false, "labels": ["40"]},
+          {"ignored": false, "labels": ["41"]}, {"ignored": false, "labels": ["42"]},
+          {"ignored": false, "labels": ["43"]}, {"ignored": false, "labels": ["44"]},
+          {"ignored": false, "labels": ["45"]}, {"ignored": false, "labels": ["46"]},
+          {"ignored": false, "labels": ["47"]}, {"ignored": false, "labels": ["48"]},
+          {"ignored": false, "labels": ["49"]}, {"ignored": false, "labels": ["50"]},
+          {"ignored": false, "labels": ["51"]}, {"ignored": false, "labels": ["52"]}
+        ],
+        "normalized": "1-52",
+        "length": 52,
+        "lengths": {"indexLengthAll": 52, "indexLength": 52, "labelLength": 52}
+      },
+      {
+        "input": "1-20, 22-52",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["22"]}, {"ignored": false, "labels": ["23"]},
+          {"ignored": false, "labels": ["24"]}, {"ignored": false, "labels": ["25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}, {"ignored": false, "labels": ["33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}, {"ignored": false, "labels": ["37"]},
+          {"ignored": false, "labels": ["38"]}, {"ignored": false, "labels": ["39"]},
+          {"ignored": false, "labels": ["40"]}, {"ignored": false, "labels": ["41"]},
+          {"ignored": false, "labels": ["42"]}, {"ignored": false, "labels": ["43"]},
+          {"ignored": false, "labels": ["44"]}, {"ignored": false, "labels": ["45"]},
+          {"ignored": false, "labels": ["46"]}, {"ignored": false, "labels": ["47"]},
+          {"ignored": false, "labels": ["48"]}, {"ignored": false, "labels": ["49"]},
+          {"ignored": false, "labels": ["50"]}, {"ignored": false, "labels": ["51"]},
+          {"ignored": false, "labels": ["52"]}
+        ],
+        "normalized": "1-20, 22-52"
+      },
+      {
+        "input": "0-3",
+        "pages": [
+          {"ignored": false, "labels": ["0"]}, {"ignored": false, "labels": ["1"]},
+          {"ignored": false, "labels": ["2"]}, {"ignored": false, "labels": ["3"]}
+        ],
+        "normalized": "0-3"
+      },
+      {
+        "input": "9-11",
+        "pages": [
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}
+        ],
+        "normalized": "9-11"
+      },
+      {
+        "input": "999999998-999999999",
+        "pages": [
+          {"ignored": false, "labels": ["999999998"]}, {"ignored": false, "labels": ["999999999"]}
+        ],
+        "normalized": "999999998-999999999",
+        "note": "integers have at most 9 digits"
+      },
+      {
+        "input": "\"Version: 1.0.0\"-\"Version: 1.12.0\"",
+        "pages": [
+          {"ignored": false, "labels": ["Version: 1.0.0"]},
+          {"ignored": false, "labels": ["Version: 1.1.0"]},
+          {"ignored": false, "labels": ["Version: 1.2.0"]},
+          {"ignored": false, "labels": ["Version: 1.3.0"]},
+          {"ignored": false, "labels": ["Version: 1.4.0"]},
+          {"ignored": false, "labels": ["Version: 1.5.0"]},
+          {"ignored": false, "labels": ["Version: 1.6.0"]},
+          {"ignored": false, "labels": ["Version: 1.7.0"]},
+          {"ignored": false, "labels": ["Version: 1.8.0"]},
+          {"ignored": false, "labels": ["Version: 1.9.0"]},
+          {"ignored": false, "labels": ["Version: 1.10.0"]},
+          {"ignored": false, "labels": ["Version: 1.11.0"]},
+          {"ignored": false, "labels": ["Version: 1.12.0"]}
+        ],
+        "normalized": "\"Version: 1.0.0\"-\"Version: 1.12.0\""
+      },
+      {
+        "input": "inflikat.1-inflikat.12",
+        "pages": [
+          {"ignored": false, "labels": ["inflikat.1"]},
+          {"ignored": false, "labels": ["inflikat.2"]},
+          {"ignored": false, "labels": ["inflikat.3"]},
+          {"ignored": false, "labels": ["inflikat.4"]},
+          {"ignored": false, "labels": ["inflikat.5"]},
+          {"ignored": false, "labels": ["inflikat.6"]},
+          {"ignored": false, "labels": ["inflikat.7"]},
+          {"ignored": false, "labels": ["inflikat.8"]},
+          {"ignored": false, "labels": ["inflikat.9"]},
+          {"ignored": false, "labels": ["inflikat.10"]},
+          {"ignored": false, "labels": ["inflikat.11"]},
+          {"ignored": false, "labels": ["inflikat.12"]}
+        ],
+        "normalized": "inflikat.1-inflikat.12"
+      },
+      {
+        "input": "\"Plansch A\"-\"Plansch D\"",
+        "pages": [
+          {"ignored": false, "labels": ["Plansch A"]}, {"ignored": false, "labels": ["Plansch B"]},
+          {"ignored": false, "labels": ["Plansch C"]}, {"ignored": false, "labels": ["Plansch D"]}
+        ],
+        "normalized": "\"Plansch A\"-\"Plansch D\""
+      },
+      {
+        "input": "1a-1c",
+        "pages": [
+          {"ignored": false, "labels": ["1a"]}, {"ignored": false, "labels": ["1b"]},
+          {"ignored": false, "labels": ["1c"]}
+        ],
+        "normalized": "1a-1c"
+      },
+      {
+        "input": "v1-v2",
+        "pages": [{"ignored": false, "labels": ["v1"]}, {"ignored": false, "labels": ["v2"]}],
+        "normalized": "v1-v2"
+      },
+      {
+        "input": "x9-x11",
+        "pages": [
+          {"ignored": false, "labels": ["x9"]}, {"ignored": false, "labels": ["x10"]},
+          {"ignored": false, "labels": ["x11"]}
+        ],
+        "normalized": "x9-x11"
+      },
+      {
+        "input": "i-iv, 1-48",
+        "pages": [
+          {"ignored": false, "labels": ["i"]}, {"ignored": false, "labels": ["ii"]},
+          {"ignored": false, "labels": ["iii"]}, {"ignored": false, "labels": ["iv"]},
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]},
+          {"ignored": false, "labels": ["33"]}, {"ignored": false, "labels": ["34"]},
+          {"ignored": false, "labels": ["35"]}, {"ignored": false, "labels": ["36"]},
+          {"ignored": false, "labels": ["37"]}, {"ignored": false, "labels": ["38"]},
+          {"ignored": false, "labels": ["39"]}, {"ignored": false, "labels": ["40"]},
+          {"ignored": false, "labels": ["41"]}, {"ignored": false, "labels": ["42"]},
+          {"ignored": false, "labels": ["43"]}, {"ignored": false, "labels": ["44"]},
+          {"ignored": false, "labels": ["45"]}, {"ignored": false, "labels": ["46"]},
+          {"ignored": false, "labels": ["47"]}, {"ignored": false, "labels": ["48"]}
+        ],
+        "normalized": "i-iv, 1-48"
+      },
+      {
+        "input": "Appendix A - Appendix C",
+        "pages": [
+          {"ignored": false, "labels": ["Appendix A"]},
+          {"ignored": false, "labels": ["Appendix B"]},
+          {"ignored": false, "labels": ["Appendix C"]}
+        ],
+        "normalized": "\"Appendix A\"-\"Appendix C\""
+      },
+      {
+        "input": "Appendix ii - Appendix v",
+        "pages": [
+          {"ignored": false, "labels": ["Appendix ii"]},
+          {"ignored": false, "labels": ["Appendix iii"]},
+          {"ignored": false, "labels": ["Appendix iv"]},
+          {"ignored": false, "labels": ["Appendix v"]}
+        ],
+        "normalized": "\"Appendix ii\"-\"Appendix v\""
+      },
+      {
+        "input": "12i-12v",
+        "pages": [
+          {"ignored": false, "labels": ["12i"]}, {"ignored": false, "labels": ["12ii"]},
+          {"ignored": false, "labels": ["12iii"]}, {"ignored": false, "labels": ["12iv"]},
+          {"ignored": false, "labels": ["12v"]}
+        ],
+        "normalized": "12i-12v",
+        "note": "v1: roman wins, last value 5"
+      },
+      {
+        "input": "12i-12u, 12v",
+        "pages": [
+          {"ignored": false, "labels": ["12i"]}, {"ignored": false, "labels": ["12j"]},
+          {"ignored": false, "labels": ["12k"]}, {"ignored": false, "labels": ["12l"]},
+          {"ignored": false, "labels": ["12m"]}, {"ignored": false, "labels": ["12n"]},
+          {"ignored": false, "labels": ["12o"]}, {"ignored": false, "labels": ["12p"]},
+          {"ignored": false, "labels": ["12q"]}, {"ignored": false, "labels": ["12r"]},
+          {"ignored": false, "labels": ["12s"]}, {"ignored": false, "labels": ["12t"]},
+          {"ignored": false, "labels": ["12u"]}, {"ignored": false, "labels": ["12v"]}
+        ],
+        "normalized": "12i-12v/latin",
+        "note": "v1's workaround for letters; v2 writes a flag"
+      },
+      {"input": "5-3", "errors": [{"kind": "descending", "position": 0}]},
+      {"input": "D-A", "errors": [{"kind": "descending", "position": 0}]},
+      {"input": "i-IV", "errors": [{"kind": "different-case", "position": 0}]},
+      {"input": "a-C", "errors": [{"kind": "different-case", "position": 0}]},
+      {"input": "1a-2c", "errors": [{"kind": "no-system", "position": 0}]},
+      {"input": "omslag-baksida", "errors": [{"kind": "no-system", "position": 0}]},
+      {"input": "Y-AB", "errors": [{"kind": "no-system", "position": 0}]},
+      {"input": "08-12", "errors": [{"kind": "no-system", "position": 0}]},
+      {"input": "1-1000000000", "errors": [{"kind": "no-system", "position": 0}]},
+      {"input": "1, 2-1", "errors": [{"kind": "descending", "position": 3}]}
+    ],
+    "runs": [
+      {
+        "input": "2+3..46+47",
+        "pages": [
+          {"ignored": false, "labels": ["2", "3"]}, {"ignored": false, "labels": ["4", "5"]},
+          {"ignored": false, "labels": ["6", "7"]}, {"ignored": false, "labels": ["8", "9"]},
+          {"ignored": false, "labels": ["10", "11"]}, {"ignored": false, "labels": ["12", "13"]},
+          {"ignored": false, "labels": ["14", "15"]}, {"ignored": false, "labels": ["16", "17"]},
+          {"ignored": false, "labels": ["18", "19"]}, {"ignored": false, "labels": ["20", "21"]},
+          {"ignored": false, "labels": ["22", "23"]}, {"ignored": false, "labels": ["24", "25"]},
+          {"ignored": false, "labels": ["26", "27"]}, {"ignored": false, "labels": ["28", "29"]},
+          {"ignored": false, "labels": ["30", "31"]}, {"ignored": false, "labels": ["32", "33"]},
+          {"ignored": false, "labels": ["34", "35"]}, {"ignored": false, "labels": ["36", "37"]},
+          {"ignored": false, "labels": ["38", "39"]}, {"ignored": false, "labels": ["40", "41"]},
+          {"ignored": false, "labels": ["42", "43"]}, {"ignored": false, "labels": ["44", "45"]},
+          {"ignored": false, "labels": ["46", "47"]}
+        ],
+        "normalized": "2+3..46+47"
+      },
+      {
+        "input": "12+13+14..18+19+20",
+        "pages": [
+          {"ignored": false, "labels": ["12", "13", "14"]},
+          {"ignored": false, "labels": ["15", "16", "17"]},
+          {"ignored": false, "labels": ["18", "19", "20"]}
+        ],
+        "normalized": "12+13+14..18+19+20",
+        "format": ["12+13+14", "15+16+17", "18+19+20"]
+      },
+      {
+        "input": "V+W..X+Y",
+        "pages": [
+          {"ignored": false, "labels": ["V", "W"]}, {"ignored": false, "labels": ["X", "Y"]}
+        ],
+        "normalized": "V+W, X+Y",
+        "note": "the first column is read as letters, since V-X as roman isn't a whole number of steps"
+      },
+      {
+        "input": "T+U..X+Y",
+        "pages": [
+          {"ignored": false, "labels": ["T", "U"]}, {"ignored": false, "labels": ["V", "W"]},
+          {"ignored": false, "labels": ["X", "Y"]}
+        ],
+        "normalized": "T+U..X+Y"
+      },
+      {
+        "input": "i+ii..v+vi",
+        "pages": [
+          {"ignored": false, "labels": ["i", "ii"]}, {"ignored": false, "labels": ["iii", "iv"]},
+          {"ignored": false, "labels": ["v", "vi"]}
+        ],
+        "normalized": "i+ii..v+vi"
+      },
+      {
+        "input": "1a+1b..1e+1f",
+        "pages": [
+          {"ignored": false, "labels": ["1a", "1b"]}, {"ignored": false, "labels": ["1c", "1d"]},
+          {"ignored": false, "labels": ["1e", "1f"]}
+        ],
+        "normalized": "1a+1b..1e+1f"
+      },
+      {
+        "input": "2+3, 4+5, 6+7",
+        "pages": [
+          {"ignored": false, "labels": ["2", "3"]}, {"ignored": false, "labels": ["4", "5"]},
+          {"ignored": false, "labels": ["6", "7"]}
+        ],
+        "normalized": "2+3..6+7"
+      },
+      {
+        "input": "!2+3..6+7",
+        "pages": [
+          {"ignored": true, "labels": ["2", "3"]}, {"ignored": true, "labels": ["4", "5"]},
+          {"ignored": true, "labels": ["6", "7"]}
+        ],
+        "normalized": "!2+3..6+7"
+      },
+      {
+        "input": "20+29..22+31",
+        "pages": [
+          {"ignored": false, "labels": ["20", "29"]}, {"ignored": false, "labels": ["22", "31"]}
+        ],
+        "normalized": "20+29, 22+31"
+      }
+    ],
+    "quoting": [
+      {
+        "input": "\"Omslag, insida\", 2-31",
+        "pages": [
+          {"ignored": false, "labels": ["Omslag, insida"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}
+        ],
+        "normalized": "\"Omslag, insida\", 2-31",
+        "labelsAt": [{"index": 0, "labels": ["Omslag, insida"]}]
+      },
+      {
+        "input": "\"Omslag, insida\"+2",
+        "pages": [{"ignored": false, "labels": ["Omslag, insida", "2"]}],
+        "normalized": "\"Omslag, insida\"+2",
+        "format": ["Omslag, insida+2"]
+      },
+      {
+        "input": "\"My \\\"label\\\" - 1\"",
+        "pages": [{"ignored": false, "labels": ["My \"label\" - 1"]}],
+        "normalized": "\"My \\\"label\\\" - 1\""
+      },
+      {
+        "input": "\"a\\\\b\"",
+        "pages": [{"ignored": false, "labels": ["a\\b"]}],
+        "normalized": "\"a\\\\b\""
+      },
+      {
+        "input": "\"Omslag\", 2-31",
+        "pages": [
+          {"ignored": false, "labels": ["Omslag"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}
+        ],
+        "normalized": "Omslag, 2-31"
+      },
+      {
+        "input": "\"Hej!\"",
+        "pages": [{"ignored": false, "labels": ["Hej!"]}],
+        "normalized": "\"Hej!\""
+      },
+      {
+        "input": "\"1990/1\"",
+        "pages": [{"ignored": false, "labels": ["1990/1"]}],
+        "normalized": "\"1990/1\""
+      },
+      {
+        "input": "\"1–52\"",
+        "pages": [{"ignored": false, "labels": ["1–52"]}],
+        "normalized": "\"1–52\""
+      },
+      {
+        "input": "\".5\", \"a..b\", \"s.\"",
+        "pages": [
+          {"ignored": false, "labels": [".5"]}, {"ignored": false, "labels": ["a..b"]},
+          {"ignored": false, "labels": ["s."]}
+        ],
+        "normalized": "\".5\", \"a..b\", \"s.\""
+      },
+      {
+        "input": "1.5, a.b",
+        "pages": [{"ignored": false, "labels": ["1.5"]}, {"ignored": false, "labels": ["a.b"]}],
+        "normalized": "1.5, a.b"
+      },
+      {
+        "input": "\"a\"-\"c\"",
+        "pages": [
+          {"ignored": false, "labels": ["a"]}, {"ignored": false, "labels": ["b"]},
+          {"ignored": false, "labels": ["c"]}
+        ],
+        "normalized": "a-c"
+      },
+      {
+        "input": "\"x\" + \"y\"",
+        "pages": [{"ignored": false, "labels": ["x", "y"]}],
+        "normalized": "x+y"
+      },
+      {
+        "input": "\"\", 2-15, \"\", \"\"",
+        "pages": [
+          {"ignored": false, "labels": [""]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": [""]},
+          {"ignored": false, "labels": [""]}
+        ],
+        "normalized": "\"\", 2-15, \"\", \"\"",
+        "lengths": {"indexLengthAll": 17, "indexLength": 17, "labelLength": 17},
+        "lookups": [
+          {"pages": "\"\"", "indexes": null, "labels": null},
+          {"pages": "\"\", 2", "indexes": null, "labels": null},
+          {"pages": "2", "indexes": [1], "labels": ["2"]}
+        ]
+      },
+      {
+        "input": "\"\"+2",
+        "pages": [{"ignored": false, "labels": ["", "2"]}],
+        "normalized": "\"\"+2",
+        "format": ["+2"]
+      },
+      {"input": "a b", "pages": [{"ignored": false, "labels": ["a b"]}], "normalized": "\"a b\""},
+      {
+        "input": "a b",
+        "pages": [{"ignored": false, "labels": ["a b"]}],
+        "normalized": "a b",
+        "note": "U+00A0 is label text in strict mode, and only U+0020 makes normalize quote"
+      },
+      {
+        "input": "å",
+        "pages": [{"ignored": false, "labels": ["å"]}],
+        "normalized": "å",
+        "note": "NFC first",
+        "equals": [{"with": "å", "result": true}]
+      },
+      {"input": "å, å", "errors": [{"kind": "duplicate-label", "position": 3}]},
+      {"input": "Ä, ä", "errors": [{"kind": "duplicate-label", "position": 3}]},
+      {
+        "input": "ß, ss",
+        "pages": [{"ignored": false, "labels": ["ß"]}, {"ignored": false, "labels": ["ss"]}],
+        "normalized": "ß, ss",
+        "note": "lowercasing is not case folding"
+      }
+    ],
+    "numbering": [
+      {
+        "input": "C-D",
+        "pages": [{"ignored": false, "labels": ["C"]}, {"ignored": false, "labels": ["D"]}],
+        "normalized": "C-D",
+        "note": "letters: last value 4, not 500"
+      },
+      {
+        "input": "V-X",
+        "pages": [
+          {"ignored": false, "labels": ["V"]}, {"ignored": false, "labels": ["VI"]},
+          {"ignored": false, "labels": ["VII"]}, {"ignored": false, "labels": ["VIII"]},
+          {"ignored": false, "labels": ["IX"]}, {"ignored": false, "labels": ["X"]}
+        ],
+        "normalized": "V-X",
+        "note": "roman: last value 10, not 24"
+      },
+      {
+        "input": "I-M",
+        "pages": [
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["J"]},
+          {"ignored": false, "labels": ["K"]}, {"ignored": false, "labels": ["L"]},
+          {"ignored": false, "labels": ["M"]}
+        ],
+        "normalized": "I-M"
+      },
+      {
+        "input": "I-L",
+        "pages": [
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["J"]},
+          {"ignored": false, "labels": ["K"]}, {"ignored": false, "labels": ["L"]}
+        ],
+        "normalized": "I-L"
+      },
+      {
+        "input": "L-M",
+        "pages": [{"ignored": false, "labels": ["L"]}, {"ignored": false, "labels": ["M"]}],
+        "normalized": "L-M"
+      },
+      {
+        "input": "x-l",
+        "pages": [
+          {"ignored": false, "labels": ["x"]}, {"ignored": false, "labels": ["xi"]},
+          {"ignored": false, "labels": ["xii"]}, {"ignored": false, "labels": ["xiii"]},
+          {"ignored": false, "labels": ["xiv"]}, {"ignored": false, "labels": ["xv"]},
+          {"ignored": false, "labels": ["xvi"]}, {"ignored": false, "labels": ["xvii"]},
+          {"ignored": false, "labels": ["xviii"]}, {"ignored": false, "labels": ["xix"]},
+          {"ignored": false, "labels": ["xx"]}, {"ignored": false, "labels": ["xxi"]},
+          {"ignored": false, "labels": ["xxii"]}, {"ignored": false, "labels": ["xxiii"]},
+          {"ignored": false, "labels": ["xxiv"]}, {"ignored": false, "labels": ["xxv"]},
+          {"ignored": false, "labels": ["xxvi"]}, {"ignored": false, "labels": ["xxvii"]},
+          {"ignored": false, "labels": ["xxviii"]}, {"ignored": false, "labels": ["xxix"]},
+          {"ignored": false, "labels": ["xxx"]}, {"ignored": false, "labels": ["xxxi"]},
+          {"ignored": false, "labels": ["xxxii"]}, {"ignored": false, "labels": ["xxxiii"]},
+          {"ignored": false, "labels": ["xxxiv"]}, {"ignored": false, "labels": ["xxxv"]},
+          {"ignored": false, "labels": ["xxxvi"]}, {"ignored": false, "labels": ["xxxvii"]},
+          {"ignored": false, "labels": ["xxxviii"]}, {"ignored": false, "labels": ["xxxix"]},
+          {"ignored": false, "labels": ["xl"]}, {"ignored": false, "labels": ["xli"]},
+          {"ignored": false, "labels": ["xlii"]}, {"ignored": false, "labels": ["xliii"]},
+          {"ignored": false, "labels": ["xliv"]}, {"ignored": false, "labels": ["xlv"]},
+          {"ignored": false, "labels": ["xlvi"]}, {"ignored": false, "labels": ["xlvii"]},
+          {"ignored": false, "labels": ["xlviii"]}, {"ignored": false, "labels": ["xlix"]},
+          {"ignored": false, "labels": ["l"]}
+        ],
+        "normalized": "x-l"
+      },
+      {
+        "input": "iv-ix",
+        "pages": [
+          {"ignored": false, "labels": ["iv"]}, {"ignored": false, "labels": ["v"]},
+          {"ignored": false, "labels": ["vi"]}, {"ignored": false, "labels": ["vii"]},
+          {"ignored": false, "labels": ["viii"]}, {"ignored": false, "labels": ["ix"]}
+        ],
+        "normalized": "iv-ix"
+      },
+      {
+        "input": "xi-xl",
+        "pages": [
+          {"ignored": false, "labels": ["xi"]}, {"ignored": false, "labels": ["xii"]},
+          {"ignored": false, "labels": ["xiii"]}, {"ignored": false, "labels": ["xiv"]},
+          {"ignored": false, "labels": ["xv"]}, {"ignored": false, "labels": ["xvi"]},
+          {"ignored": false, "labels": ["xvii"]}, {"ignored": false, "labels": ["xviii"]},
+          {"ignored": false, "labels": ["xix"]}, {"ignored": false, "labels": ["xx"]},
+          {"ignored": false, "labels": ["xxi"]}, {"ignored": false, "labels": ["xxii"]},
+          {"ignored": false, "labels": ["xxiii"]}, {"ignored": false, "labels": ["xxiv"]},
+          {"ignored": false, "labels": ["xxv"]}, {"ignored": false, "labels": ["xxvi"]},
+          {"ignored": false, "labels": ["xxvii"]}, {"ignored": false, "labels": ["xxviii"]},
+          {"ignored": false, "labels": ["xxix"]}, {"ignored": false, "labels": ["xxx"]},
+          {"ignored": false, "labels": ["xxxi"]}, {"ignored": false, "labels": ["xxxii"]},
+          {"ignored": false, "labels": ["xxxiii"]}, {"ignored": false, "labels": ["xxxiv"]},
+          {"ignored": false, "labels": ["xxxv"]}, {"ignored": false, "labels": ["xxxvi"]},
+          {"ignored": false, "labels": ["xxxvii"]}, {"ignored": false, "labels": ["xxxviii"]},
+          {"ignored": false, "labels": ["xxxix"]}, {"ignored": false, "labels": ["xl"]}
+        ],
+        "normalized": "xi-xl"
+      },
+      {
+        "input": "CC-CD",
+        "pages": [
+          {"ignored": false, "labels": ["CC"]}, {"ignored": false, "labels": ["CCI"]},
+          {"ignored": false, "labels": ["CCII"]}, {"ignored": false, "labels": ["CCIII"]},
+          {"ignored": false, "labels": ["CCIV"]}, {"ignored": false, "labels": ["CCV"]},
+          {"ignored": false, "labels": ["CCVI"]}, {"ignored": false, "labels": ["CCVII"]},
+          {"ignored": false, "labels": ["CCVIII"]}, {"ignored": false, "labels": ["CCIX"]},
+          {"ignored": false, "labels": ["CCX"]}, {"ignored": false, "labels": ["CCXI"]},
+          {"ignored": false, "labels": ["CCXII"]}, {"ignored": false, "labels": ["CCXIII"]},
+          {"ignored": false, "labels": ["CCXIV"]}, {"ignored": false, "labels": ["CCXV"]},
+          {"ignored": false, "labels": ["CCXVI"]}, {"ignored": false, "labels": ["CCXVII"]},
+          {"ignored": false, "labels": ["CCXVIII"]}, {"ignored": false, "labels": ["CCXIX"]},
+          {"ignored": false, "labels": ["CCXX"]}, {"ignored": false, "labels": ["CCXXI"]},
+          {"ignored": false, "labels": ["CCXXII"]}, {"ignored": false, "labels": ["CCXXIII"]},
+          {"ignored": false, "labels": ["CCXXIV"]}, {"ignored": false, "labels": ["CCXXV"]},
+          {"ignored": false, "labels": ["CCXXVI"]}, {"ignored": false, "labels": ["CCXXVII"]},
+          {"ignored": false, "labels": ["CCXXVIII"]}, {"ignored": false, "labels": ["CCXXIX"]},
+          {"ignored": false, "labels": ["CCXXX"]}, {"ignored": false, "labels": ["CCXXXI"]},
+          {"ignored": false, "labels": ["CCXXXII"]}, {"ignored": false, "labels": ["CCXXXIII"]},
+          {"ignored": false, "labels": ["CCXXXIV"]}, {"ignored": false, "labels": ["CCXXXV"]},
+          {"ignored": false, "labels": ["CCXXXVI"]}, {"ignored": false, "labels": ["CCXXXVII"]},
+          {"ignored": false, "labels": ["CCXXXVIII"]}, {"ignored": false, "labels": ["CCXXXIX"]},
+          {"ignored": false, "labels": ["CCXL"]}, {"ignored": false, "labels": ["CCXLI"]},
+          {"ignored": false, "labels": ["CCXLII"]}, {"ignored": false, "labels": ["CCXLIII"]},
+          {"ignored": false, "labels": ["CCXLIV"]}, {"ignored": false, "labels": ["CCXLV"]},
+          {"ignored": false, "labels": ["CCXLVI"]}, {"ignored": false, "labels": ["CCXLVII"]},
+          {"ignored": false, "labels": ["CCXLVIII"]}, {"ignored": false, "labels": ["CCXLIX"]},
+          {"ignored": false, "labels": ["CCL"]}, {"ignored": false, "labels": ["CCLI"]},
+          {"ignored": false, "labels": ["CCLII"]}, {"ignored": false, "labels": ["CCLIII"]},
+          {"ignored": false, "labels": ["CCLIV"]}, {"ignored": false, "labels": ["CCLV"]},
+          {"ignored": false, "labels": ["CCLVI"]}, {"ignored": false, "labels": ["CCLVII"]},
+          {"ignored": false, "labels": ["CCLVIII"]}, {"ignored": false, "labels": ["CCLIX"]},
+          {"ignored": false, "labels": ["CCLX"]}, {"ignored": false, "labels": ["CCLXI"]},
+          {"ignored": false, "labels": ["CCLXII"]}, {"ignored": false, "labels": ["CCLXIII"]},
+          {"ignored": false, "labels": ["CCLXIV"]}, {"ignored": false, "labels": ["CCLXV"]},
+          {"ignored": false, "labels": ["CCLXVI"]}, {"ignored": false, "labels": ["CCLXVII"]},
+          {"ignored": false, "labels": ["CCLXVIII"]}, {"ignored": false, "labels": ["CCLXIX"]},
+          {"ignored": false, "labels": ["CCLXX"]}, {"ignored": false, "labels": ["CCLXXI"]},
+          {"ignored": false, "labels": ["CCLXXII"]}, {"ignored": false, "labels": ["CCLXXIII"]},
+          {"ignored": false, "labels": ["CCLXXIV"]}, {"ignored": false, "labels": ["CCLXXV"]},
+          {"ignored": false, "labels": ["CCLXXVI"]}, {"ignored": false, "labels": ["CCLXXVII"]},
+          {"ignored": false, "labels": ["CCLXXVIII"]}, {"ignored": false, "labels": ["CCLXXIX"]},
+          {"ignored": false, "labels": ["CCLXXX"]}, {"ignored": false, "labels": ["CCLXXXI"]},
+          {"ignored": false, "labels": ["CCLXXXII"]}, {"ignored": false, "labels": ["CCLXXXIII"]},
+          {"ignored": false, "labels": ["CCLXXXIV"]}, {"ignored": false, "labels": ["CCLXXXV"]},
+          {"ignored": false, "labels": ["CCLXXXVI"]}, {"ignored": false, "labels": ["CCLXXXVII"]},
+          {"ignored": false, "labels": ["CCLXXXVIII"]}, {"ignored": false, "labels": ["CCLXXXIX"]},
+          {"ignored": false, "labels": ["CCXC"]}, {"ignored": false, "labels": ["CCXCI"]},
+          {"ignored": false, "labels": ["CCXCII"]}, {"ignored": false, "labels": ["CCXCIII"]},
+          {"ignored": false, "labels": ["CCXCIV"]}, {"ignored": false, "labels": ["CCXCV"]},
+          {"ignored": false, "labels": ["CCXCVI"]}, {"ignored": false, "labels": ["CCXCVII"]},
+          {"ignored": false, "labels": ["CCXCVIII"]}, {"ignored": false, "labels": ["CCXCIX"]},
+          {"ignored": false, "labels": ["CCC"]}, {"ignored": false, "labels": ["CCCI"]},
+          {"ignored": false, "labels": ["CCCII"]}, {"ignored": false, "labels": ["CCCIII"]},
+          {"ignored": false, "labels": ["CCCIV"]}, {"ignored": false, "labels": ["CCCV"]},
+          {"ignored": false, "labels": ["CCCVI"]}, {"ignored": false, "labels": ["CCCVII"]},
+          {"ignored": false, "labels": ["CCCVIII"]}, {"ignored": false, "labels": ["CCCIX"]},
+          {"ignored": false, "labels": ["CCCX"]}, {"ignored": false, "labels": ["CCCXI"]},
+          {"ignored": false, "labels": ["CCCXII"]}, {"ignored": false, "labels": ["CCCXIII"]},
+          {"ignored": false, "labels": ["CCCXIV"]}, {"ignored": false, "labels": ["CCCXV"]},
+          {"ignored": false, "labels": ["CCCXVI"]}, {"ignored": false, "labels": ["CCCXVII"]},
+          {"ignored": false, "labels": ["CCCXVIII"]}, {"ignored": false, "labels": ["CCCXIX"]},
+          {"ignored": false, "labels": ["CCCXX"]}, {"ignored": false, "labels": ["CCCXXI"]},
+          {"ignored": false, "labels": ["CCCXXII"]}, {"ignored": false, "labels": ["CCCXXIII"]},
+          {"ignored": false, "labels": ["CCCXXIV"]}, {"ignored": false, "labels": ["CCCXXV"]},
+          {"ignored": false, "labels": ["CCCXXVI"]}, {"ignored": false, "labels": ["CCCXXVII"]},
+          {"ignored": false, "labels": ["CCCXXVIII"]}, {"ignored": false, "labels": ["CCCXXIX"]},
+          {"ignored": false, "labels": ["CCCXXX"]}, {"ignored": false, "labels": ["CCCXXXI"]},
+          {"ignored": false, "labels": ["CCCXXXII"]}, {"ignored": false, "labels": ["CCCXXXIII"]},
+          {"ignored": false, "labels": ["CCCXXXIV"]}, {"ignored": false, "labels": ["CCCXXXV"]},
+          {"ignored": false, "labels": ["CCCXXXVI"]}, {"ignored": false, "labels": ["CCCXXXVII"]},
+          {"ignored": false, "labels": ["CCCXXXVIII"]}, {"ignored": false, "labels": ["CCCXXXIX"]},
+          {"ignored": false, "labels": ["CCCXL"]}, {"ignored": false, "labels": ["CCCXLI"]},
+          {"ignored": false, "labels": ["CCCXLII"]}, {"ignored": false, "labels": ["CCCXLIII"]},
+          {"ignored": false, "labels": ["CCCXLIV"]}, {"ignored": false, "labels": ["CCCXLV"]},
+          {"ignored": false, "labels": ["CCCXLVI"]}, {"ignored": false, "labels": ["CCCXLVII"]},
+          {"ignored": false, "labels": ["CCCXLVIII"]}, {"ignored": false, "labels": ["CCCXLIX"]},
+          {"ignored": false, "labels": ["CCCL"]}, {"ignored": false, "labels": ["CCCLI"]},
+          {"ignored": false, "labels": ["CCCLII"]}, {"ignored": false, "labels": ["CCCLIII"]},
+          {"ignored": false, "labels": ["CCCLIV"]}, {"ignored": false, "labels": ["CCCLV"]},
+          {"ignored": false, "labels": ["CCCLVI"]}, {"ignored": false, "labels": ["CCCLVII"]},
+          {"ignored": false, "labels": ["CCCLVIII"]}, {"ignored": false, "labels": ["CCCLIX"]},
+          {"ignored": false, "labels": ["CCCLX"]}, {"ignored": false, "labels": ["CCCLXI"]},
+          {"ignored": false, "labels": ["CCCLXII"]}, {"ignored": false, "labels": ["CCCLXIII"]},
+          {"ignored": false, "labels": ["CCCLXIV"]}, {"ignored": false, "labels": ["CCCLXV"]},
+          {"ignored": false, "labels": ["CCCLXVI"]}, {"ignored": false, "labels": ["CCCLXVII"]},
+          {"ignored": false, "labels": ["CCCLXVIII"]}, {"ignored": false, "labels": ["CCCLXIX"]},
+          {"ignored": false, "labels": ["CCCLXX"]}, {"ignored": false, "labels": ["CCCLXXI"]},
+          {"ignored": false, "labels": ["CCCLXXII"]}, {"ignored": false, "labels": ["CCCLXXIII"]},
+          {"ignored": false, "labels": ["CCCLXXIV"]}, {"ignored": false, "labels": ["CCCLXXV"]},
+          {"ignored": false, "labels": ["CCCLXXVI"]}, {"ignored": false, "labels": ["CCCLXXVII"]},
+          {"ignored": false, "labels": ["CCCLXXVIII"]}, {"ignored": false, "labels": ["CCCLXXIX"]},
+          {"ignored": false, "labels": ["CCCLXXX"]}, {"ignored": false, "labels": ["CCCLXXXI"]},
+          {"ignored": false, "labels": ["CCCLXXXII"]}, {"ignored": false, "labels": ["CCCLXXXIII"]},
+          {"ignored": false, "labels": ["CCCLXXXIV"]}, {"ignored": false, "labels": ["CCCLXXXV"]},
+          {"ignored": false, "labels": ["CCCLXXXVI"]}, {"ignored": false, "labels": ["CCCLXXXVII"]},
+          {"ignored": false, "labels": ["CCCLXXXVIII"]},
+          {"ignored": false, "labels": ["CCCLXXXIX"]}, {"ignored": false, "labels": ["CCCXC"]},
+          {"ignored": false, "labels": ["CCCXCI"]}, {"ignored": false, "labels": ["CCCXCII"]},
+          {"ignored": false, "labels": ["CCCXCIII"]}, {"ignored": false, "labels": ["CCCXCIV"]},
+          {"ignored": false, "labels": ["CCCXCV"]}, {"ignored": false, "labels": ["CCCXCVI"]},
+          {"ignored": false, "labels": ["CCCXCVII"]}, {"ignored": false, "labels": ["CCCXCVIII"]},
+          {"ignored": false, "labels": ["CCCXCIX"]}, {"ignored": false, "labels": ["CD"]}
+        ],
+        "normalized": "CC-CD"
+      },
+      {
+        "input": "Civ-Cix",
+        "pages": [
+          {"ignored": false, "labels": ["Civ"]}, {"ignored": false, "labels": ["Cv"]},
+          {"ignored": false, "labels": ["Cvi"]}, {"ignored": false, "labels": ["Cvii"]},
+          {"ignored": false, "labels": ["Cviii"]}, {"ignored": false, "labels": ["Cix"]}
+        ],
+        "normalized": "Civ-Cix"
+      },
+      {
+        "input": "\"Kap. Ci\"-\"Kap. Civ\"",
+        "pages": [
+          {"ignored": false, "labels": ["Kap. Ci"]}, {"ignored": false, "labels": ["Kap. Cii"]},
+          {"ignored": false, "labels": ["Kap. Ciii"]}, {"ignored": false, "labels": ["Kap. Civ"]}
+        ],
+        "normalized": "\"Kap. Ci\"-\"Kap. Civ\""
+      },
+      {
+        "input": "Di-Div",
+        "pages": [
+          {"ignored": false, "labels": ["Di"]}, {"ignored": false, "labels": ["Dii"]},
+          {"ignored": false, "labels": ["Diii"]}, {"ignored": false, "labels": ["Div"]}
+        ],
+        "normalized": "Di-Div"
+      },
+      {
+        "input": "MMMCMXCVIII-MMMCMXCIX",
+        "pages": [
+          {"ignored": false, "labels": ["MMMCMXCVIII"]},
+          {"ignored": false, "labels": ["MMMCMXCIX"]}
+        ],
+        "normalized": "MMMCMXCVIII-MMMCMXCIX"
+      },
+      {
+        "input": "C-CI",
+        "pages": [{"ignored": false, "labels": ["C"]}, {"ignored": false, "labels": ["CI"]}],
+        "normalized": "C-CI"
+      },
+      {
+        "input": "A-Z",
+        "pages": [
+          {"ignored": false, "labels": ["A"]}, {"ignored": false, "labels": ["B"]},
+          {"ignored": false, "labels": ["C"]}, {"ignored": false, "labels": ["D"]},
+          {"ignored": false, "labels": ["E"]}, {"ignored": false, "labels": ["F"]},
+          {"ignored": false, "labels": ["G"]}, {"ignored": false, "labels": ["H"]},
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["J"]},
+          {"ignored": false, "labels": ["K"]}, {"ignored": false, "labels": ["L"]},
+          {"ignored": false, "labels": ["M"]}, {"ignored": false, "labels": ["N"]},
+          {"ignored": false, "labels": ["O"]}, {"ignored": false, "labels": ["P"]},
+          {"ignored": false, "labels": ["Q"]}, {"ignored": false, "labels": ["R"]},
+          {"ignored": false, "labels": ["S"]}, {"ignored": false, "labels": ["T"]},
+          {"ignored": false, "labels": ["U"]}, {"ignored": false, "labels": ["V"]},
+          {"ignored": false, "labels": ["W"]}, {"ignored": false, "labels": ["X"]},
+          {"ignored": false, "labels": ["Y"]}, {"ignored": false, "labels": ["Z"]}
+        ],
+        "normalized": "A-Z"
+      },
+      {
+        "input": "a-z",
+        "pages": [
+          {"ignored": false, "labels": ["a"]}, {"ignored": false, "labels": ["b"]},
+          {"ignored": false, "labels": ["c"]}, {"ignored": false, "labels": ["d"]},
+          {"ignored": false, "labels": ["e"]}, {"ignored": false, "labels": ["f"]},
+          {"ignored": false, "labels": ["g"]}, {"ignored": false, "labels": ["h"]},
+          {"ignored": false, "labels": ["i"]}, {"ignored": false, "labels": ["j"]},
+          {"ignored": false, "labels": ["k"]}, {"ignored": false, "labels": ["l"]},
+          {"ignored": false, "labels": ["m"]}, {"ignored": false, "labels": ["n"]},
+          {"ignored": false, "labels": ["o"]}, {"ignored": false, "labels": ["p"]},
+          {"ignored": false, "labels": ["q"]}, {"ignored": false, "labels": ["r"]},
+          {"ignored": false, "labels": ["s"]}, {"ignored": false, "labels": ["t"]},
+          {"ignored": false, "labels": ["u"]}, {"ignored": false, "labels": ["v"]},
+          {"ignored": false, "labels": ["w"]}, {"ignored": false, "labels": ["x"]},
+          {"ignored": false, "labels": ["y"]}, {"ignored": false, "labels": ["z"]}
+        ],
+        "normalized": "a-z"
+      },
+      {
+        "input": "i-v",
+        "pages": [
+          {"ignored": false, "labels": ["i"]}, {"ignored": false, "labels": ["ii"]},
+          {"ignored": false, "labels": ["iii"]}, {"ignored": false, "labels": ["iv"]},
+          {"ignored": false, "labels": ["v"]}
+        ],
+        "normalized": "i-v",
+        "lookups": [
+          {"pages": "i", "indexes": [0], "labels": ["i"]},
+          {"pages": "I", "indexes": [0], "labels": ["i"]},
+          {"pages": "v", "indexes": [4], "labels": ["v"]},
+          {"pages": "III-IV", "indexes": [2, 3], "labels": ["iii", "iv"]},
+          {"pages": "iii,v", "indexes": [2, 4], "labels": ["iii", "v"]}
+        ]
+      },
+      {
+        "input": "IIII-V",
+        "note": "not canonical roman",
+        "errors": [{"kind": "no-system", "position": 0}]
+      },
+      {"input": "IC-V", "errors": [{"kind": "no-system", "position": 0}]},
+      {"input": "Iv-x", "errors": [{"kind": "no-system", "position": 0}]}
+    ],
+    "flags": [
+      {
+        "input": "V-X/latin",
+        "pages": [
+          {"ignored": false, "labels": ["V"]}, {"ignored": false, "labels": ["W"]},
+          {"ignored": false, "labels": ["X"]}
+        ],
+        "normalized": "V-X/latin"
+      },
+      {
+        "input": "V-X/roman",
+        "pages": [
+          {"ignored": false, "labels": ["V"]}, {"ignored": false, "labels": ["VI"]},
+          {"ignored": false, "labels": ["VII"]}, {"ignored": false, "labels": ["VIII"]},
+          {"ignored": false, "labels": ["IX"]}, {"ignored": false, "labels": ["X"]}
+        ],
+        "normalized": "V-X"
+      },
+      {
+        "input": "1-5/integer",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}
+        ],
+        "normalized": "1-5"
+      },
+      {
+        "input": "1-5 /integer",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}
+        ],
+        "normalized": "1-5"
+      },
+      {
+        "input": "2+3..6+7/integer",
+        "pages": [
+          {"ignored": false, "labels": ["2", "3"]}, {"ignored": false, "labels": ["4", "5"]},
+          {"ignored": false, "labels": ["6", "7"]}
+        ],
+        "normalized": "2+3..6+7"
+      },
+      {
+        "input": "V, W, X",
+        "pages": [
+          {"ignored": false, "labels": ["V"]}, {"ignored": false, "labels": ["W"]},
+          {"ignored": false, "labels": ["X"]}
+        ],
+        "normalized": "V-X/latin"
+      },
+      {
+        "input": "V, W, X, Y",
+        "pages": [
+          {"ignored": false, "labels": ["V"]}, {"ignored": false, "labels": ["W"]},
+          {"ignored": false, "labels": ["X"]}, {"ignored": false, "labels": ["Y"]}
+        ],
+        "normalized": "V-Y"
+      },
+      {
+        "input": "I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X",
+        "pages": [
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["J"]},
+          {"ignored": false, "labels": ["K"]}, {"ignored": false, "labels": ["L"]},
+          {"ignored": false, "labels": ["M"]}, {"ignored": false, "labels": ["N"]},
+          {"ignored": false, "labels": ["O"]}, {"ignored": false, "labels": ["P"]},
+          {"ignored": false, "labels": ["Q"]}, {"ignored": false, "labels": ["R"]},
+          {"ignored": false, "labels": ["S"]}, {"ignored": false, "labels": ["T"]},
+          {"ignored": false, "labels": ["U"]}, {"ignored": false, "labels": ["V"]},
+          {"ignored": false, "labels": ["W"]}, {"ignored": false, "labels": ["X"]}
+        ],
+        "normalized": "I-X/latin"
+      },
+      {
+        "input": "!V-X/latin",
+        "pages": [
+          {"ignored": true, "labels": ["V"]}, {"ignored": true, "labels": ["W"]},
+          {"ignored": true, "labels": ["X"]}
+        ],
+        "normalized": "!V-X/latin"
+      },
+      {"input": "1-5/klingon", "errors": [{"kind": "unknown-system", "position": 0}]},
+      {"input": "1, 1-5/klingon", "errors": [{"kind": "unknown-system", "position": 3}]},
+      {"input": "1-5/latin", "errors": [{"kind": "no-system", "position": 0}]},
+      {
+        "input": "IV-X/roman_additive",
+        "note": "without the plugin",
+        "errors": [{"kind": "unknown-system", "position": 0}]
+      },
+      {
+        "input": "IV-X/roman_additive",
+        "plugins": ["roman_additive"],
+        "errors": [{"kind": "no-system", "position": 0}]
+      },
+      {
+        "input": "I+II..VIIII+X",
+        "plugins": ["roman_additive"],
+        "errors": [{"kind": "no-system", "position": 0}]
+      },
+      {"input": "V/latin", "errors": [{"kind": "reserved-char", "position": 0}]},
+      {"input": "1-5/latin+3", "errors": [{"kind": "syntax", "position": 0}]},
+      {"input": "1-5/", "errors": [{"kind": "syntax", "position": 0}]}
+    ],
+    "plugins": [
+      {
+        "input": "I-X/roman_additive",
+        "plugins": ["roman_additive"],
+        "pages": [
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["II"]},
+          {"ignored": false, "labels": ["III"]}, {"ignored": false, "labels": ["IIII"]},
+          {"ignored": false, "labels": ["V"]}, {"ignored": false, "labels": ["VI"]},
+          {"ignored": false, "labels": ["VII"]}, {"ignored": false, "labels": ["VIII"]},
+          {"ignored": false, "labels": ["VIIII"]}, {"ignored": false, "labels": ["X"]}
+        ],
+        "normalized": "I-X/roman_additive"
+      },
+      {
+        "input": "i-x/roman_additive",
+        "plugins": ["roman_additive"],
+        "pages": [
+          {"ignored": false, "labels": ["i"]}, {"ignored": false, "labels": ["ii"]},
+          {"ignored": false, "labels": ["iii"]}, {"ignored": false, "labels": ["iiii"]},
+          {"ignored": false, "labels": ["v"]}, {"ignored": false, "labels": ["vi"]},
+          {"ignored": false, "labels": ["vii"]}, {"ignored": false, "labels": ["viii"]},
+          {"ignored": false, "labels": ["viiii"]}, {"ignored": false, "labels": ["x"]}
+        ],
+        "normalized": "i-x/roman_additive"
+      },
+      {
+        "input": "I, II, III, IIII, V, VI, VII, VIII, VIIII, X",
+        "pages": [
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["II"]},
+          {"ignored": false, "labels": ["III"]}, {"ignored": false, "labels": ["IIII"]},
+          {"ignored": false, "labels": ["V"]}, {"ignored": false, "labels": ["VI"]},
+          {"ignored": false, "labels": ["VII"]}, {"ignored": false, "labels": ["VIII"]},
+          {"ignored": false, "labels": ["VIIII"]}, {"ignored": false, "labels": ["X"]}
+        ],
+        "normalized": "I-III, IIII, V-VIII, VIIII, X"
+      },
+      {
+        "input": "I, II, III, IIII, V, VI, VII, VIII, VIIII, X",
+        "plugins": ["roman_additive"],
+        "pages": [
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["II"]},
+          {"ignored": false, "labels": ["III"]}, {"ignored": false, "labels": ["IIII"]},
+          {"ignored": false, "labels": ["V"]}, {"ignored": false, "labels": ["VI"]},
+          {"ignored": false, "labels": ["VII"]}, {"ignored": false, "labels": ["VIII"]},
+          {"ignored": false, "labels": ["VIIII"]}, {"ignored": false, "labels": ["X"]}
+        ],
+        "normalized": "I-X/roman_additive"
+      },
+      {
+        "input": "I+II..VIIII+X/roman_additive",
+        "plugins": ["roman_additive"],
+        "pages": [
+          {"ignored": false, "labels": ["I", "II"]}, {"ignored": false, "labels": ["III", "IIII"]},
+          {"ignored": false, "labels": ["V", "VI"]}, {"ignored": false, "labels": ["VII", "VIII"]},
+          {"ignored": false, "labels": ["VIIII", "X"]}
+        ],
+        "normalized": "I+II..VIIII+X/roman_additive"
+      },
+      {
+        "input": "XXXX-XXXXII/roman_additive",
+        "plugins": ["roman_additive"],
+        "pages": [
+          {"ignored": false, "labels": ["XXXX"]}, {"ignored": false, "labels": ["XXXXI"]},
+          {"ignored": false, "labels": ["XXXXII"]}
+        ],
+        "normalized": "XXXX-XXXXII/roman_additive"
+      },
+      {
+        "input": "MMMDCCCCLXXXXVIII-MMMDCCCCLXXXXVIIII/roman_additive",
+        "plugins": ["roman_additive"],
+        "pages": [
+          {"ignored": false, "labels": ["MMMDCCCCLXXXXVIII"]},
+          {"ignored": false, "labels": ["MMMDCCCCLXXXXVIIII"]}
+        ],
+        "normalized": "MMMDCCCCLXXXXVIII-MMMDCCCCLXXXXVIIII/roman_additive"
+      },
+      {
+        "input": "I-III/roman_additive",
+        "plugins": ["roman_additive"],
+        "pages": [
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["II"]},
+          {"ignored": false, "labels": ["III"]}
+        ],
+        "normalized": "I-III",
+        "note": "roman reads the same pages, so no flag"
+      },
+      {
+        "input": "IX-X/roman_additive",
+        "plugins": ["roman_additive"],
+        "errors": [{"kind": "no-system", "position": 0}]
+      },
+      {
+        "input": "A-Ö/latin_sv",
+        "plugins": ["latin_sv"],
+        "pages": [
+          {"ignored": false, "labels": ["A"]}, {"ignored": false, "labels": ["B"]},
+          {"ignored": false, "labels": ["C"]}, {"ignored": false, "labels": ["D"]},
+          {"ignored": false, "labels": ["E"]}, {"ignored": false, "labels": ["F"]},
+          {"ignored": false, "labels": ["G"]}, {"ignored": false, "labels": ["H"]},
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["J"]},
+          {"ignored": false, "labels": ["K"]}, {"ignored": false, "labels": ["L"]},
+          {"ignored": false, "labels": ["M"]}, {"ignored": false, "labels": ["N"]},
+          {"ignored": false, "labels": ["O"]}, {"ignored": false, "labels": ["P"]},
+          {"ignored": false, "labels": ["Q"]}, {"ignored": false, "labels": ["R"]},
+          {"ignored": false, "labels": ["S"]}, {"ignored": false, "labels": ["T"]},
+          {"ignored": false, "labels": ["U"]}, {"ignored": false, "labels": ["V"]},
+          {"ignored": false, "labels": ["W"]}, {"ignored": false, "labels": ["X"]},
+          {"ignored": false, "labels": ["Y"]}, {"ignored": false, "labels": ["Z"]},
+          {"ignored": false, "labels": ["Å"]}, {"ignored": false, "labels": ["Ä"]},
+          {"ignored": false, "labels": ["Ö"]}
+        ],
+        "normalized": "A-Ö/latin_sv"
+      },
+      {
+        "input": "A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, Å, Ä, Ö",
+        "pages": [
+          {"ignored": false, "labels": ["A"]}, {"ignored": false, "labels": ["B"]},
+          {"ignored": false, "labels": ["C"]}, {"ignored": false, "labels": ["D"]},
+          {"ignored": false, "labels": ["E"]}, {"ignored": false, "labels": ["F"]},
+          {"ignored": false, "labels": ["G"]}, {"ignored": false, "labels": ["H"]},
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["J"]},
+          {"ignored": false, "labels": ["K"]}, {"ignored": false, "labels": ["L"]},
+          {"ignored": false, "labels": ["M"]}, {"ignored": false, "labels": ["N"]},
+          {"ignored": false, "labels": ["O"]}, {"ignored": false, "labels": ["P"]},
+          {"ignored": false, "labels": ["Q"]}, {"ignored": false, "labels": ["R"]},
+          {"ignored": false, "labels": ["S"]}, {"ignored": false, "labels": ["T"]},
+          {"ignored": false, "labels": ["U"]}, {"ignored": false, "labels": ["V"]},
+          {"ignored": false, "labels": ["W"]}, {"ignored": false, "labels": ["X"]},
+          {"ignored": false, "labels": ["Y"]}, {"ignored": false, "labels": ["Z"]},
+          {"ignored": false, "labels": ["Å"]}, {"ignored": false, "labels": ["Ä"]},
+          {"ignored": false, "labels": ["Ö"]}
+        ],
+        "normalized": "A-Z, Å, Ä, Ö"
+      },
+      {
+        "input": "A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, Å, Ä, Ö",
+        "plugins": ["latin_sv"],
+        "pages": [
+          {"ignored": false, "labels": ["A"]}, {"ignored": false, "labels": ["B"]},
+          {"ignored": false, "labels": ["C"]}, {"ignored": false, "labels": ["D"]},
+          {"ignored": false, "labels": ["E"]}, {"ignored": false, "labels": ["F"]},
+          {"ignored": false, "labels": ["G"]}, {"ignored": false, "labels": ["H"]},
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["J"]},
+          {"ignored": false, "labels": ["K"]}, {"ignored": false, "labels": ["L"]},
+          {"ignored": false, "labels": ["M"]}, {"ignored": false, "labels": ["N"]},
+          {"ignored": false, "labels": ["O"]}, {"ignored": false, "labels": ["P"]},
+          {"ignored": false, "labels": ["Q"]}, {"ignored": false, "labels": ["R"]},
+          {"ignored": false, "labels": ["S"]}, {"ignored": false, "labels": ["T"]},
+          {"ignored": false, "labels": ["U"]}, {"ignored": false, "labels": ["V"]},
+          {"ignored": false, "labels": ["W"]}, {"ignored": false, "labels": ["X"]},
+          {"ignored": false, "labels": ["Y"]}, {"ignored": false, "labels": ["Z"]},
+          {"ignored": false, "labels": ["Å"]}, {"ignored": false, "labels": ["Ä"]},
+          {"ignored": false, "labels": ["Ö"]}
+        ],
+        "normalized": "A-Ö/latin_sv"
+      },
+      {
+        "input": "x-ö/latin_sv",
+        "plugins": ["latin_sv"],
+        "pages": [
+          {"ignored": false, "labels": ["x"]}, {"ignored": false, "labels": ["y"]},
+          {"ignored": false, "labels": ["z"]}, {"ignored": false, "labels": ["å"]},
+          {"ignored": false, "labels": ["ä"]}, {"ignored": false, "labels": ["ö"]}
+        ],
+        "normalized": "x-ö/latin_sv"
+      },
+      {
+        "input": "\"Bilaga Å\"-\"Bilaga Ö\"/latin_sv",
+        "plugins": ["latin_sv"],
+        "pages": [
+          {"ignored": false, "labels": ["Bilaga Å"]}, {"ignored": false, "labels": ["Bilaga Ä"]},
+          {"ignored": false, "labels": ["Bilaga Ö"]}
+        ],
+        "normalized": "\"Bilaga Å\"-\"Bilaga Ö\"/latin_sv"
+      },
+      {
+        "input": "A-E/latin_sv",
+        "plugins": ["latin_sv"],
+        "pages": [
+          {"ignored": false, "labels": ["A"]}, {"ignored": false, "labels": ["B"]},
+          {"ignored": false, "labels": ["C"]}, {"ignored": false, "labels": ["D"]},
+          {"ignored": false, "labels": ["E"]}
+        ],
+        "normalized": "A-E"
+      },
+      {"input": "A-Ö/latin_sv", "errors": [{"kind": "unknown-system", "position": 0}]},
+      {"input": "A-Ö", "plugins": ["latin_sv"], "errors": [{"kind": "no-system", "position": 0}]},
+      {
+        "input": "Α-Ω/greek",
+        "plugins": ["greek"],
+        "pages": [
+          {"ignored": false, "labels": ["Α"]}, {"ignored": false, "labels": ["Β"]},
+          {"ignored": false, "labels": ["Γ"]}, {"ignored": false, "labels": ["Δ"]},
+          {"ignored": false, "labels": ["Ε"]}, {"ignored": false, "labels": ["Ζ"]},
+          {"ignored": false, "labels": ["Η"]}, {"ignored": false, "labels": ["Θ"]},
+          {"ignored": false, "labels": ["Ι"]}, {"ignored": false, "labels": ["Κ"]},
+          {"ignored": false, "labels": ["Λ"]}, {"ignored": false, "labels": ["Μ"]},
+          {"ignored": false, "labels": ["Ν"]}, {"ignored": false, "labels": ["Ξ"]},
+          {"ignored": false, "labels": ["Ο"]}, {"ignored": false, "labels": ["Π"]},
+          {"ignored": false, "labels": ["Ρ"]}, {"ignored": false, "labels": ["Σ"]},
+          {"ignored": false, "labels": ["Τ"]}, {"ignored": false, "labels": ["Υ"]},
+          {"ignored": false, "labels": ["Φ"]}, {"ignored": false, "labels": ["Χ"]},
+          {"ignored": false, "labels": ["Ψ"]}, {"ignored": false, "labels": ["Ω"]}
+        ],
+        "normalized": "Α-Ω/greek"
+      },
+      {
+        "input": "α, β, γ",
+        "plugins": ["greek"],
+        "pages": [
+          {"ignored": false, "labels": ["α"]}, {"ignored": false, "labels": ["β"]},
+          {"ignored": false, "labels": ["γ"]}
+        ],
+        "normalized": "α-γ/greek"
+      },
+      {
+        "input": "α, β, γ",
+        "pages": [
+          {"ignored": false, "labels": ["α"]}, {"ignored": false, "labels": ["β"]},
+          {"ignored": false, "labels": ["γ"]}
+        ],
+        "normalized": "α, β, γ"
+      },
+      {
+        "input": "σ-ς/greek",
+        "plugins": ["greek"],
+        "note": "the final sigma is not read",
+        "errors": [{"kind": "no-system", "position": 0}]
+      },
+      {
+        "input": "α-Γ/greek",
+        "plugins": ["greek"],
+        "errors": [{"kind": "different-case", "position": 0}]
+      },
+      {
+        "input": "א-ת/hebrew",
+        "plugins": ["hebrew"],
+        "pages": [
+          {"ignored": false, "labels": ["א"]}, {"ignored": false, "labels": ["ב"]},
+          {"ignored": false, "labels": ["ג"]}, {"ignored": false, "labels": ["ד"]},
+          {"ignored": false, "labels": ["ה"]}, {"ignored": false, "labels": ["ו"]},
+          {"ignored": false, "labels": ["ז"]}, {"ignored": false, "labels": ["ח"]},
+          {"ignored": false, "labels": ["ט"]}, {"ignored": false, "labels": ["י"]},
+          {"ignored": false, "labels": ["כ"]}, {"ignored": false, "labels": ["ל"]},
+          {"ignored": false, "labels": ["מ"]}, {"ignored": false, "labels": ["נ"]},
+          {"ignored": false, "labels": ["ס"]}, {"ignored": false, "labels": ["ע"]},
+          {"ignored": false, "labels": ["פ"]}, {"ignored": false, "labels": ["צ"]},
+          {"ignored": false, "labels": ["ק"]}, {"ignored": false, "labels": ["ר"]},
+          {"ignored": false, "labels": ["ש"]}, {"ignored": false, "labels": ["ת"]}
+        ],
+        "normalized": "א-ת/hebrew"
+      },
+      {
+        "input": "א-ך/hebrew",
+        "plugins": ["hebrew"],
+        "note": "final forms are not read",
+        "errors": [{"kind": "no-system", "position": 0}]
+      },
+      {
+        "input": "1-3, A-C, i-iii, α-γ/greek, א-ג/hebrew, Å-Ö/latin_sv, V-VIIII/roman_additive",
+        "plugins": ["roman_additive", "latin_sv", "greek", "hebrew"],
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["A"]},
+          {"ignored": false, "labels": ["B"]}, {"ignored": false, "labels": ["C"]},
+          {"ignored": false, "labels": ["i"]}, {"ignored": false, "labels": ["ii"]},
+          {"ignored": false, "labels": ["iii"]}, {"ignored": false, "labels": ["α"]},
+          {"ignored": false, "labels": ["β"]}, {"ignored": false, "labels": ["γ"]},
+          {"ignored": false, "labels": ["א"]}, {"ignored": false, "labels": ["ב"]},
+          {"ignored": false, "labels": ["ג"]}, {"ignored": false, "labels": ["Å"]},
+          {"ignored": false, "labels": ["Ä"]}, {"ignored": false, "labels": ["Ö"]},
+          {"ignored": false, "labels": ["V"]}, {"ignored": false, "labels": ["VI"]},
+          {"ignored": false, "labels": ["VII"]}, {"ignored": false, "labels": ["VIII"]},
+          {"ignored": false, "labels": ["VIIII"]}
+        ],
+        "normalized": "1-3, A-C, i-iii, α-γ/greek, א-ג/hebrew, Å-Ö/latin_sv, V-VIIII/roman_additive"
+      }
+    ],
+    "normalisation": [
+      {
+        "input": "1, 2+3, 4+5, 6+7, 8",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2", "3"]},
+          {"ignored": false, "labels": ["4", "5"]}, {"ignored": false, "labels": ["6", "7"]},
+          {"ignored": false, "labels": ["8"]}
+        ],
+        "normalized": "1, 2+3..6+7, 8"
+      },
+      {"input": "1, 2+3..6+7, 8", "normalized": "1, 2+3..6+7, 8"},
+      {
+        "input": "1-20, 21-52",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]},
+          {"ignored": false, "labels": ["33"]}, {"ignored": false, "labels": ["34"]},
+          {"ignored": false, "labels": ["35"]}, {"ignored": false, "labels": ["36"]},
+          {"ignored": false, "labels": ["37"]}, {"ignored": false, "labels": ["38"]},
+          {"ignored": false, "labels": ["39"]}, {"ignored": false, "labels": ["40"]},
+          {"ignored": false, "labels": ["41"]}, {"ignored": false, "labels": ["42"]},
+          {"ignored": false, "labels": ["43"]}, {"ignored": false, "labels": ["44"]},
+          {"ignored": false, "labels": ["45"]}, {"ignored": false, "labels": ["46"]},
+          {"ignored": false, "labels": ["47"]}, {"ignored": false, "labels": ["48"]},
+          {"ignored": false, "labels": ["49"]}, {"ignored": false, "labels": ["50"]},
+          {"ignored": false, "labels": ["51"]}, {"ignored": false, "labels": ["52"]}
+        ],
+        "normalized": "1-52"
+      },
+      {"input": "i,ii,iii,iv, 1-48", "normalized": "i-iv, 1-48"},
+      {
+        "input": "1, 2+3, !3, 4",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2", "3"]},
+          {"ignored": true, "labels": ["3"]}, {"ignored": false, "labels": ["4"]}
+        ],
+        "normalized": "1, 2+3, !3, 4",
+        "format": ["1", "2+3", "3", "4"],
+        "lengths": {"indexLengthAll": 4, "indexLength": 3, "labelLength": 4},
+        "labelsAt": [
+          {"index": 1, "labels": ["2", "3"]},
+          {"index": 2, "labels": ["3"]},
+          {"index": 4, "labels": null}
+        ]
+      },
+      {"input": "1, 2", "normalized": "1-2"},
+      {"input": "2+3, 4+5", "normalized": "2+3, 4+5"},
+      {
+        "input": "I, ii, III",
+        "pages": [
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["ii"]},
+          {"ignored": false, "labels": ["III"]}
+        ],
+        "normalized": "I, ii, III"
+      },
+      {"input": "1, 2, 3, 4", "normalized": "1-4"},
+      {
+        "input": "!1, !2, !3",
+        "pages": [
+          {"ignored": true, "labels": ["1"]}, {"ignored": true, "labels": ["2"]},
+          {"ignored": true, "labels": ["3"]}
+        ],
+        "normalized": "!1-3"
+      },
+      {
+        "input": "1-5, !3",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": true, "labels": ["3"]}
+        ],
+        "normalized": "1-5, !3",
+        "lengths": {"indexLengthAll": 6, "indexLength": 5, "labelLength": 5}
+      },
+      {
+        "input": "1, !2, 3",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": true, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}
+        ],
+        "normalized": "1, !2, 3",
+        "lookups": [
+          {"pages": "2", "indexes": null, "labels": null},
+          {"pages": "1, 3", "indexes": [0, 2], "labels": ["1", "3"]}
+        ]
+      },
+      {"input": "18, 19, 20, 21", "normalized": "18-21"},
+      {"input": "1-3, A-C", "normalized": "1-3, A-C"},
+      {"input": "C, D", "normalized": "C-D"},
+      {"input": "C, CI", "normalized": "C-CI"},
+      {"input": "x, xi, xii", "normalized": "x-xii"},
+      {"input": "1a, 1b, 1c", "normalized": "1a-1c"},
+      {"input": "10, 10a, 10b", "normalized": "10, 10a-10b"},
+      {"input": "9, 10", "normalized": "9-10"},
+      {"input": "1-3, 5", "normalized": "1-3, 5"},
+      {"input": "1, 2+3, 4+5, 6", "normalized": "1, 2+3, 4+5, 6"},
+      {"input": "1-3, 4+5", "normalized": "1-3, 4+5"},
+      {
+        "input": "1-3",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}
+        ],
+        "normalized": "1-3",
+        "equals": [
+          {"with": "1,2,3", "result": true},
+          {"with": "1-4", "result": false},
+          {"with": "1, 2, !3", "result": false},
+          {"with": "1+2, 3", "result": false}
+        ]
+      },
+      {"input": "a", "equals": [{"with": "A", "result": false}, {"with": "\"a\"", "result": true}]}
+    ],
+    "cleaning": [
+      {
+        "input": "1–52",
+        "errors": [{"kind": "reserved-char", "position": 0}],
+        "cleaned": [{"normalized": "1-52"}, {"length": 52, "normalized": "1-52"}]
+      },
+      {"input": "1—52", "cleaned": [{"normalized": "1-52"}]},
+      {"input": "1−52", "cleaned": [{"normalized": "1-52"}]},
+      {"input": "1; 2; 3", "cleaned": [{"normalized": "1-3"}]},
+      {"input": "1,2|3,4|5", "cleaned": [{"normalized": "1, 2+3, 4+5"}]},
+      {
+        "input": "1-3|4-6",
+        "cleaned": [{"errors": ["reserved-char"]}],
+        "note": "| next to a range stays an error"
+      },
+      {"input": "1…16", "cleaned": [{"normalized": "1-16"}]},
+      {"input": "1..16", "cleaned": [{"normalized": "1-16"}]},
+      {"input": "2+3-46+47", "cleaned": [{"normalized": "2+3..46+47"}]},
+      {"input": "1-3+4-6", "cleaned": [{"errors": ["syntax"]}]},
+      {"input": "“Omslag, insida”, 2-31", "cleaned": [{"normalized": "\"Omslag, insida\", 2-31"}]},
+      {"input": "„Omslag“, 2-31", "cleaned": [{"normalized": "Omslag, 2-31"}]},
+      {"input": "1,\t2,\n3", "cleaned": [{"normalized": "1-3"}]},
+      {"input": "1, 2", "cleaned": [{"normalized": "1-2"}]},
+      {"input": "1,,2,", "cleaned": [{"normalized": "1-2"}]},
+      {"input": "3-3", "cleaned": [{"normalized": "3"}]},
+      {"input": "2+3..2+3", "cleaned": [{"normalized": "2+3"}]},
+      {"input": "1-5, 6-6", "cleaned": [{"normalized": "1-6"}]},
+      {
+        "input": "\"a–b\"",
+        "cleaned": [{"normalized": "\"a–b\""}],
+        "note": "no repair inside straight quotes"
+      },
+      {"input": "\"a;b\", c", "cleaned": [{"normalized": "\"a;b\", c"}]},
+      {
+        "input": "I, ii, III",
+        "cleaned": [{"normalized": "I, ii, III"}],
+        "note": "clean never respells"
+      },
+      {
+        "input": "1-",
+        "cleaned": [
+          {"length": 52, "normalized": "1-52"},
+          {"length": 1, "normalized": "1"},
+          {"errors": ["open-end"]}
+        ]
+      },
+      {"input": "i-iv, 1-", "cleaned": [{"length": 52, "normalized": "i-iv, 1-48"}]},
+      {"input": "", "cleaned": [{"length": 52, "normalized": "1-52"}, {"errors": ["empty"]}]},
+      {"input": "1-5, !6-", "cleaned": [{"length": 10, "normalized": "1-5, !6-10"}]},
+      {"input": "i-", "cleaned": [{"length": 10, "errors": ["open-end"]}]},
+      {"input": "A-", "cleaned": [{"length": 10, "errors": ["open-end"]}]},
+      {"input": "08-", "cleaned": [{"length": 10, "errors": ["open-end"]}]},
+      {"input": "inflikat.1-", "cleaned": [{"length": 10, "errors": ["open-end"]}]},
+      {
+        "input": "1-10, 11-",
+        "cleaned": [{"length": 10, "errors": ["open-end"]}],
+        "note": "no pages are left for it"
+      },
+      {
+        "input": "1-, 5",
+        "cleaned": [{"length": 10, "errors": ["open-end"]}],
+        "note": "the open range is not at the end"
+      },
+      {
+        "input": "1-3",
+        "cleaned": [
+          {"length": 3, "normalized": "1-3"},
+          {"length": 4, "errors": ["length-mismatch"]}
+        ]
+      }
+    ],
+    "lookups": [
+      {
+        "input": "1-9, 10+11, 10a-10d, 12-20",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10", "11"]},
+          {"ignored": false, "labels": ["10a"]}, {"ignored": false, "labels": ["10b"]},
+          {"ignored": false, "labels": ["10c"]}, {"ignored": false, "labels": ["10d"]},
+          {"ignored": false, "labels": ["12"]}, {"ignored": false, "labels": ["13"]},
+          {"ignored": false, "labels": ["14"]}, {"ignored": false, "labels": ["15"]},
+          {"ignored": false, "labels": ["16"]}, {"ignored": false, "labels": ["17"]},
+          {"ignored": false, "labels": ["18"]}, {"ignored": false, "labels": ["19"]},
+          {"ignored": false, "labels": ["20"]}
+        ],
+        "lookups": [
+          {"pages": "10-12", "indexes": [9, 14], "labels": ["10", "11", "12"]},
+          {
+            "pages": "10-11, 10a-10d, 12",
+            "indexes": [9, 10, 11, 12, 13, 14],
+            "labels": ["10", "11", "10a", "10b", "10c", "10d", "12"]
+          }
+        ],
+        "note": "references are labels: the insert is included only when it is listed"
+      },
+      {
+        "input": "1-3",
+        "lookups": [
+          {"pages": "0", "indexes": null, "labels": null},
+          {"pages": "1", "indexes": [0], "labels": ["1"]},
+          {"pages": "1-2", "indexes": [0, 1], "labels": ["1", "2"]},
+          {"pages": "1,2", "indexes": [0, 1], "labels": ["1", "2"]},
+          {"pages": "1,3", "indexes": [0, 2], "labels": ["1", "3"]},
+          {"pages": "3,1", "indexes": [2, 0], "labels": ["3", "1"]},
+          {"pages": "2-", "indexes": null, "labels": null},
+          {"pages": "1–3", "indexes": [0, 1, 2], "labels": ["1", "2", "3"]},
+          {"pages": "2-2", "indexes": [1], "labels": ["2"]},
+          {"pages": "3, 3", "indexes": null, "labels": null},
+          {"pages": "1;2", "indexes": null, "labels": null},
+          {"pages": "1, 2, ", "indexes": null, "labels": null},
+          {"pages": "", "indexes": null, "labels": null}
+        ]
+      },
+      {
+        "input": "1-2, 3+4, 5-6",
+        "note": "v1 1-3|4-6",
+        "lookups": [
+          {"pages": "1", "indexes": [0], "labels": ["1"]},
+          {"pages": "3", "indexes": [2], "labels": ["3"]},
+          {"pages": "4", "indexes": [2], "labels": ["4"]},
+          {"pages": "1,3", "indexes": [0, 2], "labels": ["1", "3"]},
+          {"pages": "3-4", "indexes": [2], "labels": ["3", "4"]},
+          {"pages": "3,4", "indexes": [2], "labels": ["3", "4"]},
+          {"pages": "1,5", "indexes": [0, 3], "labels": ["1", "5"]},
+          {"pages": "3-6", "indexes": [2, 3, 4], "labels": ["3", "4", "5", "6"]}
+        ],
+        "lengths": {"indexLengthAll": 5, "indexLength": 5, "labelLength": 6}
+      },
+      {
+        "input": "1-3, A-B, 4-6",
+        "note": "v1 1-3,A,B,4-6",
+        "lookups": [
+          {"pages": "4", "indexes": [5], "labels": ["4"]},
+          {"pages": "A", "indexes": [3], "labels": ["A"]},
+          {"pages": "b", "indexes": [4], "labels": ["B"]},
+          {"pages": "3-4", "indexes": [2, 5], "labels": ["3", "4"]},
+          {"pages": "A-B", "indexes": [3, 4], "labels": ["A", "B"]},
+          {"pages": "1-2,B", "indexes": [0, 1, 4], "labels": ["1", "2", "B"]},
+          {"pages": "A-4", "indexes": null, "labels": null}
+        ]
+      },
+      {
+        "input": "1-19, 20+29, 21-28, !29, 30-48",
+        "note": "v1 1-20|29,21-28,!29,30-48 (1986-1)",
+        "lengths": {"indexLengthAll": 48, "indexLength": 47, "labelLength": 48},
+        "lookups": [
+          {
+            "pages": "20-29",
+            "indexes": [19, 20, 21, 22, 23, 24, 25, 26, 27],
+            "labels": ["20", "21", "22", "23", "24", "25", "26", "27", "28", "29"]
+          },
+          {"pages": "20,29", "indexes": [19], "labels": ["20", "29"]}
+        ]
+      },
+      {
+        "input": "1, notis, 2-4",
+        "note": "v1 1,notis,2-4",
+        "lookups": [
+          {"pages": "1-4", "indexes": [0, 2, 3, 4], "labels": ["1", "2", "3", "4"]},
+          {"pages": "notis", "indexes": [1], "labels": ["notis"]},
+          {"pages": "NOTIS", "indexes": [1], "labels": ["notis"]},
+          {"pages": "notis,2", "indexes": [1, 2], "labels": ["notis", "2"]}
+        ]
+      },
+      {
+        "input": "1-9, 10+11, 10a, 10b+10c, 10d, !11, 12-20",
+        "note": "v1 1-10|11,10a,10b|10c,10d,!11,12-20 (1973-1)",
+        "lengths": {"indexLengthAll": 23, "indexLength": 22, "labelLength": 24},
+        "lookups": [
+          {"pages": "10", "indexes": [9], "labels": ["10"]},
+          {"pages": "11", "indexes": [9], "labels": ["11"]},
+          {"pages": "12", "indexes": [14], "labels": ["12"]},
+          {"pages": "10-12", "indexes": [9, 14], "labels": ["10", "11", "12"]}
+        ]
+      },
+      {
+        "input": "12a-12d",
+        "lookups": [
+          {"pages": "12a-12c", "indexes": [0, 1, 2], "labels": ["12a", "12b", "12c"]},
+          {"pages": "12b,12d", "indexes": [1, 3], "labels": ["12b", "12d"]}
+        ]
+      },
+      {
+        "input": "1-11, inflikat.0-inflikat.11, 12-24",
+        "note": "v1 (1978-2)",
+        "lookups": [
+          {"pages": "10-13", "indexes": [9, 10, 23, 24], "labels": ["10", "11", "12", "13"]},
+          {"pages": "inflikat.4", "indexes": [15], "labels": ["inflikat.4"]}
+        ]
+      },
+      {
+        "input": "1-2, 3+4+5+6, 7-8",
+        "note": "v1 1-3|4|5|6-8",
+        "format": ["1", "2", "3+4+5+6", "7", "8"],
+        "lookups": [
+          {"pages": "3-6", "indexes": [2], "labels": ["3", "4", "5", "6"]},
+          {"pages": "4", "indexes": [2], "labels": ["4"]},
+          {"pages": "7", "indexes": [3], "labels": ["7"]}
+        ]
+      },
+      {
+        "input": "1-2, 3+4, 5, 6+7, 8",
+        "note": "v1 1-3|4-6|7-8",
+        "lookups": [
+          {"pages": "3-6", "indexes": [2, 3, 4], "labels": ["3", "4", "5", "6"]},
+          {"pages": "6-7", "indexes": [4], "labels": ["6", "7"]},
+          {"pages": "7", "indexes": [4], "labels": ["7"]}
+        ]
+      },
+      {
+        "input": "I-VIII, 3-22, IX-XVI",
+        "note": "v1 (1990-1)",
+        "lookups": [
+          {"pages": "I-V", "indexes": [0, 1, 2, 3, 4], "labels": ["I", "II", "III", "IV", "V"]},
+          {"pages": "i,v", "indexes": [0, 4], "labels": ["I", "V"]},
+          {"pages": "4", "indexes": [9], "labels": ["4"]},
+          {"pages": "VIII-X", "indexes": [7, 28, 29], "labels": ["VIII", "IX", "X"]},
+          {"pages": "viii-x", "indexes": [7, 28, 29], "labels": ["VIII", "IX", "X"]},
+          {"pages": "XVI", "indexes": [35], "labels": ["XVI"]}
+        ]
+      },
+      {
+        "input": "Appendix A - Appendix C",
+        "lookups": [
+          {"pages": "appendix a", "indexes": [0], "labels": ["Appendix A"]},
+          {
+            "pages": "Appendix B, Appendix c",
+            "indexes": [1, 2],
+            "labels": ["Appendix B", "Appendix C"]
+          }
+        ]
+      },
+      {
+        "input": "Appendix ii - Appendix v",
+        "lookups": [
+          {"pages": "appendix ii", "indexes": [0], "labels": ["Appendix ii"]},
+          {"pages": "appendix a", "indexes": null, "labels": null},
+          {
+            "pages": "Appendix II, Appendix iv",
+            "indexes": [0, 2],
+            "labels": ["Appendix ii", "Appendix iv"]
+          }
+        ]
+      },
+      {
+        "input": "A-Ö/latin_sv",
+        "plugins": ["latin_sv"],
+        "lookups": [
+          {"pages": "Å-Ö/latin_sv", "indexes": [26, 27, 28], "labels": ["Å", "Ä", "Ö"]},
+          {"pages": "Å-Ö", "indexes": null, "labels": null},
+          {"pages": "x-z", "indexes": [23, 24, 25], "labels": ["X", "Y", "Z"]}
+        ]
+      }
+    ],
+    "limits": [
+      {
+        "input": "1-10000",
+        "normalized": "1-10000",
+        "lengths": {"indexLengthAll": 10000, "indexLength": 10000, "labelLength": 10000}
+      },
+      {"input": "1-10001", "errors": [{"kind": "too-long", "position": 0}]},
+      {
+        "input": "1, 2+3..9998+9999, 10000",
+        "normalized": "1, 2+3..9998+9999, 10000",
+        "lengths": {"indexLengthAll": 5001, "indexLength": 5001, "labelLength": 10000}
+      },
+      {"input": "1, 2+3..10000+10001", "errors": [{"kind": "too-long", "position": 3}]},
+      {"input": "1-50000", "errors": [{"kind": "too-long", "position": 0}]},
+      {"input": "1-999999999", "errors": [{"kind": "too-long", "position": 0}]},
+      {
+        "input": "1-6000, !1-5000",
+        "note": "the labels of ignored pages count too",
+        "errors": [{"kind": "too-long", "position": 8}]
+      },
+      {
+        "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+        "pages": [
+          {"ignored": false, "labels": ["xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1"]}
+        ],
+        "normalized": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1"
+      },
+      {
+        "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+        "errors": [{"kind": "too-long", "position": 0}]
+      },
+      {
+        "input": "\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\\\"\"",
+        "pages": [
+          {"ignored": false, "labels": ["xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\""]}
+        ],
+        "normalized": "\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\\\"\"",
+        "note": "quotes and escapes don't count"
+      },
+      {
+        "input": "𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸",
+        "pages": [
+          {"ignored": false, "labels": ["𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸"]}
+        ],
+        "normalized": "𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸",
+        "note": "code points, not UTF-16 units"
+      },
+      {
+        "input": "𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸𝔸",
+        "errors": [{"kind": "too-long", "position": 0}]
+      },
+      {
+        "input": "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPi-PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPx",
+        "note": "the generated label PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPviii has 101 code points",
+        "errors": [{"kind": "too-long", "position": 0}]
+      },
+      {"input": "1-10", "maxLabels": 5, "errors": [{"kind": "too-long", "position": 0}]},
+      {"input": "1-5", "maxLabels": 5, "normalized": "1-5"},
+      {
+        "input": "1-20000",
+        "maxLabels": 20000,
+        "normalized": "1-20000",
+        "lengths": {"indexLengthAll": 20000, "indexLength": 20000, "labelLength": 20000}
+      },
+      {"input": "1-20001", "maxLabels": 20000, "errors": [{"kind": "too-long", "position": 0}]},
+      {
+        "input": "1-3",
+        "length": 3,
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}
+        ]
+      },
+      {"input": "1-3", "length": 4, "errors": [{"kind": "length-mismatch", "position": null}]},
+      {"input": "1-3, !2", "length": 4, "normalized": "1-3, !2"},
+      {"input": "1-3, !2", "length": 3, "errors": [{"kind": "length-mismatch", "position": null}]},
+      {"input": "1-3", "length": 0, "errors": [{"kind": "bad-length", "position": null}]},
+      {"input": "1-3", "length": -1, "errors": [{"kind": "bad-length", "position": null}]},
+      {"input": "1-3", "length": 2.5, "errors": [{"kind": "bad-length", "position": null}]}
+    ],
+    "conversion": [
+      {
+        "v1": "1-16",
+        "input": "1-16",
+        "normalized": "1-16",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]}
+        ]
+      },
+      {
+        "v1": "1-24",
+        "input": "1-24",
+        "normalized": "1-24",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]}
+        ]
+      },
+      {
+        "v1": "1-10|11-20",
+        "input": "1-9, 10+11, 12-20",
+        "normalized": "1-9, 10+11, 12-20",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10", "11"]},
+          {"ignored": false, "labels": ["12"]}, {"ignored": false, "labels": ["13"]},
+          {"ignored": false, "labels": ["14"]}, {"ignored": false, "labels": ["15"]},
+          {"ignored": false, "labels": ["16"]}, {"ignored": false, "labels": ["17"]},
+          {"ignored": false, "labels": ["18"]}, {"ignored": false, "labels": ["19"]},
+          {"ignored": false, "labels": ["20"]}
+        ]
+      },
+      {
+        "v1": "1-32",
+        "input": "1-32",
+        "normalized": "1-32",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]}
+        ]
+      },
+      {
+        "v1": "1-20",
+        "input": "1-20",
+        "normalized": "1-20",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]}
+        ]
+      },
+      {
+        "v1": "1-12",
+        "input": "1-12",
+        "normalized": "1-12",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]}
+        ]
+      },
+      {
+        "v1": "1-10|11,10a,10b|10c,10d,12-20",
+        "input": "1-9, 10+11, 10a, 10b+10c, 10d, 12-20",
+        "normalized": "1-9, 10+11, 10a, 10b+10c, 10d, 12-20",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10", "11"]},
+          {"ignored": false, "labels": ["10a"]}, {"ignored": false, "labels": ["10b", "10c"]},
+          {"ignored": false, "labels": ["10d"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]}
+        ]
+      },
+      {
+        "v1": "1-16|17,16a-16d,18-32",
+        "input": "1-15, 16+17, 16a-16d, 18-32",
+        "normalized": "1-15, 16+17, 16a-16d, 18-32",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16", "17"]},
+          {"ignored": false, "labels": ["16a"]}, {"ignored": false, "labels": ["16b"]},
+          {"ignored": false, "labels": ["16c"]}, {"ignored": false, "labels": ["16d"]},
+          {"ignored": false, "labels": ["18"]}, {"ignored": false, "labels": ["19"]},
+          {"ignored": false, "labels": ["20"]}, {"ignored": false, "labels": ["21"]},
+          {"ignored": false, "labels": ["22"]}, {"ignored": false, "labels": ["23"]},
+          {"ignored": false, "labels": ["24"]}, {"ignored": false, "labels": ["25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}
+        ]
+      },
+      {
+        "v1": "1-16|17-32",
+        "input": "1-15, 16+17, 18-32",
+        "normalized": "1-15, 16+17, 18-32",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16", "17"]},
+          {"ignored": false, "labels": ["18"]}, {"ignored": false, "labels": ["19"]},
+          {"ignored": false, "labels": ["20"]}, {"ignored": false, "labels": ["21"]},
+          {"ignored": false, "labels": ["22"]}, {"ignored": false, "labels": ["23"]},
+          {"ignored": false, "labels": ["24"]}, {"ignored": false, "labels": ["25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}
+        ]
+      },
+      {
+        "v1": "1-16,16a-16h,17-32",
+        "input": "1-16, 16a-16h, 17-32",
+        "normalized": "1-16, 16a-16h, 17-32",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["16a"]}, {"ignored": false, "labels": ["16b"]},
+          {"ignored": false, "labels": ["16c"]}, {"ignored": false, "labels": ["16d"]},
+          {"ignored": false, "labels": ["16e"]}, {"ignored": false, "labels": ["16f"]},
+          {"ignored": false, "labels": ["16g"]}, {"ignored": false, "labels": ["16h"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]}
+        ]
+      },
+      {
+        "v1": "1,notis,2-32",
+        "input": "1, notis, 2-32",
+        "normalized": "1, notis, 2-32",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["notis"]},
+          {"ignored": false, "labels": ["2"]}, {"ignored": false, "labels": ["3"]},
+          {"ignored": false, "labels": ["4"]}, {"ignored": false, "labels": ["5"]},
+          {"ignored": false, "labels": ["6"]}, {"ignored": false, "labels": ["7"]},
+          {"ignored": false, "labels": ["8"]}, {"ignored": false, "labels": ["9"]},
+          {"ignored": false, "labels": ["10"]}, {"ignored": false, "labels": ["11"]},
+          {"ignored": false, "labels": ["12"]}, {"ignored": false, "labels": ["13"]},
+          {"ignored": false, "labels": ["14"]}, {"ignored": false, "labels": ["15"]},
+          {"ignored": false, "labels": ["16"]}, {"ignored": false, "labels": ["17"]},
+          {"ignored": false, "labels": ["18"]}, {"ignored": false, "labels": ["19"]},
+          {"ignored": false, "labels": ["20"]}, {"ignored": false, "labels": ["21"]},
+          {"ignored": false, "labels": ["22"]}, {"ignored": false, "labels": ["23"]},
+          {"ignored": false, "labels": ["24"]}, {"ignored": false, "labels": ["25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}
+        ]
+      },
+      {
+        "v1": "1-48",
+        "input": "1-48",
+        "normalized": "1-48",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]},
+          {"ignored": false, "labels": ["33"]}, {"ignored": false, "labels": ["34"]},
+          {"ignored": false, "labels": ["35"]}, {"ignored": false, "labels": ["36"]},
+          {"ignored": false, "labels": ["37"]}, {"ignored": false, "labels": ["38"]},
+          {"ignored": false, "labels": ["39"]}, {"ignored": false, "labels": ["40"]},
+          {"ignored": false, "labels": ["41"]}, {"ignored": false, "labels": ["42"]},
+          {"ignored": false, "labels": ["43"]}, {"ignored": false, "labels": ["44"]},
+          {"ignored": false, "labels": ["45"]}, {"ignored": false, "labels": ["46"]},
+          {"ignored": false, "labels": ["47"]}, {"ignored": false, "labels": ["48"]}
+        ]
+      },
+      {
+        "v1": "1-36",
+        "input": "1-36",
+        "normalized": "1-36",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]},
+          {"ignored": false, "labels": ["33"]}, {"ignored": false, "labels": ["34"]},
+          {"ignored": false, "labels": ["35"]}, {"ignored": false, "labels": ["36"]}
+        ]
+      },
+      {
+        "v1": "1-16,16a-16d,17-32",
+        "input": "1-16, 16a-16d, 17-32",
+        "normalized": "1-16, 16a-16d, 17-32",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["16a"]}, {"ignored": false, "labels": ["16b"]},
+          {"ignored": false, "labels": ["16c"]}, {"ignored": false, "labels": ["16d"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]}
+        ]
+      },
+      {
+        "v1": "1-40",
+        "input": "1-40",
+        "normalized": "1-40",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]},
+          {"ignored": false, "labels": ["33"]}, {"ignored": false, "labels": ["34"]},
+          {"ignored": false, "labels": ["35"]}, {"ignored": false, "labels": ["36"]},
+          {"ignored": false, "labels": ["37"]}, {"ignored": false, "labels": ["38"]},
+          {"ignored": false, "labels": ["39"]}, {"ignored": false, "labels": ["40"]}
+        ]
+      },
+      {
+        "v1": "1-30|31-36",
+        "input": "1-29, 30+31, 32-36",
+        "normalized": "1-29, 30+31, 32-36",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30", "31"]},
+          {"ignored": false, "labels": ["32"]}, {"ignored": false, "labels": ["33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}
+        ]
+      },
+      {
+        "v1": "1-14,14a-14d,15-28",
+        "input": "1-14, 14a-14d, 15-28",
+        "normalized": "1-14, 14a-14d, 15-28",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["14a"]}, {"ignored": false, "labels": ["14b"]},
+          {"ignored": false, "labels": ["14c"]}, {"ignored": false, "labels": ["14d"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]}
+        ]
+      },
+      {
+        "v1": "1-14|15-28",
+        "input": "1-13, 14+15, 16-28",
+        "normalized": "1-13, 14+15, 16-28",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14", "15"]},
+          {"ignored": false, "labels": ["16"]}, {"ignored": false, "labels": ["17"]},
+          {"ignored": false, "labels": ["18"]}, {"ignored": false, "labels": ["19"]},
+          {"ignored": false, "labels": ["20"]}, {"ignored": false, "labels": ["21"]},
+          {"ignored": false, "labels": ["22"]}, {"ignored": false, "labels": ["23"]},
+          {"ignored": false, "labels": ["24"]}, {"ignored": false, "labels": ["25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}
+        ]
+      },
+      {
+        "v1": "1-20|21-40",
+        "input": "1-19, 20+21, 22-40",
+        "normalized": "1-19, 20+21, 22-40",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20", "21"]},
+          {"ignored": false, "labels": ["22"]}, {"ignored": false, "labels": ["23"]},
+          {"ignored": false, "labels": ["24"]}, {"ignored": false, "labels": ["25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}, {"ignored": false, "labels": ["33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}, {"ignored": false, "labels": ["37"]},
+          {"ignored": false, "labels": ["38"]}, {"ignored": false, "labels": ["39"]},
+          {"ignored": false, "labels": ["40"]}
+        ]
+      },
+      {
+        "v1": "1-11,inflikat.0-inflikat.11,12-24",
+        "input": "1-11, inflikat.0-inflikat.11, 12-24",
+        "normalized": "1-11, inflikat.0-inflikat.11, 12-24",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["inflikat.0"]},
+          {"ignored": false, "labels": ["inflikat.1"]},
+          {"ignored": false, "labels": ["inflikat.2"]},
+          {"ignored": false, "labels": ["inflikat.3"]},
+          {"ignored": false, "labels": ["inflikat.4"]},
+          {"ignored": false, "labels": ["inflikat.5"]},
+          {"ignored": false, "labels": ["inflikat.6"]},
+          {"ignored": false, "labels": ["inflikat.7"]},
+          {"ignored": false, "labels": ["inflikat.8"]},
+          {"ignored": false, "labels": ["inflikat.9"]},
+          {"ignored": false, "labels": ["inflikat.10"]},
+          {"ignored": false, "labels": ["inflikat.11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]}
+        ]
+      },
+      {
+        "v1": "1-44",
+        "input": "1-44",
+        "normalized": "1-44",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]},
+          {"ignored": false, "labels": ["33"]}, {"ignored": false, "labels": ["34"]},
+          {"ignored": false, "labels": ["35"]}, {"ignored": false, "labels": ["36"]},
+          {"ignored": false, "labels": ["37"]}, {"ignored": false, "labels": ["38"]},
+          {"ignored": false, "labels": ["39"]}, {"ignored": false, "labels": ["40"]},
+          {"ignored": false, "labels": ["41"]}, {"ignored": false, "labels": ["42"]},
+          {"ignored": false, "labels": ["43"]}, {"ignored": false, "labels": ["44"]}
+        ]
+      },
+      {
+        "v1": "1-12,12a-12d,13-24",
+        "input": "1-12, 12a-12d, 13-24",
+        "normalized": "1-12, 12a-12d, 13-24",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["12a"]}, {"ignored": false, "labels": ["12b"]},
+          {"ignored": false, "labels": ["12c"]}, {"ignored": false, "labels": ["12d"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]}
+        ]
+      },
+      {
+        "v1": "1-12|13-24",
+        "input": "1-11, 12+13, 14-24",
+        "normalized": "1-11, 12+13, 14-24",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12", "13"]},
+          {"ignored": false, "labels": ["14"]}, {"ignored": false, "labels": ["15"]},
+          {"ignored": false, "labels": ["16"]}, {"ignored": false, "labels": ["17"]},
+          {"ignored": false, "labels": ["18"]}, {"ignored": false, "labels": ["19"]},
+          {"ignored": false, "labels": ["20"]}, {"ignored": false, "labels": ["21"]},
+          {"ignored": false, "labels": ["22"]}, {"ignored": false, "labels": ["23"]},
+          {"ignored": false, "labels": ["24"]}
+        ]
+      },
+      {
+        "v1": "1-28",
+        "input": "1-28",
+        "normalized": "1-28",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]}
+        ]
+      },
+      {
+        "v1": "1-52",
+        "input": "1-52",
+        "normalized": "1-52",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]},
+          {"ignored": false, "labels": ["33"]}, {"ignored": false, "labels": ["34"]},
+          {"ignored": false, "labels": ["35"]}, {"ignored": false, "labels": ["36"]},
+          {"ignored": false, "labels": ["37"]}, {"ignored": false, "labels": ["38"]},
+          {"ignored": false, "labels": ["39"]}, {"ignored": false, "labels": ["40"]},
+          {"ignored": false, "labels": ["41"]}, {"ignored": false, "labels": ["42"]},
+          {"ignored": false, "labels": ["43"]}, {"ignored": false, "labels": ["44"]},
+          {"ignored": false, "labels": ["45"]}, {"ignored": false, "labels": ["46"]},
+          {"ignored": false, "labels": ["47"]}, {"ignored": false, "labels": ["48"]},
+          {"ignored": false, "labels": ["49"]}, {"ignored": false, "labels": ["50"]},
+          {"ignored": false, "labels": ["51"]}, {"ignored": false, "labels": ["52"]}
+        ]
+      },
+      {
+        "v1": "1-20,A-H,21-40",
+        "input": "1-20, A-H, 21-40",
+        "normalized": "1-20, A-H, 21-40",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["A"]}, {"ignored": false, "labels": ["B"]},
+          {"ignored": false, "labels": ["C"]}, {"ignored": false, "labels": ["D"]},
+          {"ignored": false, "labels": ["E"]}, {"ignored": false, "labels": ["F"]},
+          {"ignored": false, "labels": ["G"]}, {"ignored": false, "labels": ["H"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]},
+          {"ignored": false, "labels": ["33"]}, {"ignored": false, "labels": ["34"]},
+          {"ignored": false, "labels": ["35"]}, {"ignored": false, "labels": ["36"]},
+          {"ignored": false, "labels": ["37"]}, {"ignored": false, "labels": ["38"]},
+          {"ignored": false, "labels": ["39"]}, {"ignored": false, "labels": ["40"]}
+        ]
+      },
+      {
+        "v1": "1-20,22-52",
+        "input": "1-20, 22-52",
+        "normalized": "1-20, 22-52",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["22"]}, {"ignored": false, "labels": ["23"]},
+          {"ignored": false, "labels": ["24"]}, {"ignored": false, "labels": ["25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}, {"ignored": false, "labels": ["33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}, {"ignored": false, "labels": ["37"]},
+          {"ignored": false, "labels": ["38"]}, {"ignored": false, "labels": ["39"]},
+          {"ignored": false, "labels": ["40"]}, {"ignored": false, "labels": ["41"]},
+          {"ignored": false, "labels": ["42"]}, {"ignored": false, "labels": ["43"]},
+          {"ignored": false, "labels": ["44"]}, {"ignored": false, "labels": ["45"]},
+          {"ignored": false, "labels": ["46"]}, {"ignored": false, "labels": ["47"]},
+          {"ignored": false, "labels": ["48"]}, {"ignored": false, "labels": ["49"]},
+          {"ignored": false, "labels": ["50"]}, {"ignored": false, "labels": ["51"]},
+          {"ignored": false, "labels": ["52"]}
+        ]
+      },
+      {
+        "v1": "1-26|27-52",
+        "input": "1-25, 26+27, 28-52",
+        "normalized": "1-25, 26+27, 28-52",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26", "27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}, {"ignored": false, "labels": ["33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}, {"ignored": false, "labels": ["37"]},
+          {"ignored": false, "labels": ["38"]}, {"ignored": false, "labels": ["39"]},
+          {"ignored": false, "labels": ["40"]}, {"ignored": false, "labels": ["41"]},
+          {"ignored": false, "labels": ["42"]}, {"ignored": false, "labels": ["43"]},
+          {"ignored": false, "labels": ["44"]}, {"ignored": false, "labels": ["45"]},
+          {"ignored": false, "labels": ["46"]}, {"ignored": false, "labels": ["47"]},
+          {"ignored": false, "labels": ["48"]}, {"ignored": false, "labels": ["49"]},
+          {"ignored": false, "labels": ["50"]}, {"ignored": false, "labels": ["51"]},
+          {"ignored": false, "labels": ["52"]}
+        ]
+      },
+      {
+        "v1": "1-20|29,21-28,30-48",
+        "input": "1-19, 20+29, 21-28, 30-48",
+        "normalized": "1-19, 20+29, 21-28, 30-48",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20", "29"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}, {"ignored": false, "labels": ["33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}, {"ignored": false, "labels": ["37"]},
+          {"ignored": false, "labels": ["38"]}, {"ignored": false, "labels": ["39"]},
+          {"ignored": false, "labels": ["40"]}, {"ignored": false, "labels": ["41"]},
+          {"ignored": false, "labels": ["42"]}, {"ignored": false, "labels": ["43"]},
+          {"ignored": false, "labels": ["44"]}, {"ignored": false, "labels": ["45"]},
+          {"ignored": false, "labels": ["46"]}, {"ignored": false, "labels": ["47"]},
+          {"ignored": false, "labels": ["48"]}
+        ]
+      },
+      {
+        "v1": "1-24,inflikat.1-inflikat.6|inflikat.7-inflikat.12,25-48",
+        "input": "1-24, inflikat.1-inflikat.5, inflikat.6+inflikat.7, inflikat.8-inflikat.12, 25-48",
+        "normalized": "1-24, inflikat.1-inflikat.5, inflikat.6+inflikat.7, inflikat.8-inflikat.12, 25-48",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["inflikat.1"]},
+          {"ignored": false, "labels": ["inflikat.2"]},
+          {"ignored": false, "labels": ["inflikat.3"]},
+          {"ignored": false, "labels": ["inflikat.4"]},
+          {"ignored": false, "labels": ["inflikat.5"]},
+          {"ignored": false, "labels": ["inflikat.6", "inflikat.7"]},
+          {"ignored": false, "labels": ["inflikat.8"]},
+          {"ignored": false, "labels": ["inflikat.9"]},
+          {"ignored": false, "labels": ["inflikat.10"]},
+          {"ignored": false, "labels": ["inflikat.11"]},
+          {"ignored": false, "labels": ["inflikat.12"]}, {"ignored": false, "labels": ["25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}, {"ignored": false, "labels": ["33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}, {"ignored": false, "labels": ["37"]},
+          {"ignored": false, "labels": ["38"]}, {"ignored": false, "labels": ["39"]},
+          {"ignored": false, "labels": ["40"]}, {"ignored": false, "labels": ["41"]},
+          {"ignored": false, "labels": ["42"]}, {"ignored": false, "labels": ["43"]},
+          {"ignored": false, "labels": ["44"]}, {"ignored": false, "labels": ["45"]},
+          {"ignored": false, "labels": ["46"]}, {"ignored": false, "labels": ["47"]},
+          {"ignored": false, "labels": ["48"]}
+        ]
+      },
+      {
+        "v1": "1-8|9-24|25-34|35-48",
+        "input": "1-7, 8+9, 10-23, 24+25, 26-33, 34+35, 36-48",
+        "normalized": "1-7, 8+9, 10-23, 24+25, 26-33, 34+35, 36-48",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8", "9"]},
+          {"ignored": false, "labels": ["10"]}, {"ignored": false, "labels": ["11"]},
+          {"ignored": false, "labels": ["12"]}, {"ignored": false, "labels": ["13"]},
+          {"ignored": false, "labels": ["14"]}, {"ignored": false, "labels": ["15"]},
+          {"ignored": false, "labels": ["16"]}, {"ignored": false, "labels": ["17"]},
+          {"ignored": false, "labels": ["18"]}, {"ignored": false, "labels": ["19"]},
+          {"ignored": false, "labels": ["20"]}, {"ignored": false, "labels": ["21"]},
+          {"ignored": false, "labels": ["22"]}, {"ignored": false, "labels": ["23"]},
+          {"ignored": false, "labels": ["24", "25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]},
+          {"ignored": false, "labels": ["33"]}, {"ignored": false, "labels": ["34", "35"]},
+          {"ignored": false, "labels": ["36"]}, {"ignored": false, "labels": ["37"]},
+          {"ignored": false, "labels": ["38"]}, {"ignored": false, "labels": ["39"]},
+          {"ignored": false, "labels": ["40"]}, {"ignored": false, "labels": ["41"]},
+          {"ignored": false, "labels": ["42"]}, {"ignored": false, "labels": ["43"]},
+          {"ignored": false, "labels": ["44"]}, {"ignored": false, "labels": ["45"]},
+          {"ignored": false, "labels": ["46"]}, {"ignored": false, "labels": ["47"]},
+          {"ignored": false, "labels": ["48"]}
+        ]
+      },
+      {
+        "v1": "1-22,inflikat.1-inflikat.8,23-44",
+        "input": "1-22, inflikat.1-inflikat.8, 23-44",
+        "normalized": "1-22, inflikat.1-inflikat.8, 23-44",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["inflikat.1"]},
+          {"ignored": false, "labels": ["inflikat.2"]},
+          {"ignored": false, "labels": ["inflikat.3"]},
+          {"ignored": false, "labels": ["inflikat.4"]},
+          {"ignored": false, "labels": ["inflikat.5"]},
+          {"ignored": false, "labels": ["inflikat.6"]},
+          {"ignored": false, "labels": ["inflikat.7"]},
+          {"ignored": false, "labels": ["inflikat.8"]}, {"ignored": false, "labels": ["23"]},
+          {"ignored": false, "labels": ["24"]}, {"ignored": false, "labels": ["25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}, {"ignored": false, "labels": ["33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}, {"ignored": false, "labels": ["37"]},
+          {"ignored": false, "labels": ["38"]}, {"ignored": false, "labels": ["39"]},
+          {"ignored": false, "labels": ["40"]}, {"ignored": false, "labels": ["41"]},
+          {"ignored": false, "labels": ["42"]}, {"ignored": false, "labels": ["43"]},
+          {"ignored": false, "labels": ["44"]}
+        ]
+      },
+      {
+        "v1": "1-24|25-48",
+        "input": "1-23, 24+25, 26-48",
+        "normalized": "1-23, 24+25, 26-48",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24", "25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}, {"ignored": false, "labels": ["33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}, {"ignored": false, "labels": ["37"]},
+          {"ignored": false, "labels": ["38"]}, {"ignored": false, "labels": ["39"]},
+          {"ignored": false, "labels": ["40"]}, {"ignored": false, "labels": ["41"]},
+          {"ignored": false, "labels": ["42"]}, {"ignored": false, "labels": ["43"]},
+          {"ignored": false, "labels": ["44"]}, {"ignored": false, "labels": ["45"]},
+          {"ignored": false, "labels": ["46"]}, {"ignored": false, "labels": ["47"]},
+          {"ignored": false, "labels": ["48"]}
+        ]
+      },
+      {
+        "v1": "I-VIII,3-22,IX-XVI",
+        "input": "I-VIII, 3-22, IX-XVI",
+        "normalized": "I-VIII, 3-22, IX-XVI",
+        "pages": [
+          {"ignored": false, "labels": ["I"]}, {"ignored": false, "labels": ["II"]},
+          {"ignored": false, "labels": ["III"]}, {"ignored": false, "labels": ["IV"]},
+          {"ignored": false, "labels": ["V"]}, {"ignored": false, "labels": ["VI"]},
+          {"ignored": false, "labels": ["VII"]}, {"ignored": false, "labels": ["VIII"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["IX"]}, {"ignored": false, "labels": ["X"]},
+          {"ignored": false, "labels": ["XI"]}, {"ignored": false, "labels": ["XII"]},
+          {"ignored": false, "labels": ["XIII"]}, {"ignored": false, "labels": ["XIV"]},
+          {"ignored": false, "labels": ["XV"]}, {"ignored": false, "labels": ["XVI"]}
+        ]
+      },
+      {
+        "v1": "1-56",
+        "input": "1-56",
+        "normalized": "1-56",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32"]},
+          {"ignored": false, "labels": ["33"]}, {"ignored": false, "labels": ["34"]},
+          {"ignored": false, "labels": ["35"]}, {"ignored": false, "labels": ["36"]},
+          {"ignored": false, "labels": ["37"]}, {"ignored": false, "labels": ["38"]},
+          {"ignored": false, "labels": ["39"]}, {"ignored": false, "labels": ["40"]},
+          {"ignored": false, "labels": ["41"]}, {"ignored": false, "labels": ["42"]},
+          {"ignored": false, "labels": ["43"]}, {"ignored": false, "labels": ["44"]},
+          {"ignored": false, "labels": ["45"]}, {"ignored": false, "labels": ["46"]},
+          {"ignored": false, "labels": ["47"]}, {"ignored": false, "labels": ["48"]},
+          {"ignored": false, "labels": ["49"]}, {"ignored": false, "labels": ["50"]},
+          {"ignored": false, "labels": ["51"]}, {"ignored": false, "labels": ["52"]},
+          {"ignored": false, "labels": ["53"]}, {"ignored": false, "labels": ["54"]},
+          {"ignored": false, "labels": ["55"]}, {"ignored": false, "labels": ["56"]}
+        ]
+      },
+      {
+        "v1": "1-18|19-48",
+        "input": "1-17, 18+19, 20-48",
+        "normalized": "1-17, 18+19, 20-48",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18", "19"]},
+          {"ignored": false, "labels": ["20"]}, {"ignored": false, "labels": ["21"]},
+          {"ignored": false, "labels": ["22"]}, {"ignored": false, "labels": ["23"]},
+          {"ignored": false, "labels": ["24"]}, {"ignored": false, "labels": ["25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}, {"ignored": false, "labels": ["33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}, {"ignored": false, "labels": ["37"]},
+          {"ignored": false, "labels": ["38"]}, {"ignored": false, "labels": ["39"]},
+          {"ignored": false, "labels": ["40"]}, {"ignored": false, "labels": ["41"]},
+          {"ignored": false, "labels": ["42"]}, {"ignored": false, "labels": ["43"]},
+          {"ignored": false, "labels": ["44"]}, {"ignored": false, "labels": ["45"]},
+          {"ignored": false, "labels": ["46"]}, {"ignored": false, "labels": ["47"]},
+          {"ignored": false, "labels": ["48"]}
+        ]
+      },
+      {
+        "v1": "1-22|23-44",
+        "input": "1-21, 22+23, 24-44",
+        "normalized": "1-21, 22+23, 24-44",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22", "23"]},
+          {"ignored": false, "labels": ["24"]}, {"ignored": false, "labels": ["25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}, {"ignored": false, "labels": ["33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}, {"ignored": false, "labels": ["37"]},
+          {"ignored": false, "labels": ["38"]}, {"ignored": false, "labels": ["39"]},
+          {"ignored": false, "labels": ["40"]}, {"ignored": false, "labels": ["41"]},
+          {"ignored": false, "labels": ["42"]}, {"ignored": false, "labels": ["43"]},
+          {"ignored": false, "labels": ["44"]}
+        ]
+      },
+      {
+        "v1": "1-18|19-36",
+        "input": "1-17, 18+19, 20-36",
+        "normalized": "1-17, 18+19, 20-36",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18", "19"]},
+          {"ignored": false, "labels": ["20"]}, {"ignored": false, "labels": ["21"]},
+          {"ignored": false, "labels": ["22"]}, {"ignored": false, "labels": ["23"]},
+          {"ignored": false, "labels": ["24"]}, {"ignored": false, "labels": ["25"]},
+          {"ignored": false, "labels": ["26"]}, {"ignored": false, "labels": ["27"]},
+          {"ignored": false, "labels": ["28"]}, {"ignored": false, "labels": ["29"]},
+          {"ignored": false, "labels": ["30"]}, {"ignored": false, "labels": ["31"]},
+          {"ignored": false, "labels": ["32"]}, {"ignored": false, "labels": ["33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}
+        ]
+      },
+      {
+        "v1": "1-32|33-48",
+        "input": "1-31, 32+33, 34-48",
+        "normalized": "1-31, 32+33, 34-48",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2"]},
+          {"ignored": false, "labels": ["3"]}, {"ignored": false, "labels": ["4"]},
+          {"ignored": false, "labels": ["5"]}, {"ignored": false, "labels": ["6"]},
+          {"ignored": false, "labels": ["7"]}, {"ignored": false, "labels": ["8"]},
+          {"ignored": false, "labels": ["9"]}, {"ignored": false, "labels": ["10"]},
+          {"ignored": false, "labels": ["11"]}, {"ignored": false, "labels": ["12"]},
+          {"ignored": false, "labels": ["13"]}, {"ignored": false, "labels": ["14"]},
+          {"ignored": false, "labels": ["15"]}, {"ignored": false, "labels": ["16"]},
+          {"ignored": false, "labels": ["17"]}, {"ignored": false, "labels": ["18"]},
+          {"ignored": false, "labels": ["19"]}, {"ignored": false, "labels": ["20"]},
+          {"ignored": false, "labels": ["21"]}, {"ignored": false, "labels": ["22"]},
+          {"ignored": false, "labels": ["23"]}, {"ignored": false, "labels": ["24"]},
+          {"ignored": false, "labels": ["25"]}, {"ignored": false, "labels": ["26"]},
+          {"ignored": false, "labels": ["27"]}, {"ignored": false, "labels": ["28"]},
+          {"ignored": false, "labels": ["29"]}, {"ignored": false, "labels": ["30"]},
+          {"ignored": false, "labels": ["31"]}, {"ignored": false, "labels": ["32", "33"]},
+          {"ignored": false, "labels": ["34"]}, {"ignored": false, "labels": ["35"]},
+          {"ignored": false, "labels": ["36"]}, {"ignored": false, "labels": ["37"]},
+          {"ignored": false, "labels": ["38"]}, {"ignored": false, "labels": ["39"]},
+          {"ignored": false, "labels": ["40"]}, {"ignored": false, "labels": ["41"]},
+          {"ignored": false, "labels": ["42"]}, {"ignored": false, "labels": ["43"]},
+          {"ignored": false, "labels": ["44"]}, {"ignored": false, "labels": ["45"]},
+          {"ignored": false, "labels": ["46"]}, {"ignored": false, "labels": ["47"]},
+          {"ignored": false, "labels": ["48"]}
+        ]
+      },
+      {
+        "v1": "1,2|3,4|5,6|7,8|9,10|11,12|13,14|15,16|17,18|19,20|21,22|23,24|25,26|27,28|29,30|31,32|33,34|35,36|37,38|39,40|41,42|43,44|45,46|47,48|49,50|51,52",
+        "input": "1, 2+3..50+51, 52",
+        "normalized": "1, 2+3..50+51, 52",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2", "3"]},
+          {"ignored": false, "labels": ["4", "5"]}, {"ignored": false, "labels": ["6", "7"]},
+          {"ignored": false, "labels": ["8", "9"]}, {"ignored": false, "labels": ["10", "11"]},
+          {"ignored": false, "labels": ["12", "13"]}, {"ignored": false, "labels": ["14", "15"]},
+          {"ignored": false, "labels": ["16", "17"]}, {"ignored": false, "labels": ["18", "19"]},
+          {"ignored": false, "labels": ["20", "21"]}, {"ignored": false, "labels": ["22", "23"]},
+          {"ignored": false, "labels": ["24", "25"]}, {"ignored": false, "labels": ["26", "27"]},
+          {"ignored": false, "labels": ["28", "29"]}, {"ignored": false, "labels": ["30", "31"]},
+          {"ignored": false, "labels": ["32", "33"]}, {"ignored": false, "labels": ["34", "35"]},
+          {"ignored": false, "labels": ["36", "37"]}, {"ignored": false, "labels": ["38", "39"]},
+          {"ignored": false, "labels": ["40", "41"]}, {"ignored": false, "labels": ["42", "43"]},
+          {"ignored": false, "labels": ["44", "45"]}, {"ignored": false, "labels": ["46", "47"]},
+          {"ignored": false, "labels": ["48", "49"]}, {"ignored": false, "labels": ["50", "51"]},
+          {"ignored": false, "labels": ["52"]}
+        ]
+      },
+      {
+        "v1": "1,2|3,4|5,6|7,8|9,10|11,12|13,14|15,16|17,18|19,20|21,22|23,24|25,26|27,28|29,30|31,32|33,34|35,36|37,38|39,40|41,42|43,44|45,46|47,48",
+        "input": "1, 2+3..46+47, 48",
+        "normalized": "1, 2+3..46+47, 48",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2", "3"]},
+          {"ignored": false, "labels": ["4", "5"]}, {"ignored": false, "labels": ["6", "7"]},
+          {"ignored": false, "labels": ["8", "9"]}, {"ignored": false, "labels": ["10", "11"]},
+          {"ignored": false, "labels": ["12", "13"]}, {"ignored": false, "labels": ["14", "15"]},
+          {"ignored": false, "labels": ["16", "17"]}, {"ignored": false, "labels": ["18", "19"]},
+          {"ignored": false, "labels": ["20", "21"]}, {"ignored": false, "labels": ["22", "23"]},
+          {"ignored": false, "labels": ["24", "25"]}, {"ignored": false, "labels": ["26", "27"]},
+          {"ignored": false, "labels": ["28", "29"]}, {"ignored": false, "labels": ["30", "31"]},
+          {"ignored": false, "labels": ["32", "33"]}, {"ignored": false, "labels": ["34", "35"]},
+          {"ignored": false, "labels": ["36", "37"]}, {"ignored": false, "labels": ["38", "39"]},
+          {"ignored": false, "labels": ["40", "41"]}, {"ignored": false, "labels": ["42", "43"]},
+          {"ignored": false, "labels": ["44", "45"]}, {"ignored": false, "labels": ["46", "47"]},
+          {"ignored": false, "labels": ["48"]}
+        ]
+      },
+      {
+        "v1": "1,2|3,4|5,6|7,8|9,10|11,12|13,14|15,16|17,18|19,20|21,22|23,24|25,26|27,28|29,30|31,32|33,34|35,36|37,38|39,40|41,42|43,44",
+        "input": "1, 2+3..42+43, 44",
+        "normalized": "1, 2+3..42+43, 44",
+        "pages": [
+          {"ignored": false, "labels": ["1"]}, {"ignored": false, "labels": ["2", "3"]},
+          {"ignored": false, "labels": ["4", "5"]}, {"ignored": false, "labels": ["6", "7"]},
+          {"ignored": false, "labels": ["8", "9"]}, {"ignored": false, "labels": ["10", "11"]},
+          {"ignored": false, "labels": ["12", "13"]}, {"ignored": false, "labels": ["14", "15"]},
+          {"ignored": false, "labels": ["16", "17"]}, {"ignored": false, "labels": ["18", "19"]},
+          {"ignored": false, "labels": ["20", "21"]}, {"ignored": false, "labels": ["22", "23"]},
+          {"ignored": false, "labels": ["24", "25"]}, {"ignored": false, "labels": ["26", "27"]},
+          {"ignored": false, "labels": ["28", "29"]}, {"ignored": false, "labels": ["30", "31"]},
+          {"ignored": false, "labels": ["32", "33"]}, {"ignored": false, "labels": ["34", "35"]},
+          {"ignored": false, "labels": ["36", "37"]}, {"ignored": false, "labels": ["38", "39"]},
+          {"ignored": false, "labels": ["40", "41"]}, {"ignored": false, "labels": ["42", "43"]},
+          {"ignored": false, "labels": ["44"]}
+        ]
+      }
+    ],
+    "roman": [
+      {"toRoman": 1, "roman": "I"},
+      {"toRoman": 2, "roman": "II"},
+      {"toRoman": 3, "roman": "III"},
+      {"toRoman": 4, "roman": "IV"},
+      {"toRoman": 5, "roman": "V"},
+      {"toRoman": 6, "roman": "VI"},
+      {"toRoman": 9, "roman": "IX"},
+      {"toRoman": 14, "roman": "XIV"},
+      {"toRoman": 19, "roman": "XIX"},
+      {"toRoman": 20, "roman": "XX"},
+      {"toRoman": 40, "roman": "XL"},
+      {"toRoman": 90, "roman": "XC"},
+      {"toRoman": 400, "roman": "CD"},
+      {"toRoman": 900, "roman": "CM"},
+      {"toRoman": 1994, "roman": "MCMXCIV"},
+      {"toRoman": 3999, "roman": "MMMCMXCIX"},
+      {"toRoman": 1, "lowerCase": true, "roman": "i"},
+      {"toRoman": 3999, "lowerCase": true, "roman": "mmmcmxcix"},
+      {"toRoman": 0, "throws": true},
+      {"toRoman": 4000, "throws": true},
+      {"toRoman": 2.5, "throws": true},
+      {"toRoman": -1, "throws": true},
+      {"fromRoman": "I", "value": 1},
+      {"fromRoman": "V", "value": 5},
+      {"fromRoman": "IV", "value": 4},
+      {"fromRoman": "iv", "value": 4},
+      {"fromRoman": "XLII", "value": 42},
+      {"fromRoman": "mmxxiv", "value": 2024},
+      {"fromRoman": "MMMCMXCIX", "value": 3999},
+      {"fromRoman": "mmmcmxcix", "value": 3999},
+      {"fromRoman": "IIII", "value": null},
+      {"fromRoman": "IC", "value": null},
+      {"fromRoman": "Iv", "value": null},
+      {"fromRoman": "MMMM", "value": null},
+      {"fromRoman": "", "value": null},
+      {"fromRoman": "VX", "value": null},
+      {"fromRoman": "IL", "value": null},
+      {"fromRoman": "XM", "value": null},
+      {"fromRoman": "VV", "value": null},
+      {"fromRoman": "IIV", "value": null},
+      {"fromRoman": "A", "value": null},
+      {"fromRoman": "1", "value": null},
+      {"fromRoman": " I", "value": null},
+      {"fromRoman": "I ", "value": null}
+    ]
+  }
+}

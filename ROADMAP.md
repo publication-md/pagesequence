@@ -65,12 +65,12 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
 
 ## Phase 2: Shared test data
 
-- [ ] **P2.1** Write `testdata/cases.json` in the format from `pagesequence-v2.md` ("Shared test
+- **P2.1** Write `testdata/cases.json` in the format from `pagesequence-v2.md` ("Shared test
   data"), grouped into syntax, ranges, runs, quoting, numbering, flags, plugins, normalisation,
   cleaning, lookups, limits and conversion.
-- [ ] **P2.2** Make every example in the spec a case. Every error kind has at least one case, and
+- **P2.2** Make every example in the spec a case. Every error kind has at least one case, and
   inputs with several errors list all of them in `errors`.
-- [ ] **P2.3** Add the edge cases:
+- **P2.3** Add the edge cases:
   - the reading rule: `C-D`, `V-X`, `I-M`, `x-l`, `iv-ix`, `xi-xl` and `CC-CD`;
   - widening that doesn't cross case: `Civ-Cix`, `"Kap. Ci"-"Kap. Civ"` and `Di-Div`;
   - non-canonical roman numerals: `IIII-V`;
@@ -83,11 +83,11 @@ Each task has an ID (P1.1, P1.2, …) and a checkbox. A phase is done when its e
     `maxLabels`;
   - flags and plugins, as listed in `pagesequence-v2.md` ("Shared test data"), plus the run
     `I+II..VIIII+X/roman_additive`.
-- [ ] **P2.4** Add conversion cases: one per distinct line of `v2/list_of_grottan_in_v1.txt` (42).
+- **P2.4** Add conversion cases: one per distinct line of `v2/list_of_grottan_in_v1.txt` (42).
   Each has its v2 form from `v2/list_of_grottan_in_v2.txt`, and its pages.
-- [ ] **P2.5** Add the v1 test cases that still apply, and lookups showing that references are
+- **P2.5** Add the v1 test cases that still apply, and lookups showing that references are
   labels: in `1-9, 10+11, 10a-10d, 12-20`, compare `10-12` with `10-11, 10a-10d, 12`.
-- [ ] **P2.6** Document the fields in a short `testdata/README.md`.
+- **P2.6** Document the fields in a short `testdata/README.md`.
 
 **Exit:** every rule in the spec has a case, and the file has been reviewed.
 
