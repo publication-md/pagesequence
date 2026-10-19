@@ -1,6 +1,6 @@
 [project]
 name = "pagesequence"
-version = "2.0.0rc2"
+version = "2.0.0rc3"
 description = "Map the pages of a document (like a PDF) to the labels printed on them."
 readme = "README.md"
 license = "MIT"

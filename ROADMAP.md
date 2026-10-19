@@ -202,7 +202,7 @@ This is the first phase that adds files to `.github/`.
 - **P8.3** On npmjs.com, create the `@publication-md` organisation. Publish `2.0.0-rc.1` there
   by hand, with 2FA and `--tag next`, then set up trusted publishing for the workflow
   `release.yml`.
-- [ ] **P8.4** Push the tag `v2.0.0-rc.1`. The release workflow publishes to JSR and PyPI, and
+- **P8.4** Push the tag `v2.0.0-rc.1`. The release workflow publishes to JSR and PyPI, and
   skips npm, which already has the version.
 - [ ] **P8.5** Test the release candidate from each registry, in a fresh project each:
   - npm: `npm install @publication-md/pagesequence@next`, with Node, and with a bundler that
