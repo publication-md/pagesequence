@@ -1,3 +1,5 @@
+<p align="center"><img src="https://raw.githubusercontent.com/publication-md/pagesequence/main/logo/pagesequence.svg" alt="PageSequence" width="160"></p>
+
 # PageSequence
 
 A **page sequence** is a short string that says which labels are printed on each page of a
