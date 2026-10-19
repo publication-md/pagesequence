@@ -1,4 +1,4 @@
-// What cases.json can't express: the roman round trip, and the checks on `plugins` and options.
+// What cases.json can't express: the roman round trip, the checks on `plugins` and options, and types.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { alphabet, fromRoman, latinSv, normalize, PageSequence, toRoman } from "./lib.ts";
@@ -38,4 +38,13 @@ test("an instance keeps its plugins for lookups and toString", () => {
 
 test("maxLabels must be a positive integer", () => {
   assert.throws(() => normalize("1-3", { maxLabels: 0 }), RangeError);
+});
+
+test("labelsAt gives a string only with display", () => {
+  const seq = new PageSequence("1, 2+3");
+  // The annotations are the test: Deno type-checks them against the overloads.
+  const labels: string[] | undefined = seq.labelsAt(1);
+  const shown: string | undefined = seq.labelsAt(1, true);
+  assert.deepEqual(labels, ["2", "3"]);
+  assert.equal(shown, "2+3");
 });

@@ -183,8 +183,8 @@ v1 is used in one project, so it is converted once rather than supported.
 - **`toRoman` throws outside 1–3999.** v1 gave `""` for 0 and `MMMM` for 4000.
 - **`romanPattern` is gone.** It matched `MMMM` and mixed case, which v2 doesn't read as roman.
   `fromRoman` tells whether a token is roman.
-- **New functions:** `labelsAt`, `formatAt`, `pages()`, `toString()`, `normalize`, `clean`,
-  `equals` and `alphabet`.
+- **New functions:** `labelsAt`, `pages()`, `toString()`, `normalize`, `clean`, `equals` and
+  `alphabet`.
 - **New syntax:** flags (`V-X/latin`), and the plugin systems they name. Every call that reads a
   sequence takes the plugin systems in a `plugins` option. The constructor still takes the page
   count as its second argument, as in v1, or `{ length, plugins, maxLabels }`.
@@ -384,7 +384,8 @@ A failing input is cut down by hand to a small case and added to `cases.json`.
   - Validate passes the PDF's page count when the PDF is available.
   - Its config lists the plugin systems a project uses, and its tools pass that list to every
     call, so validate and `toc-sync` read the same.
-  - `formatAt` replaces publication-md's own label joining (`joinLabels`).
+  - Its nav lines show a page as the spec displays it, `2+3` and `20+29` (`labelsAt(index, true)`),
+    instead of its own `joinLabels` (`2–3`, `20,29`).
 - **Python skills** (`roots.py` and friends) can then use the Python package instead of copying
   the logic.
 

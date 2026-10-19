@@ -23,7 +23,7 @@ const PLUGINS: Record<string, NumberingSystem> = { roman_additive: romanAdditive
 type Case = Record<string, any>;
 const data = JSON.parse(readFileSync(new URL("../../testdata/cases.json", import.meta.url), "utf8"));
 
-const STRICT = ["errors", "pages", "normalized", "format", "labelsAt", "lengths", "lookups", "equals"];
+const STRICT = ["errors", "pages", "normalized", "display", "labelsAt", "lengths", "lookups", "equals"];
 const nil = <T>(v: T | undefined) => (v === undefined ? null : v);
 
 function throwsOneOf(f: () => unknown, errors: { kind: string; position: number | null }[], positions = true) {
@@ -57,9 +57,10 @@ function runSequenceCase(c: Case) {
         assert.equal(normalize(c.input, opts), c.normalized);
         assert.equal(seq.toString(), c.normalized);
       }
-      if (c.format) assert.deepEqual(pages.map((_, i) => seq.formatAt(i)), c.format);
+      if (c.display) assert.deepEqual(pages.map((_, i) => seq.labelsAt(i, true)), c.display);
       for (const { index, labels } of c.labelsAt ?? []) {
         assert.deepEqual(nil(seq.labelsAt(index)), labels, `labelsAt(${index})`);
+        if (labels === null) assert.equal(seq.labelsAt(index, true), undefined, `labelsAt(${index}, true)`);
       }
       if (c.lengths) {
         assert.deepEqual(

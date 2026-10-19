@@ -12,7 +12,7 @@ from pagesequence.plugins.roman_additive import roman_additive
 
 PLUGINS = {"roman_additive": roman_additive, "latin_sv": latin_sv, "greek": greek, "hebrew": hebrew}
 CASES = os.path.join(os.path.dirname(__file__), "..", "..", "testdata", "cases.json")
-STRICT = ("errors", "pages", "normalized", "format", "labelsAt", "lengths", "lookups", "equals")
+STRICT = ("errors", "pages", "normalized", "display", "labelsAt", "lengths", "lookups", "equals")
 
 with open(CASES, encoding="utf-8") as f:
     DATA = json.load(f)
@@ -49,10 +49,12 @@ class Cases(unittest.TestCase):
                 if "normalized" in c:
                     self.assertEqual(normalize(c["input"], **opts), c["normalized"])
                     self.assertEqual(str(seq), c["normalized"])
-                if "format" in c:
-                    self.assertEqual([seq.format_at(i) for i in range(len(pages))], c["format"])
+                if "display" in c:
+                    self.assertEqual([seq.labels_at(i, True) for i in range(len(pages))], c["display"])
                 for x in c.get("labelsAt", []):
                     self.assertEqual(seq.labels_at(x["index"]), x["labels"], f"labels_at({x['index']})")
+                    if x["labels"] is None:
+                        self.assertIsNone(seq.labels_at(x["index"], True), f"labels_at({x['index']}, True)")
                 if "lengths" in c:
                     got = {
                         "indexLengthAll": seq.get_index_length_all(),

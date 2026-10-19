@@ -16,7 +16,7 @@ from pagesequence import PageSequence
 # An unnumbered cover, roman front matter, then pages 1 to 48: 53 pages in all.
 seq = PageSequence('"Omslag", i-iv, 1-48', 53)
 seq.get_index_list("20-21")  # [24, 25]: the document pages, counted from 0
-seq.format_at(1)  # "i"
+seq.labels_at(1)  # ["i"]
 ```
 
 Invalid input raises a `PageSequenceError` with `kind` and `position`; `PageSequence.create`

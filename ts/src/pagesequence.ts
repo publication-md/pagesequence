@@ -825,15 +825,16 @@ export class PageSequence {
     return this.#find(pages)?.map(([, label]) => label);
   }
 
-  /** The labels of one document page, or `undefined` outside the document. */
-  labelsAt(index: number): string[] | undefined {
+  /**
+   * The labels of one document page, or `undefined` outside the document. With `display`, they are
+   * one string, as displayed (`"2+3"`).
+   */
+  labelsAt(index: number, display?: false): string[] | undefined;
+  labelsAt(index: number, display: true): string | undefined;
+  labelsAt(index: number, display?: boolean): string[] | string | undefined;
+  labelsAt(index: number, display = false): string[] | string | undefined {
     const page = Number.isInteger(index) ? this.#pages[index] : undefined;
-    return page && [...page.labels];
-  }
-
-  /** The labels of one document page as displayed (`"2+3"`), or `undefined` outside the document. */
-  formatAt(index: number): string | undefined {
-    return this.labelsAt(index)?.join("+");
+    return page && (display ? page.labels.join("+") : [...page.labels]);
   }
 
   /** The page model. */

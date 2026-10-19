@@ -29,7 +29,7 @@ apply to it.
 | `errors` | The input is invalid: every error the constructor may throw, as `{kind, position}`. It passes when the error it throws matches one entry, kind and position. `normalize` must throw a matching error too, unless `length` is set: `normalize` takes no page count. |
 | `pages` | The page model, `pages()`: one entry per document page, `{ignored, labels}`. |
 | `normalized` | `normalize(input)`, and `toString()` of the instance. |
-| `format` | `formatAt(i)` for every document page, ignored ones included. |
+| `display` | `labelsAt(i, true)` for every document page, ignored ones included. |
 | `labelsAt` | `[{index, labels}]`: `labelsAt(index)`. `labels` is `null` for an index outside the document (`undefined` in TypeScript, `None` in Python). |
 | `lengths` | `{indexLengthAll, indexLength, labelLength}`: `getIndexLengthAll()`, `getIndexLength()` and `getLabelLength()`. |
 | `lookups` | `[{pages, indexes, labels}]`: `getIndexList(pages)` and `getLabelList(pages)`. `null` means `undefined`/`None`. |
@@ -38,7 +38,7 @@ apply to it.
 | `v1` | `conversion` only: the v1 string, from `../v2/list_of_grottan_in_v1.txt`. `input` is its v2 form, from `../v2/list_of_grottan_in_v2.txt`, and `pages` is the page model v1 gives it. |
 | `note` | A comment for people. |
 
-A case without any of `errors`, `pages`, `normalized`, `format`, `labelsAt`, `lengths`, `lookups`
+A case without any of `errors`, `pages`, `normalized`, `display`, `labelsAt`, `lengths`, `lookups`
 and `equals` (a case with only `cleaned`) says nothing about strict parsing, so the constructor is
 not called. When `pages` is given, a test also checks `getIndexList()` and `getLabelList()` without an argument
 against it: the indexes of the pages that are not ignored, and their labels in order.

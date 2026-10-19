@@ -416,10 +416,10 @@ The class keeps the v1 API and meaning, except for the changes listed in
 
 **Other methods:**
 
-- `labelsAt(index)` gives the labels of one document page.
-- `formatAt(index)` gives them as displayed (`"2+3"`, `"20+29"`).
-- For an ignored page, both give its labels as written after `!`. For an index outside the document,
-  they give `undefined`.
+- `labelsAt(index)` gives the labels of one document page. `labelsAt(index, true)` gives them as one
+  string, as displayed (`"2+3"`, `"20+29"`; see "Display").
+- For an ignored page, it gives its labels as written after `!`. For an index outside the document,
+  it gives `undefined`.
 - `pages()` gives the page model as a list of `{ignored, labels}`.
 - `toString()` gives the normal form, written with the sequence's own `plugins`.
 
@@ -472,7 +472,7 @@ The class keeps the v1 API and meaning, except for the changes listed in
   `PageSequence.create(...)`, which returns `None` on error;
 - `get_index_length_all()`, `get_index_length()`, `get_label_length()`, `get_index_list(pages=None)`,
   `get_label_list(pages=None)`;
-- `labels_at(index)`, `format_at(index)`, `pages()` and `str()`;
+- `labels_at(index, display=False)`, `pages()` and `str()`;
 - the functions `normalize(text)`, `clean(text, length=None)` and `equals(a, b)`, each with the
   keyword-only `plugins=()` and `max_labels=10000`;
 - `to_roman(num, lower_case=False)`, which raises `ValueError` outside 1–3999, and

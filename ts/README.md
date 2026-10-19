@@ -17,7 +17,7 @@ import { PageSequence } from "@publication-md/pagesequence";
 // An unnumbered cover, roman front matter, then pages 1 to 48: 53 pages in all.
 const seq = new PageSequence('"Omslag", i-iv, 1-48', 53);
 seq.getIndexList("20-21"); // [24, 25]: the document pages, counted from 0
-seq.formatAt(1); // "i"
+seq.labelsAt(1); // ["i"]
 ```
 
 Invalid input throws a `PageSequenceError` with `kind` and `position`; `PageSequence.create` returns `undefined`

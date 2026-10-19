@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
-from typing import NamedTuple, Protocol, Sequence, overload
+from typing import Literal, NamedTuple, Protocol, Sequence, overload
 
 from .roman import from_roman, to_roman
 
@@ -875,16 +875,20 @@ class PageSequence:
         found = self._find(pages)
         return None if found is None else [label for _, label in found]
 
-    def labels_at(self, index: int) -> list[str] | None:
-        """The labels of one document page, or ``None`` outside the document."""
+    @overload
+    def labels_at(self, index: int, display: Literal[False] = False) -> list[str] | None: ...
+    @overload
+    def labels_at(self, index: int, display: Literal[True]) -> str | None: ...
+    @overload
+    def labels_at(self, index: int, display: bool = False) -> list[str] | str | None: ...
+
+    def labels_at(self, index: int, display: bool = False) -> list[str] | str | None:
+        """The labels of one document page, or ``None`` outside the document. With ``display``,
+        they are one string, as displayed (``"2+3"``)."""
         if isinstance(index, bool) or not isinstance(index, int) or not 0 <= index < len(self._pages):
             return None
-        return list(self._pages[index]["labels"])
-
-    def format_at(self, index: int) -> str | None:
-        """The labels of one document page as displayed (``"2+3"``), or ``None`` outside the document."""
-        labels = self.labels_at(index)
-        return None if labels is None else "+".join(labels)
+        labels = self._pages[index]["labels"]
+        return "+".join(labels) if display else list(labels)
 
     def pages(self) -> list[dict]:
         """The page model: a list of ``{"ignored": bool, "labels": [str, …]}``."""
