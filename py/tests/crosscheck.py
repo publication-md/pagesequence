@@ -78,6 +78,11 @@ def main():
                     again = normalize(normalized, plugins=plugins)
                     if again != normalized:
                         fail("idempotent", again)
+                for i, page in enumerate(pages):
+                    display = seq.labels_at(i, True)
+                    back = PageSequence.create(display)
+                    if back is None or back.pages() != [{"ignored": False, "labels": page["labels"]}]:
+                        fail("display", display)
                 key = (set_name, json.dumps(pages, ensure_ascii=False))
                 if unique.setdefault(key, normalized) != normalized:
                     fail("unique", [unique[key], normalized])

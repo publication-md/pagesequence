@@ -886,19 +886,20 @@ class PageSequence:
         return None if found is None else [label for _, label in found]
 
     @overload
-    def labels_at(self, index: int, display: Literal[False] = False) -> list[str] | None: ...
+    def labels_at(self, index: int, as_sequence: Literal[False] = False) -> list[str] | None: ...
     @overload
-    def labels_at(self, index: int, display: Literal[True]) -> str | None: ...
+    def labels_at(self, index: int, as_sequence: Literal[True]) -> str | None: ...
     @overload
-    def labels_at(self, index: int, display: bool = False) -> list[str] | str | None: ...
+    def labels_at(self, index: int, as_sequence: bool = False) -> list[str] | str | None: ...
 
-    def labels_at(self, index: int, display: bool = False) -> list[str] | str | None:
-        """The labels of one document page, or ``None`` outside the document. With ``display``,
-        they are one string, as displayed (``"2+3"``)."""
+    def labels_at(self, index: int, as_sequence: bool = False) -> list[str] | str | None:
+        """The labels of one document page, or ``None`` outside the document. With
+        ``as_sequence``, they are one string: the page written as a sequence, quoted where needed
+        (``2+3``, ``"Omslag, insida"+2``)."""
         if isinstance(index, bool) or not isinstance(index, int) or not 0 <= index < len(self._pages):
             return None
         labels = self._pages[index]["labels"]
-        return "+".join(labels) if display else list(labels)
+        return _write_page(labels) if as_sequence else list(labels)
 
     def pages(self) -> list[dict]:
         """The page model: a list of ``{"ignored": bool, "labels": [str, …]}``."""

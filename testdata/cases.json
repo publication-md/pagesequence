@@ -504,7 +504,7 @@
         "input": "\"Omslag, insida\"+2",
         "pages": [{"ignored": false, "labels": ["Omslag, insida", "2"]}],
         "normalized": "\"Omslag, insida\"+2",
-        "display": ["Omslag, insida+2"]
+        "display": ["\"Omslag, insida\"+2"]
       },
       {
         "input": "\"My \\\"label\\\" - 1\"",
@@ -604,9 +604,14 @@
         "input": "\"\"+2",
         "pages": [{"ignored": false, "labels": ["", "2"]}],
         "normalized": "\"\"+2",
-        "display": ["+2"]
+        "display": ["\"\"+2"]
       },
-      {"input": "a b", "pages": [{"ignored": false, "labels": ["a b"]}], "normalized": "\"a b\""},
+      {
+        "input": "a b",
+        "pages": [{"ignored": false, "labels": ["a b"]}],
+        "normalized": "\"a b\"",
+        "display": ["\"a b\""]
+      },
       {
         "input": "a b",
         "pages": [{"ignored": false, "labels": ["a b"]}],

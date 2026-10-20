@@ -827,15 +827,15 @@ export class PageSequence {
   }
 
   /**
-   * The labels of one document page, or `undefined` outside the document. With `display`, they are
-   * one string, as displayed (`"2+3"`).
+   * The labels of one document page, or `undefined` outside the document. With `asSequence`, they
+   * are one string: the page written as a sequence, quoted where needed (`2+3`, `"Omslag, insida"+2`).
    */
-  labelsAt(index: number, display?: false): string[] | undefined;
-  labelsAt(index: number, display: true): string | undefined;
-  labelsAt(index: number, display?: boolean): string[] | string | undefined;
-  labelsAt(index: number, display = false): string[] | string | undefined {
+  labelsAt(index: number, asSequence?: false): string[] | undefined;
+  labelsAt(index: number, asSequence: true): string | undefined;
+  labelsAt(index: number, asSequence?: boolean): string[] | string | undefined;
+  labelsAt(index: number, asSequence = false): string[] | string | undefined {
     const page = Number.isInteger(index) ? this.#pages[index] : undefined;
-    return page && (display ? page.labels.join("+") : [...page.labels]);
+    return page && (asSequence ? writePage(page.labels) : [...page.labels]);
   }
 
   /** The page model. */

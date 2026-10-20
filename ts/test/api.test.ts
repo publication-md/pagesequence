@@ -41,7 +41,7 @@ test("maxLabels must be a positive integer", () => {
   assert.throws(() => normalize("1-3", { maxLabels: 0 }), RangeError);
 });
 
-test("labelsAt gives a string only with display", () => {
+test("labelsAt gives a string only with asSequence", () => {
   const seq = new PageSequence("1, 2+3");
   // The annotations are the test: Deno type-checks them against the overloads.
   const labels: string[] | undefined = seq.labelsAt(1);

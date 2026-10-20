@@ -256,7 +256,8 @@ case has an `input`, and the expected results that apply to it:
 - `pages`: the expansion, one entry per document page, `{ignored, labels}`;
 - `normalized`: the expected `normalize()` output;
 - `cleaned`: the expected `clean()` output, with `length` when a page count is given;
-- `format`: the expected display of each document page (`"2+3"`, `"20+29"`);
+- `display`: the expected `labelsAt(index, true)` of each document page (`2+3`,
+  `"Omslag, insida"+2`);
 - `labelsAt`: expected `labelsAt(index)` results, including ignored and out-of-range pages;
 - `lookups`: a list of `{pages, indexes, labels}`, the expected `getIndexList` and `getLabelList`
   with `pages`;
@@ -326,6 +327,7 @@ test library:
    - **unique:** different spellings of the same model give the same normal form;
    - **not longer:** the normal form is never longer than the plain list, apart from the quotes
      added to labels with spaces and the flags written where systems collide;
+   - **display:** `labelsAt(index, true)` reads back as one page with the same labels;
    - **`clean` agrees:** for valid input whose only whitespace is U+0020, `clean(x).normalized`
      equals `normalize(x)`.
 

@@ -36,6 +36,7 @@ class Api(unittest.TestCase):
         seq = PageSequence("1, 2+3")
         self.assertEqual(seq.get_index_list(sequence="2-3"), [1])
         self.assertEqual(seq.get_label_list(sequence="1-2"), ["1", "2"])
+        self.assertEqual(seq.labels_at(1, as_sequence=True), "2+3")
         self.assertEqual(normalize(sequence="1, 2, 3"), "1-3")
         self.assertTrue(equals(sequence_a="1-3", sequence_b="1, 2, 3"))
         self.assertEqual(clean(sequence="1–3").normalized, "1-3")

@@ -123,8 +123,9 @@ qchar    = any character except '"', "\" and control characters
   after lowercasing them with the language's own function (`toLowerCase()` in JS, `str.lower()` in
   Python). That is not case folding, so `ß` and `ss` stay different labels. Implementations on
   different Unicode versions can differ for characters whose case mapping changed between versions.
-- **Display.** A document page is shown as its labels joined with `+`, without quotes: `20+29`, and
-  `"Omslag, insida"+2` is shown as "Omslag, insida+2".
+- **Display.** A document page is shown as a sequence of that one page: its labels joined with `+`,
+  each quoted as in the normal form (step 4 of "Normal form"). So `20+29` is shown as `20+29`, and
+  `"Omslag, insida"+2` and `""+2` keep their quotes. The display reads back as the same labels.
 
 ## Numbering
 
@@ -421,8 +422,9 @@ function takes two.
 
 **Other methods:**
 
-- `labelsAt(index)` gives the labels of one document page. `labelsAt(index, true)` gives them as one
-  string, as displayed (`"2+3"`, `"20+29"`; see "Display").
+- `labelsAt(index)` gives the labels of one document page. With `asSequence`,
+  `labelsAt(index, true)` gives the page written as a sequence, as it is displayed: `2+3` or
+  `"Omslag, insida"+2` (see "Display").
 - For an ignored page, it gives its labels as written after `!`. For an index outside the document,
   it gives `undefined`.
 - `pages()` gives the page model as a list of `{ignored, labels}`.
@@ -478,7 +480,7 @@ function takes two.
   `PageSequence.create(...)`, which returns `None` on error;
 - `get_index_length_all()`, `get_index_length()`, `get_label_length()`,
   `get_index_list(sequence=None)`, `get_label_list(sequence=None)`;
-- `labels_at(index, display=False)`, `pages()` and `str()`;
+- `labels_at(index, as_sequence=False)`, `pages()` and `str()`;
 - the functions `normalize(sequence)`, `clean(sequence, index_length_all=None)` and
   `equals(sequence_a, sequence_b)`, each with the keyword-only `plugins=()` and
   `max_labels=10000`;

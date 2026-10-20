@@ -79,6 +79,13 @@ for (const { input: text } of inputs) {
         if (!(e instanceof PageSequenceError)) throw e;
         fail("round trip", `${JSON.stringify(normalized)} throws ${e.kind}`);
       }
+      for (const [i, page] of pages.entries()) {
+        const display = seq.labelsAt(i, true) ?? "";
+        const back = PageSequence.create(display)?.pages();
+        if (JSON.stringify(back) !== JSON.stringify([{ ignored: false, labels: page.labels }])) {
+          fail("display", display);
+        }
+      }
       const key = setName + JSON.stringify(pages);
       if (!unique.has(key)) unique.set(key, normalized);
       else if (unique.get(key) !== normalized) fail("unique", [unique.get(key), normalized]);
