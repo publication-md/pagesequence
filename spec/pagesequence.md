@@ -251,8 +251,8 @@ that is given it in `plugins` (see "API").
 The same sequence can be written in several ways: `1,2,3` and `1-3`, `1-3, 4-6` and `1-6`,
 `1 , 2+3 .. 6+7` and `1, 2+3..6+7`. `normalize` writes one string for each page model:
 
-1. **Expand** the text to its page model. `equals(a, b)` compares models, with labels compared
-   exactly, case included.
+1. **Expand** the text to its page model. `equals(sequenceA, sequenceB)` compares models, with
+   labels compared exactly, case included.
 2. **Fold** in one pass from the first document page:
    1. If the next page has the same ignored flag and the same number of labels, read the two pages
       as a range (one label each) or a run (several labels each), with each system in turn: the
@@ -338,8 +338,8 @@ of the message is also up to the implementation.
 
 ## Cleaning
 
-`clean(text, { indexLengthAll })` is for text that a person types or pastes, in a form for
-example.
+`clean(sequence, { indexLengthAll })` is for a sequence that a person types or pastes, in a form
+for example.
 
 - It repairs notation that has exactly one reading, then normalises strictly. It never guesses
   meaning: input with two readings is still an error.
@@ -380,6 +380,9 @@ whitespace. Only `normalized` is shared between them.
 The class keeps the v1 API and meaning, except for the changes listed in
 [`pagesequence-v2.md`](../pagesequence-v2.md#breaking-changes-from-v1).
 
+An argument that takes sequence syntax is named `sequence`, or `sequenceA` and `sequenceB` when a
+function takes two.
+
 **The class:**
 
 - `new PageSequence(sequence, indexLengthAll?)` and
@@ -399,11 +402,11 @@ The class keeps the v1 API and meaning, except for the changes listed in
 
 **Lookups:**
 
-- `getIndexList(pages)` and `getLabelList(pages)` look up a reference, such as `"20-21"` in a part
-  block.
+- `getIndexList(sequence)` and `getLabelList(sequence)` look up a reference, a sequence of labels
+  such as `"20-21"` in a part block.
 - The reference is parsed as a sequence, with two repairs: dashes (`–`, `—` and `−` → `-`) and
   equal ends (`5-5` → `5`). No other `clean` repair applies, so a change to `clean` never changes
-  what a stored reference points to. It is read with the sequence's own `plugins` and
+  what a stored reference points to. It is read with the instance's own `plugins` and
   `maxLabels`.
 - The lookup gives the document pages that carry the reference's labels.
   - A document page with other labels, such as an insert between them, is included only if the
@@ -411,10 +414,10 @@ The class keeps the v1 API and meaning, except for the changes listed in
     and 12, and `10-11, 10a-10d, 12` also gives the insert.
   - Document page numbers are never used in a reference.
 - The lookup ignores case.
-- An invalid reference, or one with a label that isn't in the sequence, gives `undefined`. The
+- An invalid reference, or one with a label that the instance doesn't have, gives `undefined`. The
   each-label-once rule applies to references too, so `3, 3` gives `undefined`. A reference that
   contains the empty label `""` also gives `undefined`.
-- `getIndexList(pages)` gives each index once, in first-seen order.
+- `getIndexList(sequence)` gives each index once, in first-seen order.
 
 **Other methods:**
 
@@ -427,11 +430,12 @@ The class keeps the v1 API and meaning, except for the changes listed in
 
 **Functions:**
 
-- `normalize(text, { plugins?, maxLabels? }) → string` gives the normal form. It throws on invalid
-  input.
-- `clean(text, { indexLengthAll?, plugins?, maxLabels? }) → { normalized, repairs }` (see "Cleaning").
-- `equals(a, b, { plugins?, maxLabels? }) → boolean` reads two sequence strings and compares their
-  page models. It throws on invalid input.
+- `normalize(sequence, { plugins?, maxLabels? }) → string` gives the normal form. It throws on
+  invalid input.
+- `clean(sequence, { indexLengthAll?, plugins?, maxLabels? }) → { normalized, repairs }` (see
+  "Cleaning").
+- `equals(sequenceA, sequenceB, { plugins?, maxLabels? }) → boolean` reads two sequence strings
+  and compares their page models. It throws on invalid input.
 - `maxLabels` is the label limit, 10 000 by default (see "Limits"). Like `plugins`, an instance
   keeps it for its lookups.
 - `toRoman(num, lowerCase?) → string` writes an integer from 1 to 3999 as a canonical roman
@@ -472,11 +476,12 @@ The class keeps the v1 API and meaning, except for the changes listed in
 
 - `PageSequence(sequence, index_length_all=None, *, plugins=(), max_labels=10000)` and
   `PageSequence.create(...)`, which returns `None` on error;
-- `get_index_length_all()`, `get_index_length()`, `get_label_length()`, `get_index_list(pages=None)`,
-  `get_label_list(pages=None)`;
+- `get_index_length_all()`, `get_index_length()`, `get_label_length()`,
+  `get_index_list(sequence=None)`, `get_label_list(sequence=None)`;
 - `labels_at(index, display=False)`, `pages()` and `str()`;
-- the functions `normalize(text)`, `clean(text, index_length_all=None)` and `equals(a, b)`, each
-  with the keyword-only `plugins=()` and `max_labels=10000`;
+- the functions `normalize(sequence)`, `clean(sequence, index_length_all=None)` and
+  `equals(sequence_a, sequence_b)`, each with the keyword-only `plugins=()` and
+  `max_labels=10000`;
 - `to_roman(num, lower_case=False)`, which raises `ValueError` outside 1–3999, and
   `from_roman(roman)`, which returns `None` for anything that isn't roman;
 - `alphabet(name, upper, lower=None)`. A system has `name`,

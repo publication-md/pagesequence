@@ -530,16 +530,16 @@ function fold(pages: Page[], ctx: Context): string {
 }
 
 /** The normal form of a sequence. Throws `PageSequenceError` on invalid input. */
-export function normalize(text: string, options?: Options): string {
+export function normalize(sequence: string, options?: Options): string {
   const ctx = context(options);
-  return fold(parse(text, ctx), ctx);
+  return fold(parse(sequence, ctx), ctx);
 }
 
 /** Do two sequences have the same page model? Labels are compared exactly. */
-export function equals(a: string, b: string, options?: Options): boolean {
+export function equals(sequenceA: string, sequenceB: string, options?: Options): boolean {
   const ctx = context(options);
-  const pa = parse(a, ctx);
-  const pb = parse(b, ctx);
+  const pa = parse(sequenceA, ctx);
+  const pb = parse(sequenceB, ctx);
   return pa.length === pb.length &&
     pa.every((p, i) =>
       p.ignored === pb[i].ignored && p.labels.length === pb[i].labels.length &&
@@ -657,12 +657,12 @@ function cleanItem(text: string, repairs: string[]): { text: string; open?: { ig
  * Repair what a person typed or pasted, then normalise strictly. With `indexLengthAll`, an open
  * range at the end is closed at that page count, and the result is checked against it.
  */
-export function clean(text: string, options: LengthOptions = {}): { normalized: string; repairs: string[] } {
+export function clean(sequence: string, options: LengthOptions = {}): { normalized: string; repairs: string[] } {
   const ctx = context(options);
   const { indexLengthAll } = options;
   checkLength(indexLengthAll);
   const repairs: string[] = [];
-  const cps = Array.from(text.normalize("NFC"));
+  const cps = Array.from(sequence.normalize("NFC"));
   // Character repairs, outside straight quotes. Curly quotes become straight ones.
   let chars = "";
   for (let i = 0; i < cps.length; i++) {
@@ -786,8 +786,8 @@ export class PageSequence {
   }
 
   /** The labels of a reference, or `undefined` if it is invalid or names a missing label. */
-  #find(pages: string): [number, string][] | undefined {
-    const text = outsideQuotes(Array.from(pages.normalize("NFC")), (c) => (DASHES.includes(c) ? "-" : c));
+  #find(sequence: string): [number, string][] | undefined {
+    const text = outsideQuotes(Array.from(sequence.normalize("NFC")), (c) => (DASHES.includes(c) ? "-" : c));
     let ref: Page[];
     try {
       ref = parse(text, this.#ctx, true);
@@ -807,23 +807,23 @@ export class PageSequence {
   }
 
   /**
-   * Without `pages`, the indexes of all pages that are not ignored. With a reference such as
+   * Without `sequence`, the indexes of all pages that are not ignored. With a reference such as
    * `"20-21"`, the indexes of the pages that carry its labels, each once, in first-seen order.
    */
   getIndexList(): number[];
-  getIndexList(pages?: string): number[] | undefined;
-  getIndexList(pages?: string): number[] | undefined {
-    if (pages === undefined) return this.#pages.flatMap((p, i) => (p.ignored ? [] : [i]));
-    const found = this.#find(pages);
+  getIndexList(sequence?: string): number[] | undefined;
+  getIndexList(sequence?: string): number[] | undefined {
+    if (sequence === undefined) return this.#pages.flatMap((p, i) => (p.ignored ? [] : [i]));
+    const found = this.#find(sequence);
     return found && [...new Set(found.map(([index]) => index))];
   }
 
-  /** Without `pages`, all labels of the pages that are not ignored. With a reference, its labels. */
+  /** Without `sequence`, all labels of the pages that are not ignored. With a reference, its labels. */
   getLabelList(): string[];
-  getLabelList(pages?: string): string[] | undefined;
-  getLabelList(pages?: string): string[] | undefined {
-    if (pages === undefined) return this.#pages.flatMap((p) => (p.ignored ? [] : [...p.labels]));
-    return this.#find(pages)?.map(([, label]) => label);
+  getLabelList(sequence?: string): string[] | undefined;
+  getLabelList(sequence?: string): string[] | undefined {
+    if (sequence === undefined) return this.#pages.flatMap((p) => (p.ignored ? [] : [...p.labels]));
+    return this.#find(sequence)?.map(([, label]) => label);
   }
 
   /**

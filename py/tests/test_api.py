@@ -3,7 +3,7 @@ options."""
 
 import unittest
 
-from pagesequence import PageSequence, alphabet, from_roman, normalize, to_roman
+from pagesequence import PageSequence, alphabet, clean, equals, from_roman, normalize, to_roman
 from pagesequence.plugins.latin_sv import latin_sv
 
 
@@ -31,6 +31,14 @@ class Api(unittest.TestCase):
         self.assertEqual(PageSequence("1-3", 3).get_index_length_all(), 3)
         self.assertIsNone(PageSequence.create("1-3", 4))
         self.assertEqual(PageSequence(sequence="1-3", index_length_all=3).get_index_length_all(), 3)
+
+    def test_sequence_arguments(self):
+        seq = PageSequence("1, 2+3")
+        self.assertEqual(seq.get_index_list(sequence="2-3"), [1])
+        self.assertEqual(seq.get_label_list(sequence="1-2"), ["1", "2"])
+        self.assertEqual(normalize(sequence="1, 2, 3"), "1-3")
+        self.assertTrue(equals(sequence_a="1-3", sequence_b="1, 2, 3"))
+        self.assertEqual(clean(sequence="1–3").normalized, "1-3")
 
     def test_instance_keeps_plugins(self):
         seq = PageSequence("A-Ö/latin_sv", plugins=[latin_sv])

@@ -578,18 +578,27 @@ def _fold(pages: list[dict], ctx: _Context) -> str:
     return ", ".join(items)
 
 
-def normalize(text: str, *, plugins: Sequence[NumberingSystem] = (), max_labels: int = _DEFAULT_MAX_LABELS) -> str:
+def normalize(
+    sequence: str,
+    *,
+    plugins: Sequence[NumberingSystem] = (),
+    max_labels: int = _DEFAULT_MAX_LABELS,
+) -> str:
     """The normal form of a sequence. Raises ``PageSequenceError`` on invalid input."""
     ctx = _context(plugins, max_labels)
-    return _fold(_parse(text, ctx), ctx)
+    return _fold(_parse(sequence, ctx), ctx)
 
 
 def equals(
-    a: str, b: str, *, plugins: Sequence[NumberingSystem] = (), max_labels: int = _DEFAULT_MAX_LABELS
+    sequence_a: str,
+    sequence_b: str,
+    *,
+    plugins: Sequence[NumberingSystem] = (),
+    max_labels: int = _DEFAULT_MAX_LABELS,
 ) -> bool:
     """Do two sequences have the same page model? Labels are compared exactly."""
     ctx = _context(plugins, max_labels)
-    return _parse(a, ctx) == _parse(b, ctx)
+    return _parse(sequence_a, ctx) == _parse(sequence_b, ctx)
 
 
 # ---------------------------------------------------------------- Cleaning
@@ -699,7 +708,7 @@ class Cleaned(NamedTuple):
 
 
 def clean(
-    text: str,
+    sequence: str,
     index_length_all: int | None = None,
     *,
     plugins: Sequence[NumberingSystem] = (),
@@ -710,7 +719,7 @@ def clean(
     ctx = _context(plugins, max_labels)
     _check_length(index_length_all)
     repairs: list[str] = []
-    cps = unicodedata.normalize("NFC", text)
+    cps = unicodedata.normalize("NFC", sequence)
     # Character repairs, outside straight quotes. Curly quotes become straight ones.
     chars = []
     i = 0
@@ -833,9 +842,9 @@ class PageSequence:
         """The number of labels on the pages that are not ignored."""
         return sum(len(p["labels"]) for p in self._pages if not p["ignored"])
 
-    def _find(self, pages: str) -> list[tuple[int, str]] | None:
+    def _find(self, sequence: str) -> list[tuple[int, str]] | None:
         """The labels of a reference, or ``None`` if it is invalid or names a missing label."""
-        text = _outside_quotes(unicodedata.normalize("NFC", pages), lambda c: "-" if c in _DASHES else c)
+        text = _outside_quotes(unicodedata.normalize("NFC", sequence), lambda c: "-" if c in _DASHES else c)
         try:
             ref = _parse(text, self._ctx, True)
         except PageSequenceError:
@@ -852,28 +861,28 @@ class PageSequence:
     @overload
     def get_index_list(self) -> list[int]: ...
     @overload
-    def get_index_list(self, pages: str | None = None) -> list[int] | None: ...
+    def get_index_list(self, sequence: str | None = None) -> list[int] | None: ...
 
-    def get_index_list(self, pages: str | None = None) -> list[int] | None:
-        """Without ``pages``, the indexes of all pages that are not ignored. With a reference such
-        as ``"20-21"``, the indexes of the pages that carry its labels, each once, in first-seen
-        order."""
-        if pages is None:
+    def get_index_list(self, sequence: str | None = None) -> list[int] | None:
+        """Without ``sequence``, the indexes of all pages that are not ignored. With a reference
+        such as ``"20-21"``, the indexes of the pages that carry its labels, each once, in
+        first-seen order."""
+        if sequence is None:
             return [i for i, p in enumerate(self._pages) if not p["ignored"]]
-        found = self._find(pages)
+        found = self._find(sequence)
         return None if found is None else list(dict.fromkeys(index for index, _ in found))
 
     @overload
     def get_label_list(self) -> list[str]: ...
     @overload
-    def get_label_list(self, pages: str | None = None) -> list[str] | None: ...
+    def get_label_list(self, sequence: str | None = None) -> list[str] | None: ...
 
-    def get_label_list(self, pages: str | None = None) -> list[str] | None:
-        """Without ``pages``, all labels of the pages that are not ignored. With a reference, its
-        labels."""
-        if pages is None:
+    def get_label_list(self, sequence: str | None = None) -> list[str] | None:
+        """Without ``sequence``, all labels of the pages that are not ignored. With a reference,
+        its labels."""
+        if sequence is None:
             return [label for p in self._pages if not p["ignored"] for label in p["labels"]]
-        found = self._find(pages)
+        found = self._find(sequence)
         return None if found is None else [label for _, label in found]
 
     @overload

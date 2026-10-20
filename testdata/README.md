@@ -32,7 +32,7 @@ apply to it.
 | `display` | `labelsAt(i, true)` for every document page, ignored ones included. |
 | `labelsAt` | `[{index, labels}]`: `labelsAt(index)`. `labels` is `null` for an index outside the document (`undefined` in TypeScript, `None` in Python). |
 | `lengths` | `{indexLengthAll, indexLength, labelLength}`: `getIndexLengthAll()`, `getIndexLength()` and `getLabelLength()`. |
-| `lookups` | `[{pages, indexes, labels}]`: `getIndexList(pages)` and `getLabelList(pages)`. `null` means `undefined`/`None`. |
+| `lookups` | `[{pages, indexes, labels}]`: `getIndexList` and `getLabelList` with `pages`. `null` means `undefined`/`None`. |
 | `equals` | `[{with, result}]`: `equals(input, with)`. |
 | `cleaned` | `[{length?, normalized?, errors?}]`: `clean(input, {indexLengthAll: length})`. `normalized` is the expected result; `errors` lists the error kinds it may throw instead. Positions aren't checked for `clean`, since its repairs are up to the implementation. |
 | `v1` | `conversion` only: the v1 string, from `../v2/list_of_grottan_in_v1.txt`. `input` is its v2 form, from `../v2/list_of_grottan_in_v2.txt`, and `pages` is the page model v1 gives it. |
@@ -62,7 +62,7 @@ These follow from the spec as it reads now. Each of them is tested here:
 - A label generated inside a range counts towards the 100-code-point limit.
 - The labels of ignored pages count towards the label limit.
 - Text with nothing but spaces is `empty`; the case also allows `empty-item`.
-- `getLabelList(pages)` gives the sequence's own spelling of each label in the reference, in the
+- `getLabelList(sequence)` gives each label of the reference as the instance spells it, in the
   order of the reference.
 
 ## Unicode

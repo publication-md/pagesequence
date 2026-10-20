@@ -171,8 +171,8 @@ v1 is used in one project, so it is converted once rather than supported.
   …, dropping the zero.
 - **`!`, `"`, `/`, `\` and control characters are reserved,** so a label that contains one is
   quoted: `"1990/1"`.
-- **References** (`getIndexList(pages)`) are read as v2 sequences, plus two repairs: dashes and
-  equal ends. Each index appears once, in first-seen order. v1 could repeat an index:
+- **References** (`getIndexList(sequence)`) are read as v2 sequences, plus two repairs: dashes
+  and equal ends. Each index appears once, in first-seen order. v1 could repeat an index:
   `[19, 20, …, 27, 19]`.
 - **Errors have a kind and a position** (`PageSequenceError`).
 - **New limits:** at most 10 000 labels unless the caller sets `maxLabels`, labels of at most 100
@@ -258,8 +258,8 @@ case has an `input`, and the expected results that apply to it:
 - `cleaned`: the expected `clean()` output, with `length` when a page count is given;
 - `format`: the expected display of each document page (`"2+3"`, `"20+29"`);
 - `labelsAt`: expected `labelsAt(index)` results, including ignored and out-of-range pages;
-- `lookups`: a list of `{pages, indexes, labels}`, the expected `getIndexList(pages)` and
-  `getLabelList(pages)`;
+- `lookups`: a list of `{pages, indexes, labels}`, the expected `getIndexList` and `getLabelList`
+  with `pages`;
 - `equals`: pairs, and the expected result for each;
 - `plugins`: the names of the plugin systems that every call in the case is given, such as
   `["roman_additive"]`. Without it, none;
