@@ -38,7 +38,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "deno-repl": "deno repl -R --eval \"Object.assign(globalThis, await import('./src/mod.ts'))\"",
+    "node-repl": "node -i -e \"import('./src/mod.ts').then(m => Object.assign(globalThis, m))\""
   },
   "devDependencies": {
     "typescript": "7.0.2"
