@@ -161,8 +161,8 @@ v1 is used in one project, so it is converted once rather than supported.
 - **`|` is invalid.** `+` joins the labels on one page, and only between single labels:
   `1-3|4-6` becomes `1-2, 3+4, 5-6`.
 - **An empty string is an error,** even with a page count. Plain numbering is stored as `1-52`,
-  which `clean("", { length: 52 })` gives. Code that relied on the empty default needs
-  ``create(text || `1-${n}`, n)``.
+  which `clean("", { indexLengthAll: 52 })` gives. Code that relied on the empty default needs
+  ``create(sequence || `1-${n}`, n)``.
 - **A label may appear only once** on the pages that are not ignored. v1 accepted duplicates, and
   its lookups returned the last one. The exception is the empty label `""`, for a page with nothing
   printed on it: it may repeat, and a lookup never finds it.
@@ -186,8 +186,9 @@ v1 is used in one project, so it is converted once rather than supported.
 - **New functions:** `labelsAt`, `pages()`, `toString()`, `normalize`, `clean`, `equals` and
   `alphabet`.
 - **New syntax:** flags (`V-X/latin`), and the plugin systems they name. Every call that reads a
-  sequence takes the plugin systems in a `plugins` option. The constructor still takes the page
-  count as its second argument, as in v1, or `{ length, plugins, maxLabels }`.
+  sequence takes the plugin systems in a `plugins` option. The constructor keeps v1's arguments,
+  `sequence` and `indexLengthAll`. The page count is its second argument, as in v1, or is given in
+  `{ indexLengthAll, plugins, maxLabels }`.
 
 ## Distribution and implementations
 

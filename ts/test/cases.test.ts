@@ -42,11 +42,11 @@ function runSequenceCase(c: Case) {
   const opts = { plugins: (c.plugins ?? []).map((n: string) => PLUGINS[n]), maxLabels: c.maxLabels };
   if (STRICT.some((k) => k in c)) {
     if (c.errors) {
-      throwsOneOf(() => new PageSequence(c.input, { ...opts, length: c.length }), c.errors);
-      assert.equal(PageSequence.create(c.input, { ...opts, length: c.length }), undefined);
+      throwsOneOf(() => new PageSequence(c.input, { ...opts, indexLengthAll: c.length }), c.errors);
+      assert.equal(PageSequence.create(c.input, { ...opts, indexLengthAll: c.length }), undefined);
       if (c.length === undefined) throwsOneOf(() => normalize(c.input, opts), c.errors);
     } else {
-      const seq = new PageSequence(c.input, { ...opts, length: c.length });
+      const seq = new PageSequence(c.input, { ...opts, indexLengthAll: c.length });
       const pages = seq.pages();
       if (c.pages) {
         assert.deepEqual(pages, c.pages);
@@ -82,7 +82,7 @@ function runSequenceCase(c: Case) {
     }
   }
   for (const x of c.cleaned ?? []) {
-    const call = () => clean(c.input, { ...opts, length: x.length });
+    const call = () => clean(c.input, { ...opts, indexLengthAll: x.length });
     if (x.errors) throwsOneOf(call, x.errors.map((kind: string) => ({ kind, position: null })), false);
     else assert.equal(call().normalized, x.normalized, `clean with length ${x.length}`);
   }

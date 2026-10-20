@@ -27,9 +27,10 @@ class Api(unittest.TestCase):
         self.assertEqual(normalize("A, B, C", plugins=plugins), "A-C")
         self.assertEqual(PageSequence("A-C/x_abc", plugins=plugins).get_label_list(), ["A", "B", "C"])
 
-    def test_length_argument(self):
+    def test_index_length_all_argument(self):
         self.assertEqual(PageSequence("1-3", 3).get_index_length_all(), 3)
         self.assertIsNone(PageSequence.create("1-3", 4))
+        self.assertEqual(PageSequence(sequence="1-3", index_length_all=3).get_index_length_all(), 3)
 
     def test_instance_keeps_plugins(self):
         seq = PageSequence("A-Ö/latin_sv", plugins=[latin_sv])

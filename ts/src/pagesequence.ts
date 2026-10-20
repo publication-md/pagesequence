@@ -68,7 +68,7 @@ export interface Options {
 
 /** Options for the constructor and `clean`. */
 export interface LengthOptions extends Options {
-  length?: number;
+  indexLengthAll?: number;
 }
 
 /**
@@ -654,13 +654,13 @@ function cleanItem(text: string, repairs: string[]): { text: string; open?: { ig
 }
 
 /**
- * Repair what a person typed or pasted, then normalise strictly. With `length`, an open range at
- * the end is closed at that page count, and the result is checked against it.
+ * Repair what a person typed or pasted, then normalise strictly. With `indexLengthAll`, an open
+ * range at the end is closed at that page count, and the result is checked against it.
  */
 export function clean(text: string, options: LengthOptions = {}): { normalized: string; repairs: string[] } {
   const ctx = context(options);
-  const { length } = options;
-  checkLength(length);
+  const { indexLengthAll } = options;
+  checkLength(indexLengthAll);
   const repairs: string[] = [];
   const cps = Array.from(text.normalize("NFC"));
   // Character repairs, outside straight quotes. Curly quotes become straight ones.
@@ -712,20 +712,20 @@ export function clean(text: string, options: LengthOptions = {}): { normalized: 
     }
     items.push(r.text);
   }
-  if (items.length === 0 && length !== undefined) {
+  if (items.length === 0 && indexLengthAll !== undefined) {
     open = { ignored: false, label: "1" };
     openAt = 0;
     items.push("1-");
   }
-  if (open && openAt === items.length - 1 && length !== undefined && readToken(integer, open.label)) {
+  if (open && openAt === items.length - 1 && indexLengthAll !== undefined && readToken(integer, open.label)) {
     const before = openAt === 0 ? 0 : parse(items.slice(0, openAt).join(", "), ctx).length;
-    const n = length - before;
+    const n = indexLengthAll - before;
     if (n < 1) throw new PageSequenceError("open-end", 0, "open-end: no pages are left for the open range");
     const first = Number(open.label);
     items[openAt] = (open.ignored ? "!" : "") + (n === 1 ? open.label : `${first}-${first + n - 1}`);
     repairs.push("open-end");
   }
-  const seq = new PageSequence(items.join(", "), { ...options, length });
+  const seq = new PageSequence(items.join(", "), options);
   return { normalized: seq.toString(), repairs };
 }
 
@@ -739,19 +739,20 @@ export class PageSequence {
   readonly #lookup = new Map<string, [number, string]>();
 
   /**
-   * Parse `text` strictly. Throws `PageSequenceError` on invalid input.
-   * @param options The document's page count, or `{ length, plugins, maxLabels }`.
+   * Parse `sequence` strictly. Throws `PageSequenceError` on invalid input.
+   * @param options The document's page count, or `{ indexLengthAll, plugins, maxLabels }`.
    */
-  constructor(text: string, options?: number | LengthOptions) {
-    const opts: LengthOptions = typeof options === "number" ? { length: options } : options ?? {};
-    checkLength(opts.length);
+  constructor(sequence: string, options?: number | LengthOptions) {
+    const opts: LengthOptions = typeof options === "number" ? { indexLengthAll: options } : options ?? {};
+    const { indexLengthAll } = opts;
+    checkLength(indexLengthAll);
     this.#ctx = context(opts);
-    this.#pages = parse(text, this.#ctx);
-    if (opts.length !== undefined && opts.length !== null && opts.length !== this.#pages.length) {
+    this.#pages = parse(sequence, this.#ctx);
+    if (indexLengthAll !== undefined && indexLengthAll !== null && indexLengthAll !== this.#pages.length) {
       throw new PageSequenceError(
         "length-mismatch",
         null,
-        `length-mismatch: the sequence has ${this.#pages.length} document pages, not ${opts.length}`,
+        `length-mismatch: the sequence has ${this.#pages.length} document pages, not ${indexLengthAll}`,
       );
     }
     this.#pages.forEach((page, index) => {
@@ -760,9 +761,9 @@ export class PageSequence {
   }
 
   /** Like the constructor, but gives `undefined` instead of throwing `PageSequenceError`. */
-  static create(text: string, options?: number | LengthOptions): PageSequence | undefined {
+  static create(sequence: string, options?: number | LengthOptions): PageSequence | undefined {
     try {
-      return new PageSequence(text, options);
+      return new PageSequence(sequence, options);
     } catch (e) {
       if (e instanceof PageSequenceError) return undefined;
       throw e;

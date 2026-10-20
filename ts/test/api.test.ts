@@ -28,6 +28,7 @@ test("a custom alphabet", () => {
 test("the constructor takes the page count as its second argument", () => {
   assert.equal(new PageSequence("1-3", 3).getIndexLengthAll(), 3);
   assert.equal(PageSequence.create("1-3", 4), undefined);
+  assert.equal(new PageSequence("1-3", { indexLengthAll: 3 }).getIndexLengthAll(), 3);
 });
 
 test("an instance keeps its plugins for lookups and toString", () => {

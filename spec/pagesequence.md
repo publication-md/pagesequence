@@ -338,13 +338,14 @@ of the message is also up to the implementation.
 
 ## Cleaning
 
-`clean(text, { length })` is for text that a person types or pastes, in a form for example.
+`clean(text, { indexLengthAll })` is for text that a person types or pastes, in a form for
+example.
 
 - It repairs notation that has exactly one reading, then normalises strictly. It never guesses
   meaning: input with two readings is still an error.
 - Input that is still invalid after the repairs throws, as in `normalize`.
 - When the page count is given, the result is also checked against it, as in
-  `create(text, length)`.
+  `create(sequence, indexLengthAll)`.
 
 The repairs:
 
@@ -362,7 +363,7 @@ The repairs:
 - **an open end:**
   - With a page count, one open range at the very end, after an integer, is closed at that count.
     `i-iv, 1-` with 52 pages → `i-iv, 1-48`, and `1-` with 1 page → `1`.
-  - An empty string counts as `1-`, so `clean("", { length: 52 })` gives `1-52`.
+  - An empty string counts as `1-`, so `clean("", { indexLengthAll: 52 })` gives `1-52`.
   - A `!` before the range doesn't change this.
   - It is an error if there is no page count, if the open range starts with anything other than an
     integer (`i-`, `A-`, `08-`, `inflikat.1-`), or if no pages are left for it.
@@ -381,16 +382,17 @@ The class keeps the v1 API and meaning, except for the changes listed in
 
 **The class:**
 
-- `new PageSequence(text, length?)` and `new PageSequence(text, { length?, plugins?, maxLabels? })` parse
-  strictly. On invalid input they throw `PageSequenceError` with `kind` and `position`. An empty
-  `text` is an error: plain numbering is stored as `1-52`.
-- `PageSequence.create(text, …)` takes the same arguments, but returns `undefined` instead of
+- `new PageSequence(sequence, indexLengthAll?)` and
+  `new PageSequence(sequence, { indexLengthAll?, plugins?, maxLabels? })` parse strictly. On invalid
+  input they throw `PageSequenceError` with `kind` and `position`. An empty `sequence` is an error:
+  plain numbering is stored as `1-52`.
+- `PageSequence.create(sequence, …)` takes the same arguments, but returns `undefined` instead of
   throwing.
-- Pass the document's page count, such as the number of pages in a PDF, as `length` whenever it is
-  known. The sequence is then checked against it, which catches a missing spread or a page counted
-  twice.
-- `getIndexLengthAll()` is the number of document pages, ignored ones included; `length` is checked
-  against it. `getIndexLength()` is the number of document pages that are not ignored.
+- Pass the document's page count, such as the number of pages in a PDF, as `indexLengthAll`
+  whenever it is known. The sequence is then checked against it, which catches a missing spread or
+  a page counted twice.
+- `getIndexLengthAll()` is the number of document pages, ignored ones included; `indexLengthAll` is
+  checked against it. `getIndexLength()` is the number of document pages that are not ignored.
 - `getLabelLength()` is the number of labels on the pages that are not ignored.
 - `getIndexList()` and `getLabelList()` without an argument give the indexes of all pages that are
   not ignored, and all their labels in order.
@@ -427,7 +429,7 @@ The class keeps the v1 API and meaning, except for the changes listed in
 
 - `normalize(text, { plugins?, maxLabels? }) → string` gives the normal form. It throws on invalid
   input.
-- `clean(text, { length?, plugins?, maxLabels? }) → { normalized, repairs }` (see "Cleaning").
+- `clean(text, { indexLengthAll?, plugins?, maxLabels? }) → { normalized, repairs }` (see "Cleaning").
 - `equals(a, b, { plugins?, maxLabels? }) → boolean` reads two sequence strings and compares their
   page models. It throws on invalid input.
 - `maxLabels` is the label limit, 10 000 by default (see "Limits"). Like `plugins`, an instance
@@ -452,7 +454,7 @@ The class keeps the v1 API and meaning, except for the changes listed in
   import { romanAdditive } from "@publication-md/pagesequence/plugins/roman_additive";
 
   const plugins = [romanAdditive];
-  const seq = new PageSequence("i-x/roman_additive, 1-48", { length: 58, plugins });
+  const seq = new PageSequence("i-x/roman_additive, 1-48", { indexLengthAll: 58, plugins });
   ```
 - A system is an object with:
   - `name`, as in "Flags";
@@ -468,13 +470,13 @@ The class keeps the v1 API and meaning, except for the changes listed in
 
 **Python** uses the same names in snake case:
 
-- `PageSequence(text, length=None, *, plugins=(), max_labels=10000)` and
+- `PageSequence(sequence, index_length_all=None, *, plugins=(), max_labels=10000)` and
   `PageSequence.create(...)`, which returns `None` on error;
 - `get_index_length_all()`, `get_index_length()`, `get_label_length()`, `get_index_list(pages=None)`,
   `get_label_list(pages=None)`;
 - `labels_at(index, display=False)`, `pages()` and `str()`;
-- the functions `normalize(text)`, `clean(text, length=None)` and `equals(a, b)`, each with the
-  keyword-only `plugins=()` and `max_labels=10000`;
+- the functions `normalize(text)`, `clean(text, index_length_all=None)` and `equals(a, b)`, each
+  with the keyword-only `plugins=()` and `max_labels=10000`;
 - `to_roman(num, lower_case=False)`, which raises `ValueError` outside 1–3999, and
   `from_roman(roman)`, which returns `None` for anything that isn't roman;
 - `alphabet(name, upper, lower=None)`. A system has `name`,

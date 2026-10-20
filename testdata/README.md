@@ -25,7 +25,7 @@ apply to it.
 | `input` | The sequence text. |
 | `plugins` | The names of the plugin systems that every call in the case is given, such as `["roman_additive"]`. Without it, none. |
 | `maxLabels` | The label limit that every call in the case is given. Without it, the default (10 000). |
-| `length` | The page count passed to the constructor. Without it, none. |
+| `length` | The page count passed to the constructor as `indexLengthAll`. Without it, none. |
 | `errors` | The input is invalid: every error the constructor may throw, as `{kind, position}`. It passes when the error it throws matches one entry, kind and position. `normalize` must throw a matching error too, unless `length` is set: `normalize` takes no page count. |
 | `pages` | The page model, `pages()`: one entry per document page, `{ignored, labels}`. |
 | `normalized` | `normalize(input)`, and `toString()` of the instance. |
@@ -34,7 +34,7 @@ apply to it.
 | `lengths` | `{indexLengthAll, indexLength, labelLength}`: `getIndexLengthAll()`, `getIndexLength()` and `getLabelLength()`. |
 | `lookups` | `[{pages, indexes, labels}]`: `getIndexList(pages)` and `getLabelList(pages)`. `null` means `undefined`/`None`. |
 | `equals` | `[{with, result}]`: `equals(input, with)`. |
-| `cleaned` | `[{length?, normalized?, errors?}]`: `clean(input, {length})`. `normalized` is the expected result; `errors` lists the error kinds it may throw instead. Positions aren't checked for `clean`, since its repairs are up to the implementation. |
+| `cleaned` | `[{length?, normalized?, errors?}]`: `clean(input, {indexLengthAll: length})`. `normalized` is the expected result; `errors` lists the error kinds it may throw instead. Positions aren't checked for `clean`, since its repairs are up to the implementation. |
 | `v1` | `conversion` only: the v1 string, from `../v2/list_of_grottan_in_v1.txt`. `input` is its v2 form, from `../v2/list_of_grottan_in_v2.txt`, and `pages` is the page model v1 gives it. |
 | `note` | A comment for people. |
 

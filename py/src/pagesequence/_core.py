@@ -700,15 +700,15 @@ class Cleaned(NamedTuple):
 
 def clean(
     text: str,
-    length: int | None = None,
+    index_length_all: int | None = None,
     *,
     plugins: Sequence[NumberingSystem] = (),
     max_labels: int = _DEFAULT_MAX_LABELS,
 ) -> Cleaned:
-    """Repair what a person typed or pasted, then normalise strictly. With ``length``, an open
-    range at the end is closed at that page count, and the result is checked against it."""
+    """Repair what a person typed or pasted, then normalise strictly. With ``index_length_all``, an
+    open range at the end is closed at that page count, and the result is checked against it."""
     ctx = _context(plugins, max_labels)
-    _check_length(length)
+    _check_length(index_length_all)
     repairs: list[str] = []
     cps = unicodedata.normalize("NFC", text)
     # Character repairs, outside straight quotes. Curly quotes become straight ones.
@@ -761,19 +761,20 @@ def clean(
         if is_open:
             open_range, open_at = is_open, len(items)
         items.append(repaired)
-    if not items and length is not None:
+    if not items and index_length_all is not None:
         open_range, open_at = (False, "1"), 0
         items.append("1-")
-    if open_range and open_at == len(items) - 1 and length is not None and _read_token(_integer, open_range[1]):
+    at_end = open_at == len(items) - 1
+    if open_range and at_end and index_length_all is not None and _read_token(_integer, open_range[1]):
         before = 0 if open_at == 0 else len(_parse(", ".join(items[:open_at]), ctx))
-        n = length - before
+        n = index_length_all - before
         if n < 1:
             raise PageSequenceError("open-end", 0, "open-end: no pages are left for the open range")
         ignored, label = open_range
         first = int(label)
         items[open_at] = ("!" if ignored else "") + (label if n == 1 else f"{first}-{first + n - 1}")
         repairs.append("open-end")
-    seq = PageSequence(", ".join(items), length, plugins=plugins, max_labels=max_labels)
+    seq = PageSequence(", ".join(items), index_length_all, plugins=plugins, max_labels=max_labels)
     return Cleaned(str(seq), repairs)
 
 
@@ -783,27 +784,27 @@ def clean(
 class PageSequence:
     """A page sequence: the labels printed on each page of a document.
 
-    ``PageSequence(text, length=None, *, plugins=(), max_labels=10000)`` parses ``text`` strictly
-    and raises ``PageSequenceError`` on invalid input. Pass the document's page count as ``length``
-    whenever it is known.
+    ``PageSequence(sequence, index_length_all=None, *, plugins=(), max_labels=10000)`` parses
+    ``sequence`` strictly and raises ``PageSequenceError`` on invalid input. Pass the document's
+    page count as ``index_length_all`` whenever it is known.
     """
 
     def __init__(
         self,
-        text: str,
-        length: int | None = None,
+        sequence: str,
+        index_length_all: int | None = None,
         *,
         plugins: Sequence[NumberingSystem] = (),
         max_labels: int = _DEFAULT_MAX_LABELS,
     ):
-        _check_length(length)
+        _check_length(index_length_all)
         self._ctx = _context(plugins, max_labels)
-        self._pages = _parse(text, self._ctx)
-        if length is not None and length != len(self._pages):
+        self._pages = _parse(sequence, self._ctx)
+        if index_length_all is not None and index_length_all != len(self._pages):
             raise PageSequenceError(
                 "length-mismatch",
                 None,
-                f"length-mismatch: the sequence has {len(self._pages)} document pages, not {length}",
+                f"length-mismatch: the sequence has {len(self._pages)} document pages, not {index_length_all}",
             )
         #: Lowercased label → (index, label as written), for the pages that are not ignored.
         self._lookup: dict[str, tuple[int, str]] = {}
@@ -813,10 +814,10 @@ class PageSequence:
                     self._lookup[label.lower()] = (index, label)
 
     @classmethod
-    def create(cls, text: str, length: int | None = None, **options) -> PageSequence | None:
+    def create(cls, sequence: str, index_length_all: int | None = None, **options) -> PageSequence | None:
         """Like the constructor, but gives ``None`` instead of raising ``PageSequenceError``."""
         try:
-            return cls(text, length, **options)
+            return cls(sequence, index_length_all, **options)
         except PageSequenceError:
             return None
 
