@@ -3,9 +3,9 @@
 *2026-10-21*
 
 The table of contents of the Swedish caving magazine Grottan says where each article starts, in the
-page numbers printed in the magazine: "s. 3–5". The issues are scanned to PDF, and we wanted each
-entry to open the right pages of it. That sounds like a lookup, until you notice that page 3 of
-the magazine is seldom page 3 of the PDF.
+page numbers printed in the magazine: "s. 7". The issues are scanned to PDF, and we wanted each
+entry to open the right pages of it. That sounds like a lookup, until you notice that page 7 of
+the magazine is seldom page 7 of the PDF. In none of the examples below is it.
 
 So next to the table of contents, each issue got a short string that says which printed page
 numbers, or *labels*, are on each page of its PDF. That string is the page sequence. The first
