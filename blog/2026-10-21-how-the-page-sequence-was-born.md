@@ -45,8 +45,8 @@ says so directly. The longer form is easier to read, both for people and for lan
 Newer issues come from the layout program, not the scanner. Their PDF has the cover, then every
 spread as one page, then the back cover.
 
-![The same eight-page issue as a born-digital PDF, made from the layout: the cover, three spreads
-and the back cover, five pages in all. The sequence is 1, 2+3..6+7, 8.](img/born-2-digital.svg)
+![An eight-page issue as a born-digital PDF, made from the layout: the cover, three spreads and the
+back cover, five pages in all. The sequence is 1, 2+3..6+7, 8.](img/born-2-digital.svg)
 
 ```
 1, 2+3, 4+5, 6+7, 8
