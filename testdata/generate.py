@@ -20,8 +20,8 @@ SV_UPPER, SV_LOWER = UPPER + "ÅÄÖ", LOWER + "åäö"
 GREEK_UPPER, GREEK_LOWER = "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ", "αβγδεζηθικλμνξοπρστυφχψω"
 HEBREW = "אבגדהוזחטיכלמנסעפצקרשת"
 ODD = ["Omslag", "Baksida", "notis", "Omslag, insida", "a b", 'My "label"', "1,2", "a-b", "a+b", "a..b",
-       "1990/1", "a\\b", ".5", "s.", "Hej!", "1–52", "x;y", "a|b", " ", "ß", "ss", "Ärende", "1.5"]
-RESERVED = list(',-+!"/\\;|…–—−“”„') + ["\t", ".."]
+       "1990/1", "3:12", "a\\b", ".5", "s.", "Hej!", "1–52", "x;y", "a|b", " ", "ß", "ss", "Ärende", "1.5"]
+RESERVED = list(',-+!":\\;|…–—−“”„') + ["\t", ".."]
 
 
 def roman(n, lower=False):
@@ -47,8 +47,8 @@ def segment(rng):
     """A run of pages: (pages, system), where system names what numbers it, or None."""
     kind = rng.choices(
         ["integer", "roman", "latin", "spread", "odd", "unlabelled", "roman_additive", "latin_sv", "greek",
-         "hebrew", "foldout"],
-        [30, 12, 12, 12, 8, 3, 5, 4, 4, 4, 3])[0]
+         "hebrew", "foldout", "parity"],
+        [30, 12, 12, 12, 8, 3, 5, 4, 4, 4, 3, 5])[0]
     lower = rng.random() < 0.5
     if kind == "integer":
         start = rng.choice([0, 1, rng.randint(1, 300), rng.randint(999_999_980, 999_999_985)])
@@ -79,6 +79,12 @@ def segment(rng):
             n = min(n, (26 - start) // width)
             return [[letters[start + p * width + c] for c in range(width)] for p in range(n)], "latin"
         return [[str(start + p * width + c) for c in range(width)] for p in range(n)], "integer"
+    if kind == "parity":
+        odd = rng.random() < 0.5
+        start = rng.choice([0, 1, rng.randint(1, 300)]) // 2 * 2 + odd
+        n = rng.randint(1, 10)
+        pre = rng.choice(["", "", "", "p", "Kap. "])
+        return [[f"{pre}{v}"] for v in range(start, start + 2 * n, 2)], "odd" if odd else "even"
     if kind == "unlabelled":
         return [rng.choice([[""], ["", str(rng.randint(1, 99))], [str(rng.randint(1, 99)), ""]])], None
     return [[rng.choice(ODD)] for _ in range(rng.randint(1, 2))], None
@@ -105,7 +111,7 @@ def model(rng):
 
 
 def bare_ok(label):
-    return re.fullmatch(r"[^\s\",\-+!/\\;|…–—−“”„.]([^\",\-+!/\\;|…–—−“”„]*[^\s\",\-+!/\\;|…–—−“”„.])?", label) \
+    return re.fullmatch(r"[^\s\",\-+!:\\;|…–—−“”„.]([^\",\-+!:\\;|…–—−“”„]*[^\s\",\-+!:\\;|…–—−“”„.])?", label) \
         and ".." not in label
 
 
@@ -129,7 +135,7 @@ def write(segments, rng, fold, spaced):
         width = len(pages[0])
         if system and len(pages) >= 2 and rng.random() < fold:
             op = "-" if width == 1 else ".."
-            flag = "/" + system if system not in ("roman", "latin", "integer") or rng.random() < 0.2 else ""
+            flag = ":" + system if system not in ("roman", "latin", "integer") or rng.random() < 0.2 else ""
             items.append(mark + page(pages[0]) + s() + op + s() + page(pages[-1]) + flag)
         else:
             items.extend(mark + page(p) for p in pages)
@@ -149,7 +155,7 @@ def broken(text, rng):
         items = text.split(", ")
         return ", ".join(items + [rng.choice(items)])
     if how == 3:
-        return text + rng.choice([",", ", ", "-", "+", "..", "/", "/latin", "/klingon", " !"])
+        return text + rng.choice([",", ", ", "-", "+", "..", ":", ":latin", ":klingon", " !"])
     if how == 4:
         return re.sub(r"(\w+)-(\w+)", r"\2-\1", text, count=1)
     if how == 5:

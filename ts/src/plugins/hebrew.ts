@@ -5,5 +5,5 @@
  */
 import { alphabet, type NumberingSystem } from "../pagesequence.ts";
 
-/** The Hebrew alphabet (`א-ת/hebrew`). */
+/** The Hebrew alphabet (`א-ת:hebrew`). */
 export const hebrew: NumberingSystem = /* @__PURE__ */ alphabet("hebrew", "אבגדהוזחטיכלמנסעפצקרשת");

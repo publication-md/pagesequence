@@ -2,5 +2,5 @@
 
 from .._core import alphabet
 
-#: The Greek alphabet (``Α-Ω/greek``).
+#: The Greek alphabet (``Α-Ω:greek``).
 greek = alphabet("greek", "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ", "αβγδεζηθικλμνξοπρστυφχψω")

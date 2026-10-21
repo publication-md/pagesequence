@@ -4,7 +4,7 @@
  */
 import { alphabet, type NumberingSystem } from "../pagesequence.ts";
 
-/** The Greek alphabet (`Α-Ω/greek`). */
+/** The Greek alphabet (`Α-Ω:greek`). */
 export const greek: NumberingSystem = /* @__PURE__ */ alphabet(
   "greek",
   "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ",

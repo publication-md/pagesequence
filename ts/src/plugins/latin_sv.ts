@@ -4,7 +4,7 @@
  */
 import { alphabet, type NumberingSystem } from "../pagesequence.ts";
 
-/** The Swedish alphabet (`A-Ö/latin_sv`). */
+/** The Swedish alphabet (`A-Ö:latin_sv`). */
 export const latinSv: NumberingSystem = /* @__PURE__ */ alphabet(
   "latin_sv",
   "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ",

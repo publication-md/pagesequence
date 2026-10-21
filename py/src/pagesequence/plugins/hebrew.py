@@ -3,5 +3,5 @@ This is the alphabet, not gematria."""
 
 from .._core import alphabet
 
-#: The Hebrew alphabet (``א-ת/hebrew``).
+#: The Hebrew alphabet (``א-ת:hebrew``).
 hebrew = alphabet("hebrew", "אבגדהוזחטיכלמנסעפצקרשת")

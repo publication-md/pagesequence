@@ -7,7 +7,7 @@ import type { NumberingSystem } from "../pagesequence.ts";
 
 const DIGITS = [[1000, "M"], [500, "D"], [100, "C"], [50, "L"], [10, "X"], [5, "V"], [1, "I"]] as const;
 
-/** Roman numerals without subtraction (`I-X/roman_additive`). */
+/** Roman numerals without subtraction (`I-X:roman_additive`). */
 export const romanAdditive: NumberingSystem = {
   name: "roman_additive",
   tokenChars: "IVXLCDMivxlcdm",

@@ -18,8 +18,8 @@ beyond the three built-in ones. The author has also decided that `!` and `"` are
 labels and must be quoted (1.4a), and that a test case lists every error it allows (1.2).
 
 **Numbering.** Items 1–7 are high priority and 8–20 medium. Item 21 collects the low-priority
-points and item 22 the open questions. Action points are numbered *item.point* (1.1, 1.2, …), and
-the entries of a sub-list add a letter (1.4a, 1.4b).
+points and item 22 the open questions. Item 23 was added after 2.0.0-rc.2. Action points are
+numbered *item.point* (1.1, 1.2, …), and the entries of a sub-list add a letter (1.4a, 1.4b).
 
 **Checkboxes.** A checkbox marks a point that is still an option. The author ticks the points to
 act on, and a point loses its box once it is implemented. So a ticked box is chosen but not done
@@ -656,7 +656,7 @@ prototype below wrote them with `\`.
   the author.*
 - **20.11** Write flags with `/` instead of `\`: `V-X/latin`. They then need no escaping in
   JSON, YAML or code. `/` becomes a reserved character, and `\` stays reserved as the escape inside
-  quotes. *Decided by the author.*
+  quotes. *Decided by the author. Replaced by 23.1: flags are written with `:`.*
 - **20.12** Build in only `roman`, `latin` and `integer`. Every other system is a plugin: a code
   module that ships in the package and is left out of code that doesn't use it. This replaces the
   data files of 20.6. *Decided by the author.*
@@ -756,3 +756,29 @@ prototype below wrote them with `\`.
 - **22.6 One config file for JSR.** `ts/deno.json` can be both the JSR config and the place for
   the local tasks, which makes `jsr.json` unnecessary. *Chosen by the author: `deno.json`, which
   the local tasks need anyway. `jsr.json` is gone from the layout and the publishing steps.*
+
+## 23. Flags with `:`, and the systems `odd` and `even`
+
+Added 2026-10-21, after 2.0.0-rc.2.
+
+**Problem.**
+- Flags are written with `/` (20.11), so `/` is reserved and a label such as `1990/1` must be
+  quoted. `:` reads as "of this kind", and it is how qpdf writes `:odd`.
+- A document scanned one side at a time has only odd or only even page numbers, such as the fronts
+  of the sheets followed by the backs. Its sequence must list every page: `1, 3, 5, …, 99`.
+
+**Action.**
+- **23.1** Write flags with `:` instead of `/`: `V-X:latin`, `I-X:roman_additive`, `A-Ö:latin_sv`.
+  `:` is reserved, so a label such as `3:12` is quoted. `/` is label text, so `1990/1` needs no
+  quotes. *Decided by the author, and applied in the spec, both implementations, `cases.json`, the
+  input generator and the docs. It replaces 20.11. The `yaml` package that publication-md uses
+  reads `pages: 1-9:odd` without quotes, also inside `{…}`.*
+- **23.2** Build in the systems `odd` and `even`, read only through a flag, like the plugin
+  systems: `1-9:odd` is 1, 3, 5, 7, 9, and `1-9:odd, 2-10:even` is the fronts, then the backs.
+  Their token characters are those of `integer`, so `p1-p9:odd` widens. *Decided by the author,
+  and applied.*
+- **23.3** In the normal form, a stretch read by `odd` or `even` counts only if its item, flag
+  included, is shorter than its pages written one by one: `1, 3, 5, 7` → `1-7:odd`, while `1, 3`,
+  `1, 3, 5` and `1, 3-48` (page 2 missing) stay as they are. Other flags keep the rule of 20.8.
+  *Decided by the author, and applied. Not chosen: folding from 2 pages, as for other flags, which
+  turns `1, 3-48` into `1-3:odd, 4-48`; and never folding, which writes `1-99:odd` as 50 pages.*

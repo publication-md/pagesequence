@@ -30,7 +30,7 @@ them out:
 import { normalize } from "@publication-md/pagesequence";
 import { romanAdditive } from "@publication-md/pagesequence/plugins/roman_additive";
 
-normalize("I, II, III, IIII, V", { plugins: [romanAdditive] }); // "I-V/roman_additive"
+normalize("I, II, III, IIII, V", { plugins: [romanAdditive] }); // "I-V:roman_additive"
 ```
 
 The plugins are `roman_additive`, `latin_sv`, `greek` and `hebrew`. The package has no dependencies and runs on Node 22

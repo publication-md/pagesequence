@@ -119,8 +119,27 @@ const integer: NumberingSystem = {
   },
 };
 
+/** The odd integers 1, 3, 5, … or the even ones 0, 2, 4, …, with values by position. */
+function parity(name: "odd" | "even"): NumberingSystem {
+  const offset = name === "odd" ? 1 : 0;
+  return {
+    name,
+    tokenChars: integer.tokenChars,
+    read(token) {
+      const r = integer.read(token);
+      return r && r.value % 2 === offset ? { value: (r.value + offset) / 2, style: "" } : undefined;
+    },
+    format(value) {
+      return Number.isInteger(value) ? integer.format(2 * value - offset, "") : undefined;
+    },
+  };
+}
+
 /** The built-in systems, in hierarchy order. */
 const BUILT_IN: readonly NumberingSystem[] = [roman, latin, integer];
+
+/** The built-in systems that, like plugins, are read only through a flag: `1-9:odd`. */
+const FLAG_ONLY: readonly NumberingSystem[] = [parity("even"), parity("odd")];
 
 const MAX_LABEL = 100;
 const DEFAULT_MAX_LABELS = 10_000;
@@ -128,18 +147,19 @@ const DEFAULT_MAX_LABELS = 10_000;
 /** The systems and limit one call reads with. */
 interface Context {
   byName: Map<string, NumberingSystem>;
-  /** The built-in systems in hierarchy order, then the plugins in name order (for the fold). */
+  /** The built-in systems in hierarchy order, then `even` and `odd`, then the plugins in name order (for the fold). */
   foldOrder: NumberingSystem[];
   maxLabels: number;
 }
 
 function context(options: Options = {}): Context {
-  const byName = new Map(BUILT_IN.map((s) => [s.name, s]));
+  const builtIn = [...BUILT_IN, ...FLAG_ONLY];
+  const byName = new Map(builtIn.map((s) => [s.name, s]));
   const plugins = [...(options.plugins ?? [])];
   for (const p of plugins) {
     if (byName.has(p.name)) {
       throw new TypeError(
-        `plugins: "${p.name}" is ${BUILT_IN.includes(byName.get(p.name)!) ? "built in" : "given twice"}`,
+        `plugins: "${p.name}" is ${builtIn.includes(byName.get(p.name)!) ? "built in" : "given twice"}`,
       );
     }
     byName.set(p.name, p);
@@ -149,20 +169,20 @@ function context(options: Options = {}): Context {
   if (!Number.isInteger(maxLabels) || maxLabels < 1) {
     throw new RangeError(`maxLabels: ${maxLabels} is not a positive integer`);
   }
-  return { byName, foldOrder: [...BUILT_IN, ...plugins], maxLabels };
+  return { byName, foldOrder: [...builtIn, ...plugins], maxLabels };
 }
 
 // ---------------------------------------------------------------- Syntax
 
 /** Reserved outside quotes: the operators, the characters `clean` repairs, and `\`. */
-const RESERVED = new Set([...',-+!"/\\;|…–—−“”„']);
+const RESERVED = new Set([...',-+!":\\;|…–—−“”„']);
 const isControl = (c: string) => c <= "\u001f" || (c >= "\u007f" && c <= "\u009f");
 const isReserved = (c: string) => RESERVED.has(c) || isControl(c);
 
 type Token =
   | { t: "label"; text: string }
   | { t: "-" | "+" | ".." | "|" }
-  | { t: "/"; name: string };
+  | { t: ":"; name: string };
 
 interface LexedItem {
   /** The first non-space character, or just after the comma for an empty item. */
@@ -224,11 +244,11 @@ function lexItem(cps: string[], i: number, pipe = false): LexedItem {
       tokens.push({ t: ".." });
       j += 2;
       labelStarts = true;
-    } else if (c === "/") {
+    } else if (c === ":") {
       j++;
       let name = "";
       while (/^[a-z0-9_]$/.test(cps[j] ?? "")) name += cps[j++];
-      tokens.push({ t: "/", name });
+      tokens.push({ t: ":", name });
       labelStarts = false;
     } else if (isReserved(c)) {
       fail("reserved-char");
@@ -289,7 +309,7 @@ function parseItem(lexed: LexedItem, ref = false): Item {
       if (first.length === 1 && last.length === 1) fail("single-label-run");
       if (first.length !== last.length) fail("run-shape");
     }
-    if (tokens[k]?.t === "/") {
+    if (tokens[k]?.t === ":") {
       const flag = tokens[k++] as { name: string };
       if (flag.name === "") fail("syntax");
       item.flag = flag.name;
@@ -299,7 +319,7 @@ function parseItem(lexed: LexedItem, ref = false): Item {
     } else {
       item.last = last;
     }
-  } else if (op?.t === "/") {
+  } else if (op?.t === ":") {
     fail("reserved-char");
   }
   if (k < tokens.length) fail("syntax");
@@ -495,6 +515,16 @@ function fold(pages: Page[], ctx: Context): string {
     const next = pages[i + 1];
     const width = page.labels.length;
     const same = (q: Page | undefined) => q !== undefined && q.ignored === page.ignored && q.labels.length === width;
+    const mark = page.ignored ? "!" : "";
+    /** The `n` pages from `i` as one item, with the flag if they would read as other pages without it. */
+    const asItem = (n: number, system: NumberingSystem) => {
+      const stretch = pages.slice(i, i + n);
+      const last = stretch[n - 1].labels;
+      const item = mark + writePage(page.labels) + (width === 1 ? "-" : "..") + writePage(last);
+      return readsAs(stretch, page.labels, last) ? item : item + ":" + system.name;
+    };
+    /** The `n` pages from `i` written one by one. */
+    const listed = (n: number) => pages.slice(i, i + n).map((q) => mark + writePage(q.labels)).join(", ");
     let best: { system: NumberingSystem; n: number } | undefined;
     if (same(next)) {
       for (const system of ctx.foldOrder) {
@@ -510,16 +540,15 @@ function fold(pages: Page[], ctx: Context): string {
           same(pages[i + n]) &&
           steps.every((s, c) => labelAt(s, s.first.value + n * width) === pages[i + n].labels[c])
         ) n++;
+        // `odd` and `even` only where they make the item shorter, so that `1, 3-48` stays as it is.
+        if (FLAG_ONLY.includes(system) && Array.from(asItem(n, system)).length >= Array.from(listed(n)).length) {
+          continue;
+        }
         if (!best || n > best.n) best = { system, n };
       }
     }
-    const mark = page.ignored ? "!" : "";
     if (best && best.n >= (width === 1 ? 2 : 3)) {
-      const stretch = pages.slice(i, i + best.n);
-      const last = stretch[stretch.length - 1].labels;
-      let item = mark + writePage(page.labels) + (width === 1 ? "-" : "..") + writePage(last);
-      if (!readsAs(stretch, page.labels, last)) item += "/" + best.system.name;
-      items.push(item);
+      items.push(asItem(best.n, best.system));
       i += best.n;
     } else {
       items.push(mark + writePage(page.labels));
@@ -596,7 +625,7 @@ function splitItems(text: string): string[] {
 }
 
 const writeTokens = (tokens: Token[]) =>
-  tokens.map((t) => (t.t === "label" ? quote(t.text) : t.t === "/" ? "/" + t.name : t.t)).join("");
+  tokens.map((t) => (t.t === "label" ? quote(t.text) : t.t === ":" ? ":" + t.name : t.t)).join("");
 
 /** Labels of a lexed page sequence of tokens: [label, "+", label, …] → number of labels, or 0. */
 function pageWidth(tokens: Token[]): number {
@@ -625,7 +654,7 @@ function cleanItem(text: string, repairs: string[]): { text: string; open?: { ig
   const mark = lexed.ignored ? "!" : "";
   if (ops.length === 1) {
     const at = tokens.indexOf(ops[0]);
-    const flagged = tokens[tokens.length - 1].t === "/";
+    const flagged = tokens[tokens.length - 1].t === ":";
     const left = tokens.slice(0, at);
     const right = tokens.slice(at + 1, flagged ? -1 : undefined);
     const wl = pageWidth(left);

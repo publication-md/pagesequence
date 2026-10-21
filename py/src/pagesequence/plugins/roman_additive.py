@@ -29,5 +29,5 @@ class _RomanAdditive:
         return result.lower() if style == "lower" else result
 
 
-#: Roman numerals without subtraction (``I-X/roman_additive``).
+#: Roman numerals without subtraction (``I-X:roman_additive``).
 roman_additive = _RomanAdditive()

@@ -24,7 +24,7 @@ const plain = (pages: Page[]) =>
   pages.map((p) => (p.ignored ? "!" : "") + p.labels.map(quoteLabel).join("+")).join(", ");
 
 function flagChars(normalized: string): number {
-  // A flag is "/" and a name after the last label of an item; quoted labels may contain "/".
+  // A flag is ":" and a name after the last label of an item; quoted labels may contain ":".
   let n = 0;
   let quoted = false;
   const cps = Array.from(normalized);
@@ -35,7 +35,7 @@ function flagChars(normalized: string): number {
       continue;
     }
     if (c === '"') quoted = !quoted;
-    else if (c === "/" && !quoted) {
+    else if (c === ":" && !quoted) {
       let j = i + 1;
       while (j < cps.length && cps[j] !== "," && cps[j] !== " ") j++;
       n += j - i;

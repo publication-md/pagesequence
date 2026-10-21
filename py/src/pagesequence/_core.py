@@ -95,12 +95,33 @@ class _Integer:
 
 
 _integer = _Integer()
+
+
+class _Parity:
+    """The odd integers 1, 3, 5, … or the even ones 0, 2, 4, …, with values by position."""
+
+    token_chars = _Integer.token_chars
+
+    def __init__(self, name: str):
+        self.name = name
+        self._offset = 1 if name == "odd" else 0
+
+    def read(self, token: str) -> tuple[int, str] | None:
+        r = _integer.read(token)
+        return ((r[0] + self._offset) // 2, "") if r and r[0] % 2 == self._offset else None
+
+    def format(self, value: int, style: str) -> str | None:
+        return _integer.format(2 * value - self._offset, "")
+
+
 #: The built-in systems, in hierarchy order.
 _BUILT_IN: tuple[NumberingSystem, ...] = (
     _Roman(),
     alphabet("latin", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"),
     _integer,
 )
+#: The built-in systems that, like plugins, are read only through a flag: ``1-9:odd``.
+_FLAG_ONLY: tuple[NumberingSystem, ...] = (_Parity("even"), _Parity("odd"))
 
 _MAX_LABEL = 100
 _DEFAULT_MAX_LABELS = 10_000
@@ -111,27 +132,29 @@ class _Context:
     """The systems and limit one call reads with."""
 
     by_name: dict[str, NumberingSystem]
-    #: The built-in systems in hierarchy order, then the plugins in name order (for the fold).
+    #: The built-in systems in hierarchy order, then ``even`` and ``odd``, then the plugins in name order
+    #: (for the fold).
     fold_order: list[NumberingSystem]
     max_labels: int
 
 
 def _context(plugins: Sequence[NumberingSystem] = (), max_labels: int = _DEFAULT_MAX_LABELS) -> _Context:
-    by_name = {s.name: s for s in _BUILT_IN}
+    built_in = (*_BUILT_IN, *_FLAG_ONLY)
+    by_name = {s.name: s for s in built_in}
     for p in plugins:
         if p.name in by_name:
-            what = "built in" if by_name[p.name] in _BUILT_IN else "given twice"
+            what = "built in" if by_name[p.name] in built_in else "given twice"
             raise TypeError(f'plugins: "{p.name}" is {what}')
         by_name[p.name] = p
     if isinstance(max_labels, bool) or not isinstance(max_labels, int) or max_labels < 1:
         raise ValueError(f"max_labels: {max_labels!r} is not a positive integer")
-    return _Context(by_name, [*_BUILT_IN, *sorted(plugins, key=lambda p: p.name)], max_labels)
+    return _Context(by_name, [*built_in, *sorted(plugins, key=lambda p: p.name)], max_labels)
 
 
 # ---------------------------------------------------------------- Syntax
 
 #: Reserved outside quotes: the operators, the characters ``clean`` repairs, and ``\``.
-_RESERVED = set(',-+!"/\\;|…–—−“”„')
+_RESERVED = set(',-+!":\\;|…–—−“”„')
 
 
 def _is_control(c: str) -> bool:
@@ -144,7 +167,7 @@ def _is_reserved(c: str) -> bool:
 
 @dataclass
 class _Token:
-    #: "label", "-", "+", "..", "|" or "/".
+    #: "label", "-", "+", "..", "|" or ":".
     t: str
     #: The label's text, or the flag's name.
     text: str = ""
@@ -215,12 +238,12 @@ def _lex_item(cps: str, i: int, pipe: bool = False) -> _LexedItem:
             tokens.append(_Token(".."))
             j += 2
             label_starts = True
-        elif c == "/":
+        elif c == ":":
             j += 1
             k = j
             while k < n and re.fullmatch(r"[a-z0-9_]", cps[k]):
                 k += 1
-            tokens.append(_Token("/", cps[j:k]))
+            tokens.append(_Token(":", cps[j:k]))
             j = k
             label_starts = False
         elif _is_reserved(c):
@@ -293,7 +316,7 @@ def _parse_item(lexed: _LexedItem, ref: bool = False) -> _Item:
                 fail("single-label-run")
             if len(first) != len(last):
                 fail("run-shape")
-        if k < len(tokens) and tokens[k].t == "/":
+        if k < len(tokens) and tokens[k].t == ":":
             if tokens[k].text == "":
                 fail("syntax")
             item.flag = tokens[k].text
@@ -303,7 +326,7 @@ def _parse_item(lexed: _LexedItem, ref: bool = False) -> _Item:
                 fail("equal-ends")
         else:
             item.last = last
-    elif op == "/":
+    elif op == ":":
         fail("reserved-char")
     if k < len(tokens):
         fail("syntax")
@@ -544,6 +567,19 @@ def _fold(pages: list[dict], ctx: _Context) -> str:
         def same(q: int) -> bool:
             return q < len(pages) and pages[q]["ignored"] == page["ignored"] and len(pages[q]["labels"]) == width
 
+        mark = "!" if page["ignored"] else ""
+
+        def as_item(n: int, system: NumberingSystem) -> str:
+            """``n`` pages from ``i`` as one item, flagged if they would read as other pages without it."""
+            stretch = pages[i : i + n]
+            last = stretch[-1]["labels"]
+            item = mark + _write_page(page["labels"]) + ("-" if width == 1 else "..") + _write_page(last)
+            return item if _reads_as(stretch, page["labels"], last) else item + ":" + system.name
+
+        def listed(n: int) -> str:
+            """``n`` pages from ``i`` written one by one."""
+            return ", ".join(mark + _write_page(q["labels"]) for q in pages[i : i + n])
+
         best = None
         if same(i + 1):
             nxt = pages[i + 1]
@@ -561,16 +597,13 @@ def _fold(pages: list[dict], ctx: _Context) -> str:
                     _label_at(s, s.first[0] + n * width) == pages[i + n]["labels"][c] for c, s in enumerate(steps)
                 ):
                     n += 1
+                # ``odd`` and ``even`` only where they make the item shorter, so that ``1, 3-48`` stays as it is.
+                if system in _FLAG_ONLY and len(as_item(n, system)) >= len(listed(n)):
+                    continue
                 if best is None or n > best[1]:
                     best = (system, n)
-        mark = "!" if page["ignored"] else ""
         if best is not None and best[1] >= (2 if width == 1 else 3):
-            stretch = pages[i : i + best[1]]
-            last = stretch[-1]["labels"]
-            item = mark + _write_page(page["labels"]) + ("-" if width == 1 else "..") + _write_page(last)
-            if not _reads_as(stretch, page["labels"], last):
-                item += "/" + best[0].name
-            items.append(item)
+            items.append(as_item(best[1], best[0]))
             i += best[1]
         else:
             items.append(mark + _write_page(page["labels"]))
@@ -654,7 +687,7 @@ def _split_items(text: str) -> list[str]:
 
 
 def _write_tokens(tokens: list[_Token]) -> str:
-    return "".join(_quote(t.text) if t.t == "label" else "/" + t.text if t.t == "/" else t.t for t in tokens)
+    return "".join(_quote(t.text) if t.t == "label" else ":" + t.text if t.t == ":" else t.t for t in tokens)
 
 
 def _page_width(tokens: list[_Token]) -> int:
@@ -683,7 +716,7 @@ def _clean_item(text: str, repairs: list[str]) -> tuple[str, tuple[bool, str] | 
     mark = "!" if lexed.ignored else ""
     if len(ops) == 1:
         at = next(k for k, t in enumerate(tokens) if t.t in ("-", ".."))
-        flagged = tokens[-1].t == "/"
+        flagged = tokens[-1].t == ":"
         left = tokens[:at]
         right = tokens[at + 1 : len(tokens) - 1 if flagged else len(tokens)]
         wl, wr = _page_width(left), _page_width(right)

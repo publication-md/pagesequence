@@ -17,6 +17,8 @@ class Api(unittest.TestCase):
     def test_builtin_name_in_plugins(self):
         with self.assertRaises(TypeError):
             normalize("1-3", plugins=[alphabet("latin", "AB", "ab")])
+        with self.assertRaises(TypeError):
+            normalize("1-3", plugins=[alphabet("odd", "AB", "ab")])
 
     def test_same_name_twice(self):
         with self.assertRaises(TypeError):
@@ -25,7 +27,7 @@ class Api(unittest.TestCase):
     def test_custom_alphabet(self):
         plugins = [alphabet("x_abc", "ABC")]
         self.assertEqual(normalize("A, B, C", plugins=plugins), "A-C")
-        self.assertEqual(PageSequence("A-C/x_abc", plugins=plugins).get_label_list(), ["A", "B", "C"])
+        self.assertEqual(PageSequence("A-C:x_abc", plugins=plugins).get_label_list(), ["A", "B", "C"])
 
     def test_index_length_all_argument(self):
         self.assertEqual(PageSequence("1-3", 3).get_index_length_all(), 3)
@@ -42,9 +44,9 @@ class Api(unittest.TestCase):
         self.assertEqual(clean(sequence="1–3").normalized, "1-3")
 
     def test_instance_keeps_plugins(self):
-        seq = PageSequence("A-Ö/latin_sv", plugins=[latin_sv])
-        self.assertEqual(seq.get_index_list("Å-Ö/latin_sv"), [26, 27, 28])
-        self.assertEqual(str(seq), "A-Ö/latin_sv")
+        seq = PageSequence("A-Ö:latin_sv", plugins=[latin_sv])
+        self.assertEqual(seq.get_index_list("Å-Ö:latin_sv"), [26, 27, 28])
+        self.assertEqual(str(seq), "A-Ö:latin_sv")
 
     def test_max_labels_positive(self):
         with self.assertRaises(ValueError):

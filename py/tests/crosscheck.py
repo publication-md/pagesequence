@@ -27,7 +27,7 @@ def plain(pages):
 
 
 def flag_chars(normalized):
-    # A flag is "/" and a name after the last label of an item; quoted labels may contain "/".
+    # A flag is ":" and a name after the last label of an item; quoted labels may contain ":".
     n, quoted, i = 0, False, 0
     while i < len(normalized):
         c = normalized[i]
@@ -36,7 +36,7 @@ def flag_chars(normalized):
             continue
         if c == '"':
             quoted = not quoted
-        elif c == "/" and not quoted:
+        elif c == ":" and not quoted:
             j = i + 1
             while j < len(normalized) and normalized[j] not in ", ":
                 j += 1

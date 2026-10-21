@@ -13,6 +13,7 @@ test("roman round trip, 1–3999, both cases", () => {
 
 test("a plugin with a built-in name throws", () => {
   assert.throws(() => normalize("1-3", { plugins: [alphabet("latin", "AB", "ab")] }), TypeError);
+  assert.throws(() => normalize("1-3", { plugins: [alphabet("odd", "AB", "ab")] }), TypeError);
 });
 
 test("two plugins with the same name throw", () => {
@@ -22,7 +23,7 @@ test("two plugins with the same name throw", () => {
 test("a custom alphabet", () => {
   const plugins = [alphabet("x_abc", "ABC")];
   assert.equal(normalize("A, B, C", { plugins }), "A-C");
-  assert.deepEqual(new PageSequence("A-C/x_abc", { plugins }).getLabelList(), ["A", "B", "C"]);
+  assert.deepEqual(new PageSequence("A-C:x_abc", { plugins }).getLabelList(), ["A", "B", "C"]);
 });
 
 test("the constructor takes the page count as its second argument", () => {
@@ -32,9 +33,9 @@ test("the constructor takes the page count as its second argument", () => {
 });
 
 test("an instance keeps its plugins for lookups and toString", () => {
-  const seq = new PageSequence("A-Ö/latin_sv", { plugins: [latinSv] });
-  assert.deepEqual(seq.getIndexList("Å-Ö/latin_sv"), [26, 27, 28]);
-  assert.equal(seq.toString(), "A-Ö/latin_sv");
+  const seq = new PageSequence("A-Ö:latin_sv", { plugins: [latinSv] });
+  assert.deepEqual(seq.getIndexList("Å-Ö:latin_sv"), [26, 27, 28]);
+  assert.equal(seq.toString(), "A-Ö:latin_sv");
 });
 
 test("maxLabels must be a positive integer", () => {

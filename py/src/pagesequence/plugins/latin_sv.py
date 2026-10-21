@@ -2,5 +2,5 @@
 
 from .._core import alphabet
 
-#: The Swedish alphabet (``A-Ö/latin_sv``).
+#: The Swedish alphabet (``A-Ö:latin_sv``).
 latin_sv = alphabet("latin_sv", "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ", "abcdefghijklmnopqrstuvwxyzåäö")

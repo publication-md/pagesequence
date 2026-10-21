@@ -28,7 +28,7 @@ The plugin systems are imported from their own modules and passed in each call:
 from pagesequence import normalize
 from pagesequence.plugins.roman_additive import roman_additive
 
-normalize("I, II, III, IIII, V", plugins=[roman_additive])  # "I-V/roman_additive"
+normalize("I, II, III, IIII, V", plugins=[roman_additive])  # "I-V:roman_additive"
 ```
 
 The plugins are `roman_additive`, `latin_sv`, `greek` and `hebrew`. The package has no

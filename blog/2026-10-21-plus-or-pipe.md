@@ -73,8 +73,8 @@ We kept `+`, for three reasons:
 2. **The catalogue meaning is close.** `xii+345` means "this and that together", which is what
    `2+3` says about one page.
 3. **The alternatives are worse.** `|` failed in practice. `&` reads as "and", but it is special in
-   shells, in HTML and in URL query strings. `/` already names a numbering system (`V-X/latin`) and
-   appears in labels such as `1990/1`. `:` reads as a ratio, and `~` as "about".
+   shells, in HTML and in URL query strings. `:` already names a numbering system (`V-X:latin`),
+   `/` appears in labels such as `1990/1`, and `~` reads as "about".
 
 ## One thing to watch: URLs
 

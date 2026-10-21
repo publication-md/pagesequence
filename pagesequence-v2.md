@@ -48,8 +48,9 @@ problems.
   at run time or in its tests. Numbering systems beyond the three built-in ones are plugins, which
   code that doesn't use them leaves out. Only the npm build uses a tool, the TypeScript compiler.
 - **Every numbering written exactly:** where the reading rule picks the wrong system, or a
-  publication numbers its pages its own way, a flag names the system: `V-X/latin`,
-  `I-X/roman_additive`.
+  publication numbers its pages its own way, a flag names the system: `V-X:latin`,
+  `I-X:roman_additive`, or the odd or even numbers of a document scanned one side at a time:
+  `1-99:odd`.
 
 ## Why these characters
 
@@ -63,9 +64,11 @@ problems.
 - **`..` for a run of pages:** it is well known from programming ("from … to"), and it can step
   pages with several labels. `-` can't do that: `2+3-46+47` reads as arithmetic.
 - **`!` unchanged:** it marks an ignored page.
-- **`/` for a flag:** it names the numbering system of a range or run (`V-X/latin`). Unlike `\`,
-  it needs no escaping in JSON, YAML, JavaScript or Python strings. None of the known strings
-  contains a `/`. `\` stays reserved, since it is the escape inside quoted labels.
+- **`:` for a flag:** it names the numbering system of a range or run (`V-X:latin`, `1-99:odd`),
+  the way qpdf writes `:odd`. It reads as "of this kind", and unlike `\` it needs no escaping in
+  JSON, YAML, JavaScript or Python strings. None of the known strings contains a `:`, and a label
+  that does, such as `3:12`, is quoted. `/` is label text, so labels such as `1990/1` need no
+  quotes. `\` stays reserved, since it is the escape inside quoted labels.
 
 ## Choices that keep it small
 
@@ -75,13 +78,14 @@ without dependencies:
 - **Three built-in numbering systems:** roman numerals, Latin letters and integers. Every other
   system is a plugin, read only through a flag. `roman_additive`, `latin_sv`, `greek` and `hebrew`
   ship with the package, and code that doesn't pass them in leaves them out (see "Plugins").
+  `odd` and `even` are built in, but they too are read only through a flag.
   Fixed-width integers (`08`) and aliases are left out until a real case needs them (see
   "Later").
 - **A simple strict model.** Only the plain space is whitespace, and control characters are
   reserved. What `clean` accepts on top of that may differ between languages.
 - **One rule where roman numerals and letters collide:** the reading that ends lowest wins. That
   makes `C-D` letters and `V-X` roman, without a special case for I, V and X. A flag gives the
-  other reading: `V-X/latin`. So the normal form never has to shorten a stretch to avoid a
+  other reading: `V-X:latin`. So the normal form never has to shorten a stretch to avoid a
   collision.
 - **A linear normal form:** it is built in one pass. Together with the limits (10 000 labels by
   default, 100 code points per label, 9-digit integers), this also bounds the work done on hostile
@@ -169,8 +173,8 @@ v1 is used in one project, so it is converted once rather than supported.
 - **Single-letter ranges** such as `C-D`, `L-M` and `I-L` read as letters. v1 read them as roman.
 - **A number with a leading zero can't be a range end.** `08-12` is an error; v1 read it as 8, 9,
   …, dropping the zero.
-- **`!`, `"`, `/`, `\` and control characters are reserved,** so a label that contains one is
-  quoted: `"1990/1"`.
+- **`!`, `"`, `:`, `\` and control characters are reserved,** so a label that contains one is
+  quoted: `"3:12"`. `/` is label text: `1990/1`.
 - **References** (`getIndexList(sequence)`) are read as v2 sequences, plus two repairs: dashes
   and equal ends. Each index appears once, in first-seen order. v1 could repeat an index:
   `[19, 20, …, 27, 19]`.
@@ -185,7 +189,8 @@ v1 is used in one project, so it is converted once rather than supported.
   `fromRoman` tells whether a token is roman.
 - **New functions:** `labelsAt`, `pages()`, `toString()`, `normalize`, `clean`, `equals` and
   `alphabet`.
-- **New syntax:** flags (`V-X/latin`), and the plugin systems they name. Every call that reads a
+- **New syntax:** flags (`V-X:latin`), the plugin systems they name, and the built-in `odd` and
+  `even` (`1-99:odd`). Every call that reads a
   sequence takes the plugin systems in a `plugins` option. The constructor keeps v1's arguments,
   `sequence` and `indexLengthAll`. The page count is its second argument, as in v1, or is given in
   `{ indexLengthAll, plugins, maxLabels }`.
@@ -287,12 +292,13 @@ normalisation, cleaning, lookups, limits and conversion. The groups include:
   - the reading rule: `C-D`, `V-X`, `I-M`, `x-l`, `iv-ix`, `xi-xl`, `CC-CD`;
   - widening that doesn't cross case: `Civ-Cix`, `"Kap. Ci"-"Kap. Civ"`, `Di-Div`;
   - roman numerals that are not canonical: `IIII-V` is `no-system`.
-- **flags:** `V-X/latin`, `V-X/roman` → `V-X`, the letters I…X → `I-X/latin`, and the errors
-  `1-5/klingon`, `V/latin`, `1-5/` and `IV-X/roman_additive`.
+- **flags:** `V-X:latin`, `V-X:roman` → `V-X`, the letters I…X → `I-X:latin`, `odd` and `even`
+  (`1, 3, 5, 7` → `1-7:odd`, while `1, 3-48` stays), and the errors `1-5:klingon`, `V:latin`,
+  `1-5:`, `IV-X:roman_additive` and `2-9:odd`.
 - **unlabelled pages:** `""` more than once, `""+2`, and a lookup that contains `""`, which gives
   `undefined`.
 - **plugins:** each plugin system, with its normal forms with and without the plugin:
-  A…Ö is `A-Ö/latin_sv` or `A-Z, Å, Ä, Ö`.
+  A…Ö is `A-Ö:latin_sv` or `A-Z, Å, Ä, Ö`.
 - **cleaning:**
   - open ends that can't be closed: `i-`, `A-`, `08-`, `inflikat.1-`;
   - `-` between spreads: `2+3-46+47` → `2+3..46+47`, while `1-3+4-6` stays an error.
@@ -312,10 +318,10 @@ test library:
 
 1. A seeded generator writes a few thousand random inputs to a file. Each input is a page model
    built from:
-   - runs of integers, roman numerals, letters and prefixed labels;
+   - runs of integers, roman numerals, letters and prefixed labels, and of odd or even integers;
    - runs in the plugin systems;
    - single pages, spreads and ignored pages;
-   - odd labels (spaces, quotes, `,`, `-`, `+`, `..`, `/`, `\`).
+   - odd labels (spaces, quotes, `,`, `-`, `+`, `..`, `:`, `/`, `\`).
 
    Each model is written as a plain list, partly folded, and with extra spaces. Each input is run
    twice: with no plugin systems, and with all of them.
@@ -401,4 +407,5 @@ version:
   (item 20.6b of the review).
 - **Fixed-width integers** (`08-12`).
 - **Aliases,** such as the Greek final sigma and the Hebrew final forms.
-- **A run stepping by something other than its width,** e.g. every second page.
+- **Other steps,** such as every third page, or a run stepping by something other than its width.
+  `odd` and `even` already cover every second integer.
