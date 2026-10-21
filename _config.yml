@@ -1,0 +1,11 @@
+# GitHub Pages builds the documents of this repo, served at https://publication-md.github.io/pagesequence/
+# with README.md as the front page. The code and the test data are left out.
+title: PageSequence
+description: Map the pages of a document to the labels printed on them.
+exclude:
+  - ts
+  - py
+  - testdata
+  - v2
+  - repos
+  - check.sh

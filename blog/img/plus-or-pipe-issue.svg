@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 612 220" width="612" height="220">
+  <title>An issue with a cover, three spreads and a back cover: five document pages, written 1,2|3,4|5,6|7,8 in v1 and 1, 2+3..6+7, 8 in v2</title>
+  <style>
+    .ink { fill: #1f2328 } .line { stroke: #1f2328 } .muted { fill: #59636e }
+    @media (prefers-color-scheme: dark) {
+      .ink { fill: #e6edf3 } .line { stroke: #e6edf3 } .muted { fill: #9198a1 }
+    }
+    .print { fill: #1f2328; font-family: Georgia, "Times New Roman", serif; font-size: 13px }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 15px }
+    .sans { font-family: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px }
+    .join { fill: #d9480f }
+  </style>
+  <defs>
+    <!-- The page shapes of the publication-md logo, with thinner lines. -->
+    <symbol id="spread" viewBox="28 50 200 160">
+      <g stroke="currentColor" stroke-width="6" stroke-linejoin="round" fill="#ffffff">
+        <path d="M128 72 C104 56 64 54 32 62 V194 C64 186 104 188 128 204 Z"/>
+        <path d="M128 72 C152 56 192 54 224 62 V194 C192 186 152 188 128 204 Z"/>
+      </g>
+      <g stroke-width="4" stroke-linecap="round" stroke="#8c959f">
+        <line x1="52" y1="92" x2="96" y2="94" stroke="#d9480f" stroke-width="8"/>
+        <line x1="52" y1="116" x2="108" y2="119"/>
+        <line x1="52" y1="136" x2="108" y2="139"/>
+        <line x1="148" y1="94" x2="204" y2="92"/>
+        <line x1="148" y1="119" x2="204" y2="116"/>
+        <line x1="148" y1="139" x2="204" y2="136"/>
+      </g>
+    </symbol>
+    <symbol id="cover" viewBox="28 50 104 160">
+      <rect x="32" y="62" width="96" height="132" fill="#ffffff" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/>
+      <line x1="52" y1="96" x2="108" y2="96" stroke="#d9480f" stroke-width="12" stroke-linecap="round"/>
+      <line x1="52" y1="122" x2="92" y2="122" stroke="#8c959f" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="leaf" viewBox="28 50 104 160">
+      <rect x="32" y="62" width="96" height="132" fill="#ffffff" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/>
+      <g stroke-width="4" stroke-linecap="round" stroke="#8c959f">
+        <line x1="52" y1="96" x2="108" y2="96"/>
+        <line x1="52" y1="116" x2="108" y2="116"/>
+        <line x1="52" y1="136" x2="96" y2="136"/>
+      </g>
+    </symbol>
+  </defs>
+
+  <!-- The five document pages, with the labels printed on them. -->
+  <g color="#1f2328">
+    <use xlink:href="#cover" href="#cover" x="112" y="16" width="52" height="80"/>
+    <use xlink:href="#spread" href="#spread" x="182" y="16" width="100" height="80"/>
+    <use xlink:href="#spread" href="#spread" x="300" y="16" width="100" height="80"/>
+    <use xlink:href="#spread" href="#spread" x="418" y="16" width="100" height="80"/>
+    <use xlink:href="#leaf" href="#leaf" x="536" y="16" width="52" height="80"/>
+  </g>
+  <g class="print">
+    <text x="154" y="81" text-anchor="end">1</text>
+    <text x="192" y="81">2</text><text x="272" y="81" text-anchor="end">3</text>
+    <text x="310" y="81">4</text><text x="390" y="81" text-anchor="end">5</text>
+    <text x="428" y="81">6</text><text x="508" y="81" text-anchor="end">7</text>
+    <text x="546" y="81">8</text>
+  </g>
+
+  <!-- Document page numbers. -->
+  <g class="sans muted" text-anchor="middle">
+    <text x="16" y="124" text-anchor="start">document page</text>
+    <text x="138" y="124">1</text><text x="232" y="124">2</text><text x="350" y="124">3</text>
+    <text x="468" y="124">4</text><text x="562" y="124">5</text>
+  </g>
+
+  <!-- v1: one item per document page. -->
+  <text class="sans ink" x="16" y="160" font-weight="600">v1</text>
+  <g class="code ink" text-anchor="middle">
+    <text x="138" y="160">1</text><text x="173" y="160">,</text>
+    <text x="232" y="160">2<tspan class="join">|</tspan>3</text><text x="291" y="160">,</text>
+    <text x="350" y="160">4<tspan class="join">|</tspan>5</text><text x="409" y="160">,</text>
+    <text x="468" y="160">6<tspan class="join">|</tspan>7</text><text x="527" y="160">,</text>
+    <text x="562" y="160">8</text>
+  </g>
+
+  <!-- v2: the three spreads are one run. -->
+  <path class="line" d="M186 186 V180 H514 V186" fill="none" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="sans ink" x="16" y="206" font-weight="600">v2</text>
+  <g class="code ink" text-anchor="middle">
+    <text x="138" y="206">1</text><text x="173" y="206">,</text>
+    <text x="350" y="206">2<tspan class="join">+</tspan>3..6<tspan class="join">+</tspan>7</text>
+    <text x="527" y="206">,</text><text x="562" y="206">8</text>
+  </g>
+</svg>
